@@ -11,9 +11,17 @@ public class UIManager : MonoBehaviour
         string choice = game.Selected == PlayerAction.Hold ? "[보유]  매도" : " 보유  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;
 
-        if (game.IsRoundOver)
+        if (game.IsRoundCleared)
         {
-            message += game.PlayerWon ? "\n승리! - R로 재시작" : "\n패배... - R로 재시작";
+            message += $"\n라운드 {game.RoundNumber} 클리어! - Space로 다음 라운드";
+        }
+        else if (game.IsFinalVictory)
+        {
+            message += "\n최종 승리! - R로 처음부터";
+        }
+        else if (game.IsRoundOver)
+        {
+            message += "\n패배... - R로 재시작";
         }
 
         statusText.text =

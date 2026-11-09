@@ -33,11 +33,14 @@ public class GameManager : MonoBehaviour
     // 지금 라운드 (1부터). StartRound 밖에서만 바꾼다.
     public int RoundNumber { get; private set; }
     public int RoundCount => rounds.Length;
+    public bool IsLastRound => RoundNumber == RoundCount;
 
-    // 둘 중 하나라도 파산하면 라운드 끝
+    // 둘 중 하나라도 파산하면 라운드 끝 (클리어·최종 승리·패배 모두)
     public bool IsRoundOver => Player.IsBankrupt || Clown.IsBankrupt;
-    // 광대가 파산했으면 플레이어 승리
-    public bool PlayerWon => Clown.IsBankrupt;
+    // 광대 파산 + 마지막 라운드가 아님 → Space로 다음 라운드
+    public bool IsRoundCleared => Clown.IsBankrupt && !IsLastRound;
+    // 광대 파산 + 마지막 라운드 → 최종 승리
+    public bool IsFinalVictory => Clown.IsBankrupt && IsLastRound;
 
     // 지금 차례가 아닌 쪽
     Participant Opponent => (Current == Player) ? Clown : Player;
@@ -73,15 +76,29 @@ public class GameManager : MonoBehaviour
         ui.Refresh(this);
     }
 
-    // Space. 공개 중이거나 라운드가 끝났으면 무시한다.
+    // Space. 공개 중이면 무시. 라운드 클리어 화면이면 다음 라운드. 최종 승리·패배면 무시.
     public void Execute()
     {
-        if (IsRevealing || IsRoundOver) return;
+        if (IsRevealing) return;
+
+        if (IsRoundCleared)
+        {
+            NextRound();
+            return;
+        }
+        if (IsRoundOver) return;
 
         // 안전장치: 파산하지 않았다면 재장전되므로 여기까지 올 일이 없다.
         if (deck.IsEmpty) return;
 
         StartCoroutine(RevealRoutine(Selected));
+    }
+
+    // 다음 줄로 라운드 번호를 올리고 새로 시작한다.
+    void NextRound()
+    {
+        RoundNumber++;
+        StartRound();
     }
 
     // R. 라운드가 끝난 화면에서만 받는다. 항상 1라운드부터. (테스트용, 최종 빌드 전 제거)

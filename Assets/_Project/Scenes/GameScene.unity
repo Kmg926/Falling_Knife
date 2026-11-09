@@ -756,7 +756,7 @@ MonoBehaviour:
     downCount: 4
     upCount: 4
     fixedOrder: 
-  revealSeconds: 1
+  revealSeconds: 0.5
 --- !u!4 &2083682520
 Transform:
   m_ObjectHideFlags: 0
