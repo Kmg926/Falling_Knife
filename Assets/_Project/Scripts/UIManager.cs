@@ -30,6 +30,12 @@ public class UIManager : MonoBehaviour
         {
             ItemType item = game.Player.Items[game.ConfirmingSlot];
             message += $"\n확인: {game.ItemName(item)} — {game.ItemDescription(item)} / Space 사용, Esc 취소";
+
+            // 거래 정지는 상대가 이미 정지면 쓸 수 없다고 미리 알려 준다.
+            if (item == ItemType.TradingHalt && game.Clown.IsHalted)
+            {
+                message += " (사용 불가: 상대가 이미 정지 상태)";
+            }
         }
 
         if (game.IsRoundCleared)
@@ -49,11 +55,17 @@ public class UIManager : MonoBehaviour
             $"라운드 {game.RoundNumber} / {game.RoundCount}\n" +
             $"차례: {game.Current.Name}\n" +
             $"선택: {choice}\n" +
-            $"잔고  플레이어 {game.Player.Balance} / 광대 {game.Clown.Balance}\n" +
+            $"잔고  플레이어 {game.Player.Balance}{HaltMark(game.Player)} / 광대 {game.Clown.Balance}{HaltMark(game.Clown)}\n" +
             $"레버리지 {game.Leverage.Value}\n" +
             $"남은 캔들  하락 {game.Deck.RemainingDown} / 상승 {game.Deck.RemainingUp}\n" +
             $"아이템  나: {ItemList(game, game.Player, true)} / 광대: {ItemList(game, game.Clown, false)}\n" +
             $"{message}";
+    }
+
+    // 거래 정지 상태면 잔고 옆에 붙일 표시.
+    string HaltMark(Participant who)
+    {
+        return who.IsHalted ? " (정지)" : "";
     }
 
     // 아이템 이름을 쉼표로 잇는다. 내 것은 키 번호(1~4)를 앞에 붙인다. 없으면 "-".

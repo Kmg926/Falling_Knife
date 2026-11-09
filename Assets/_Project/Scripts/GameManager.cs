@@ -178,6 +178,16 @@ public class GameManager : MonoBehaviour
                 Player.RemoveItemAt(ConfirmingSlot);
                 UseChartAnalysis(Player);
                 break;
+            case ItemType.TradingHalt:
+                // 상대가 이미 정지 상태면 쓸 수 없다. 아이템은 남는다.
+                if (Clown.IsHalted)
+                {
+                    LastResult = $"{ItemName(item)}: 사용 불가 (상대가 이미 정지 상태)";
+                    break;
+                }
+                Player.RemoveItemAt(ConfirmingSlot);
+                UseTradingHalt(Player);
+                break;
             default:
                 // 17~19에서 하나씩 채운다. 지금은 아이템을 남겨 둔다.
                 LastResult = $"{ItemName(item)}: 아직 쓸 수 없음";
@@ -205,6 +215,13 @@ public class GameManager : MonoBehaviour
     {
         PlayerKnownNext = deck.Peek();
         LastResult = $"{user.Name}: 차트 분석 사용";
+    }
+
+    // 거래 정지: 상대의 다음 차례 한 번을 건너뛰게 한다. 실제로 건너뛰는 일은 PassTurn()이 한다.
+    void UseTradingHalt(Participant user)
+    {
+        Opponent.Halt();
+        LastResult = $"{user.Name}: 거래 정지 사용 → {Opponent.Name} 다음 턴 건너뜀";
     }
 
     // 맨 위 캔들을 꺼낸다. 알고 있던 다음 캔들은 이제 지나갔으므로 잊는다.
@@ -356,9 +373,17 @@ public class GameManager : MonoBehaviour
     }
 
     // 상대에게 차례를 넘기고 선택은 보유로 되돌린다.
+    // 넘겨받은 사람이 거래 정지 상태면 그 차례를 건너뛰고 다시 넘긴다(모든 차례 넘김이 여기를 지난다).
     void PassTurn()
     {
         Current = Opponent;
         Selected = PlayerAction.Hold;
+
+        if (Current.IsHalted && !IsRoundOver)
+        {
+            Current.ClearHalt();
+            LastResult += $"\n{Current.Name}: 거래 정지로 턴을 건너뜀";
+            Current = Opponent;
+        }
     }
 }
