@@ -60,6 +60,12 @@ public class Participant
         IsHalted = false;
     }
 
+    // 그 종류의 아이템 하나를 뺀다(광대용: 슬롯 번호 대신 종류로). 없으면 false.
+    public bool RemoveItem(ItemType item)
+    {
+        return items.Remove(item);
+    }
+
     // 쓴 아이템을 슬롯에서 뺀다. 뒤 슬롯은 한 칸씩 앞으로 당겨진다.
     public void RemoveItemAt(int slot)
     {

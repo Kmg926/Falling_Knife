@@ -27,6 +27,8 @@ public class GameManager : MonoBehaviour
     [Header("아이템")]
     [SerializeField] ItemData[] itemDatas;
     [SerializeField] int itemsPerGrant = 2;
+    // 광대 규칙 ③: 잔고가 이 값 이하이면 복권을 쓴다 (GDD는 1, gdd-changes #32)
+    [SerializeField] int clownLotteryThreshold = 3;
 
     [Header("테스트용 아이템 (C 차트 분석 / J 찌라시 / S 거래 정지 / L 복권)")]
     [SerializeField] bool useFixedItems = false;
@@ -54,6 +56,8 @@ public class GameManager : MonoBehaviour
 
     // 플레이어가 차트 분석으로 알게 된 다음 캔들. 모르면 null(값 없음).
     public Candle? PlayerKnownNext { get; private set; }
+    // 광대가 차트 분석으로 알게 된 다음 캔들. 플레이어에게는 보이지 않는다.
+    Candle? clownKnownNext;
 
     // 지금 라운드 (1부터). StartRound 밖에서만 바꾼다.
     public int RoundNumber { get; private set; }
@@ -94,6 +98,7 @@ public class GameManager : MonoBehaviour
         IsClownThinking = false;
         ConfirmingSlot = -1;
         PlayerKnownNext = null;
+        clownKnownNext = null;
         LastResult = "";
         deck.SetComposition(config.minCards, config.maxCards, config.fixedOrder);
         deck.Fill();
@@ -224,7 +229,8 @@ public class GameManager : MonoBehaviour
     // 차트 분석: 다음 캔들을 쓴 사람만 안다. 덱은 그대로, 차례도 그대로.
     void UseChartAnalysis(Participant user)
     {
-        PlayerKnownNext = deck.Peek();
+        if (user == Player) PlayerKnownNext = deck.Peek();
+        else clownKnownNext = deck.Peek();
         LastResult = $"{user.Name}: 차트 분석 사용";
     }
 
@@ -273,6 +279,7 @@ public class GameManager : MonoBehaviour
     Candle DrawTop()
     {
         PlayerKnownNext = null;
+        clownKnownNext = null;
         return deck.Draw();
     }
 
@@ -362,7 +369,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // "광대 생각 중..." (clownThinkSeconds) → ClownAI에게 묻기 → 기존 공개 처리
+    // "광대 생각 중..." (clownThinkSeconds) → ClownAI에게 묻기
+    // → 아이템이면 쓰고 다시 생각(①부터), 보유·매도면 기존 공개 처리
     IEnumerator ClownTurnRoutine()
     {
         IsClownThinking = true;
@@ -371,8 +379,33 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(clownThinkSeconds);
 
         IsClownThinking = false;
-        Selected = ClownAI.Decide(deck.RemainingDown, deck.RemainingUp);
+        ClownMove move = ClownAI.Decide(deck.RemainingDown, deck.RemainingUp, Clown.Items,
+                                        Clown.Balance, Player.IsHalted, clownKnownNext, clownLotteryThreshold);
+
+        if (move.UsesItem)
+        {
+            UseClownItem(move.Item);
+            ui.Refresh(this);
+            StartCoroutine(ClownTurnRoutine());
+            yield break;
+        }
+
+        Selected = move.Action;
         StartCoroutine(RevealRoutine(Selected));
+    }
+
+    // 광대가 아이템 하나를 쓴다. 효과 함수는 플레이어와 같은 것을 쓴다.
+    void UseClownItem(ItemType item)
+    {
+        Clown.RemoveItem(item);
+
+        switch (item)
+        {
+            case ItemType.ChartAnalysis: UseChartAnalysis(Clown); break;
+            case ItemType.Rumor: UseRumor(Clown); break;
+            case ItemType.TradingHalt: UseTradingHalt(Clown); break;
+            case ItemType.Lottery: UseLottery(Clown); break;
+        }
     }
 
     void ResolveHold(Candle candle)
