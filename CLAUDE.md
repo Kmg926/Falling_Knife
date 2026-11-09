@@ -87,8 +87,9 @@
   - 임시: Run In Background 켜짐(MCP 테스트용) → 최종 빌드 전 끄기
 - 다음 할 일
   - [x] 9주차 보충: Grilling 대화 기록(`.scratch/candle-deck-turn/grilling.md`), Ticket "시연 순서" (2026-11-09)
-  - [ ] **광대 행동** (`.scratch/clown-ai/`): Grilling·Spec 완료, Ticket 09 done(`a9f0869`, 경험 확인 보류) → **Ticket 10** 남음
-  - [ ] **덱 개수 랜덤 + 잔고 10** (`.scratch/random-deck/`): Grilling 완료 → Spec → Ticket 11·12 (광대 10 다음)
+  - [x] **광대 행동** (`.scratch/clown-ai/`): Ticket 09·10 done (경험 확인은 보류)
+  - [x] **덱 개수 랜덤 + 잔고 10** (`.scratch/random-deck/`): Ticket 11·12 done. 잔고 10은 임시 유지, 경험 판단은 행동 로그 뒤
+  - [ ] **광대 속도 + 행동 로그** (`.scratch/action-log/`): Grilling 완료 → Spec → Ticket 13(1초 간격·행동한 사람 표시)·14(왼쪽 아래 로그)
   - [ ] 나중 과제: 더 고차원적인 광대 규칙(사용자 메모)
   - [ ] 구술 면담 대비: `draft/01`~`08` README의 줄별 설명을 읽고 내 말로 설명할 수 있게 하기
   - [ ] 마일스톤 ② 나머지: 아이템·정식 UI(라운드 전환 표시 포함)

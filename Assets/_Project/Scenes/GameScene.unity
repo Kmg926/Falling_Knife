@@ -744,15 +744,15 @@ MonoBehaviour:
   deck: {fileID: 2083682518}
   ui: {fileID: 837047266}
   rounds:
-  - startingBalance: 2
+  - startingBalance: 10
     minCards: 4
     maxCards: 6
     fixedOrder: 
-  - startingBalance: 3
+  - startingBalance: 10
     minCards: 6
     maxCards: 8
     fixedOrder: 
-  - startingBalance: 4
+  - startingBalance: 10
     minCards: 7
     maxCards: 9
     fixedOrder: 
