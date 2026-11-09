@@ -9,8 +9,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] CandleDeck deck;
     [SerializeField] UIManager ui;
 
-    [Header("라운드 구성")]
-    [SerializeField] int startingBalance = 2;
+    [Header("라운드 표 (잔고 / 하락 / 상승 / 고정 순서)")]
+    [SerializeField] RoundConfig[] rounds =
+    {
+        new RoundConfig { startingBalance = 2, downCount = 2, upCount = 3 },
+        new RoundConfig { startingBalance = 3, downCount = 3, upCount = 4 },
+        new RoundConfig { startingBalance = 4, downCount = 4, upCount = 4 },
+    };
 
     [Header("연출")]
     [SerializeField] float revealSeconds = 1f;
@@ -25,6 +30,10 @@ public class GameManager : MonoBehaviour
     public bool IsRevealing { get; private set; }
     public string LastResult { get; private set; }
 
+    // 지금 라운드 (1부터). StartRound 밖에서만 바꾼다.
+    public int RoundNumber { get; private set; }
+    public int RoundCount => rounds.Length;
+
     // 둘 중 하나라도 파산하면 라운드 끝
     public bool IsRoundOver => Player.IsBankrupt || Clown.IsBankrupt;
     // 광대가 파산했으면 플레이어 승리
@@ -35,19 +44,23 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        RoundNumber = 1;
         StartRound();
     }
 
-    // 라운드 시작. R 재시작도 이 함수를 다시 부른다.
+    // RoundNumber 줄의 값으로 라운드를 새로 시작한다. 라운드 번호는 여기서 바꾸지 않는다.
     void StartRound()
     {
-        Player = new Participant("플레이어", startingBalance);
-        Clown = new Participant("광대", startingBalance);
+        RoundConfig config = rounds[RoundNumber - 1];
+
+        Player = new Participant("플레이어", config.startingBalance);
+        Clown = new Participant("광대", config.startingBalance);
         Leverage = new LeverageCounter();
         Current = Player;
         Selected = PlayerAction.Hold;
         IsRevealing = false;
         LastResult = "";
+        deck.SetComposition(config.downCount, config.upCount, config.fixedOrder);
         deck.Fill();
         ui.Refresh(this);
     }
@@ -71,10 +84,11 @@ public class GameManager : MonoBehaviour
         StartCoroutine(RevealRoutine(Selected));
     }
 
-    // R. 라운드가 끝난 화면에서만 받는다. (테스트용, 최종 빌드 전 제거)
+    // R. 라운드가 끝난 화면에서만 받는다. 항상 1라운드부터. (테스트용, 최종 빌드 전 제거)
     public void Restart()
     {
         if (IsRevealing || !IsRoundOver) return;
+        RoundNumber = 1;
         StartRound();
     }
 

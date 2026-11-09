@@ -423,7 +423,11 @@ MonoBehaviour:
         m_SelectedSource:
           rid: -2
         m_Provider2DCache:
-          rid: -2
+          rid: 8718494094065664139
+    - rid: 8718494094065664139
+      type: {class: 'Provider2DCache`1[[UnityEngine.Rendering.Universal.Light2DProvider, Unity.RenderPipelines.Universal.2D.Runtime]]', ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.2D.Runtime}
+      data:
+        m_Cache: []
 --- !u!4 &619394802
 Transform:
   m_ObjectHideFlags: 0
@@ -724,10 +728,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40552bff7a8274b4d94a87180ef3c367, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CandleDeck
-  downCount: 2
-  upCount: 3
   useFixedOrder: 0
-  fixedOrder: 
 --- !u!114 &2083682519
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -742,7 +743,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   deck: {fileID: 2083682518}
   ui: {fileID: 837047266}
-  startingBalance: 2
+  rounds:
+  - startingBalance: 2
+    downCount: 2
+    upCount: 3
+    fixedOrder: 
+  - startingBalance: 3
+    downCount: 3
+    upCount: 4
+    fixedOrder: 
+  - startingBalance: 4
+    downCount: 4
+    upCount: 4
+    fixedOrder: 
   revealSeconds: 1
 --- !u!4 &2083682520
 Transform:

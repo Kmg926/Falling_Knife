@@ -6,13 +6,13 @@ public enum Candle { Down, Up }
 
 public class CandleDeck : MonoBehaviour
 {
-    [Header("라운드 구성")]
-    [SerializeField] int downCount = 2;
-    [SerializeField] int upCount = 3;
-
-    [Header("테스트용 고정 순서")]
+    [Header("테스트용")]
     [SerializeField] bool useFixedOrder = false;
-    [SerializeField] string fixedOrder = "D U U D U";
+
+    // 이번 라운드 구성. GameManager가 SetComposition으로 넘겨준다.
+    int downCount;
+    int upCount;
+    string fixedOrder = "";
 
     // 0번이 덱 맨 위 (다음에 공개될 캔들)
     readonly List<Candle> cards = new List<Candle>();
@@ -21,6 +21,14 @@ public class CandleDeck : MonoBehaviour
     public int RemainingUp { get; private set; }
     public bool IsEmpty => cards.Count == 0;
 
+    // 라운드 시작 때 GameManager가 부른다. 저장해 둔 값은 재장전(Fill)도 그대로 쓴다.
+    public void SetComposition(int down, int up, string order)
+    {
+        downCount = down;
+        upCount = up;
+        fixedOrder = order ?? "";
+    }
+    
     // 라운드 시작 때 부른다. 재장전(04)도 이 함수를 다시 쓴다.
     public void Fill()
     {

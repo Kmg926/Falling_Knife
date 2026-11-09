@@ -17,6 +17,7 @@ public class UIManager : MonoBehaviour
         }
 
         statusText.text =
+            $"라운드 {game.RoundNumber} / {game.RoundCount}\n" +
             $"차례: {game.Current.Name}\n" +
             $"선택: {choice}\n" +
             $"잔고  플레이어 {game.Player.Balance} / 광대 {game.Clown.Balance}\n" +
