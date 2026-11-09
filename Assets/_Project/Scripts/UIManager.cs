@@ -1,14 +1,9 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
     [SerializeField] TMP_Text statusText;
-
-    [Header("행동 로그 (왼쪽 아래)")]
-    [SerializeField] TMP_Text logText;
-    [SerializeField] int logLines = 8;
 
     // 상태를 읽어서 글자로만 보여준다. 값을 바꾸지 않는다.
     public void Refresh(GameManager game)
@@ -43,19 +38,5 @@ public class UIManager : MonoBehaviour
             $"레버리지 {game.Leverage.Value}\n" +
             $"남은 캔들  하락 {game.Deck.RemainingDown} / 상승 {game.Deck.RemainingUp}\n" +
             $"{message}";
-
-        logText.text = RecentLog(game.Log);
-    }
-
-    // 기록의 마지막 logLines줄만 위에서 아래로 이어 붙인다.
-    string RecentLog(IReadOnlyList<string> log)
-    {
-        int start = Mathf.Max(0, log.Count - logLines);
-        List<string> recent = new List<string>();
-        for (int i = start; i < log.Count; i++)
-        {
-            recent.Add(log[i]);
-        }
-        return string.Join("\n", recent);
     }
 }

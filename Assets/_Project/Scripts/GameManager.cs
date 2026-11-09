@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 // 차례인 사람이 고를 수 있는 행동
@@ -32,10 +31,6 @@ public class GameManager : MonoBehaviour
     public bool IsRevealing { get; private set; }
     public bool IsClownThinking { get; private set; }
     public string LastResult { get; private set; }
-
-    // 판 전체 행동 기록. 보여 줄 줄 수는 UIManager가 정한다. R로 처음부터 할 때만 지운다.
-    readonly List<string> log = new List<string>();
-    public IReadOnlyList<string> Log => log;
 
     // 지금 라운드 (1부터). StartRound 밖에서만 바꾼다.
     public int RoundNumber { get; private set; }
@@ -74,7 +69,6 @@ public class GameManager : MonoBehaviour
         IsRevealing = false;
         IsClownThinking = false;
         LastResult = "";
-        AddLog($"— 라운드 {RoundNumber} —");
         deck.SetComposition(config.minCards, config.maxCards, config.fixedOrder);
         deck.Fill();
         ui.Refresh(this);
@@ -120,7 +114,6 @@ public class GameManager : MonoBehaviour
     public void Restart()
     {
         if (IsRevealing || !IsRoundOver) return;
-        log.Clear();
         RoundNumber = 1;
         StartRound();
     }
@@ -144,17 +137,11 @@ public class GameManager : MonoBehaviour
 
         // 결과 문구 앞에 행동한 사람. 재장전 줄은 이 뒤에 붙는다.
         LastResult = $"{actor.Name}: {LastResult}";
-        AddLog(LastResult);
 
         if (!IsRoundOver && deck.IsEmpty)
         {
             Reload();
         }
-
-        // 라운드가 끝났으면 끝 줄을 기록에 남긴다.
-        if (IsRoundCleared) AddLog($"라운드 {RoundNumber} 클리어!");
-        else if (IsFinalVictory) AddLog("최종 승리!");
-        else if (IsRoundOver) AddLog("패배...");
 
         IsRevealing = false;
         ui.Refresh(this);
@@ -217,14 +204,7 @@ public class GameManager : MonoBehaviour
     void Reload()
     {
         deck.Fill();
-        string line = $"덱 재장전 (하락{deck.RemainingDown} / 상승{deck.RemainingUp})";
-        LastResult += "\n" + line;
-    }
-
-    // 기록 맨 아래에 한 줄을 붙인다.
-    void AddLog(string line)
-    {
-        log.Add(line);
+        LastResult += $"\n덱 재장전 (하락{deck.RemainingDown} / 상승{deck.RemainingUp})";
     }
 
     // 상대에게 차례를 넘기고 선택은 보유로 되돌린다.
