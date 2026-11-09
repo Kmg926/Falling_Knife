@@ -11,6 +11,12 @@ public class UIManager : MonoBehaviour
         string choice = game.Selected == PlayerAction.Hold ? "[보유]  매도" : " 보유  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;
 
+        // 결과 줄을 덮지 않고 덧붙인다: 내 직전 결과를 읽을 수 있게.
+        if (game.IsClownThinking)
+        {
+            message += "\n광대 생각 중...";
+        }
+
         if (game.IsRoundCleared)
         {
             message += $"\n라운드 {game.RoundNumber} 클리어! - Space로 다음 라운드";

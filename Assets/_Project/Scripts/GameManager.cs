@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
 
     [Header("연출")]
     [SerializeField] float revealSeconds = 1f;
+    [SerializeField] float clownThinkSeconds = 0.5f;
 
     public Participant Player { get; private set; }
     public Participant Clown { get; private set; }
@@ -28,6 +29,7 @@ public class GameManager : MonoBehaviour
 
     public PlayerAction Selected { get; private set; }
     public bool IsRevealing { get; private set; }
+    public bool IsClownThinking { get; private set; }
     public string LastResult { get; private set; }
 
     // 지금 라운드 (1부터). StartRound 밖에서만 바꾼다.
@@ -41,6 +43,9 @@ public class GameManager : MonoBehaviour
     public bool IsRoundCleared => Clown.IsBankrupt && !IsLastRound;
     // 광대 파산 + 마지막 라운드 → 최종 승리
     public bool IsFinalVictory => Clown.IsBankrupt && IsLastRound;
+
+    // 라운드가 진행 중이고 광대 차례 → 광대가 스스로 행동, 플레이어 입력은 무시
+    public bool IsClownTurn => Current == Clown && !IsRoundOver;
 
     // 지금 차례가 아닌 쪽
     Participant Opponent => (Current == Player) ? Clown : Player;
@@ -62,21 +67,22 @@ public class GameManager : MonoBehaviour
         Current = Player;
         Selected = PlayerAction.Hold;
         IsRevealing = false;
+        IsClownThinking = false;
         LastResult = "";
         deck.SetComposition(config.downCount, config.upCount, config.fixedOrder);
         deck.Fill();
         ui.Refresh(this);
     }
 
-    // A/D·←/→. 공개 중이거나 라운드가 끝났으면 무시한다.
+    // A/D·←/→. 공개 중, 라운드 끝, 광대 차례면 무시한다.
     public void Select(PlayerAction action)
     {
-        if (IsRevealing || IsRoundOver) return;
+        if (IsRevealing || IsRoundOver || IsClownTurn) return;
         Selected = action;
         ui.Refresh(this);
     }
 
-    // Space. 공개 중이면 무시. 라운드 클리어 화면이면 다음 라운드. 최종 승리·패배면 무시.
+    // Space. 공개 중이면 무시. 라운드 클리어 화면이면 다음 라운드. 최종 승리·패배면 무시. 광대 차례면 무시.
     public void Execute()
     {
         if (IsRevealing) return;
@@ -87,6 +93,9 @@ public class GameManager : MonoBehaviour
             return;
         }
         if (IsRoundOver) return;
+
+        // 클리어 확인보다 뒤에 둔다: 클리어 화면에서도 Current가 광대일 수 있다.
+        if (IsClownTurn) return;
 
         // 안전장치: 파산하지 않았다면 재장전되므로 여기까지 올 일이 없다.
         if (deck.IsEmpty) return;
@@ -109,7 +118,7 @@ public class GameManager : MonoBehaviour
         StartRound();
     }
 
-    // "공개 중..." 1초 → 캔들 공개 → 고른 행동대로 결과 적용
+    // "공개 중..." (revealSeconds) → 캔들 공개 → 고른 행동대로 결과 적용
     IEnumerator RevealRoutine(PlayerAction action)
     {
         IsRevealing = true;
@@ -130,6 +139,25 @@ public class GameManager : MonoBehaviour
 
         IsRevealing = false;
         ui.Refresh(this);
+
+        // 결과 뒤에도 광대 차례면(내가 넘겼거나, 광대가 보유+상승) 광대가 행동한다.
+        if (IsClownTurn)
+        {
+            StartCoroutine(ClownTurnRoutine());
+        }
+    }
+
+    // "광대 생각 중..." (clownThinkSeconds) → ClownAI에게 묻기 → 기존 공개 처리
+    IEnumerator ClownTurnRoutine()
+    {
+        IsClownThinking = true;
+        ui.Refresh(this);
+
+        yield return new WaitForSeconds(clownThinkSeconds);
+
+        IsClownThinking = false;
+        Selected = ClownAI.Decide(deck.RemainingDown, deck.RemainingUp);
+        StartCoroutine(RevealRoutine(Selected));
     }
 
     void ResolveHold(Candle candle)
@@ -173,7 +201,7 @@ public class GameManager : MonoBehaviour
         LastResult += $"\n덱 재장전 (하락{deck.RemainingDown} / 상승{deck.RemainingUp})";
     }
 
-    // 핫시트: 상대에게 차례를 넘기고 선택은 보유로 되돌린다.
+    // 상대에게 차례를 넘기고 선택은 보유로 되돌린다.
     void PassTurn()
     {
         Current = Opponent;
