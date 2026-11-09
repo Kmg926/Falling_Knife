@@ -18,6 +18,13 @@ public class UIManager : MonoBehaviour
             message += "\n광대 생각 중...";
         }
 
+        // 차트 분석으로 아는 다음 캔들 (플레이어만). 그 캔들이 나오면 GameManager가 지운다.
+        if (game.PlayerKnownNext.HasValue)
+        {
+            string next = game.PlayerKnownNext.Value == Candle.Down ? "하락" : "상승";
+            message += $"\n차트 분석: 다음 캔들은 {next}";
+        }
+
         // 아이템 확인 중: 이름·설명·조작 안내
         if (game.IsConfirming)
         {

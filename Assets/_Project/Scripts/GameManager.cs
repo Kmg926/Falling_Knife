@@ -45,6 +45,9 @@ public class GameManager : MonoBehaviour
     public int ConfirmingSlot { get; private set; } = -1;
     public bool IsConfirming => ConfirmingSlot >= 0;
 
+    // 플레이어가 차트 분석으로 알게 된 다음 캔들. 모르면 null(값 없음).
+    public Candle? PlayerKnownNext { get; private set; }
+
     // 지금 라운드 (1부터). StartRound 밖에서만 바꾼다.
     public int RoundNumber { get; private set; }
     public int RoundCount => rounds.Length;
@@ -83,6 +86,7 @@ public class GameManager : MonoBehaviour
         IsRevealing = false;
         IsClownThinking = false;
         ConfirmingSlot = -1;
+        PlayerKnownNext = null;
         LastResult = "";
         deck.SetComposition(config.minCards, config.maxCards, config.fixedOrder);
         deck.Fill();
@@ -170,6 +174,10 @@ public class GameManager : MonoBehaviour
                 Player.RemoveItemAt(ConfirmingSlot);
                 UseRumor(Player);
                 break;
+            case ItemType.ChartAnalysis:
+                Player.RemoveItemAt(ConfirmingSlot);
+                UseChartAnalysis(Player);
+                break;
             default:
                 // 17~19에서 하나씩 채운다. 지금은 아이템을 남겨 둔다.
                 LastResult = $"{ItemName(item)}: 아직 쓸 수 없음";
@@ -183,13 +191,27 @@ public class GameManager : MonoBehaviour
     // 찌라시: 다음 캔들을 모두 앞에서 공개하고 버린다. 덱이 비면 바로 재장전.
     void UseRumor(Participant user)
     {
-        Candle top = deck.Draw();
+        Candle top = DrawTop();
         LastResult = $"{user.Name}: 찌라시 → 다음 캔들은 {CandleName(top)} (버림)";
 
         if (deck.IsEmpty)
         {
             Reload();
         }
+    }
+
+    // 차트 분석: 다음 캔들을 쓴 사람만 안다. 덱은 그대로, 차례도 그대로.
+    void UseChartAnalysis(Participant user)
+    {
+        PlayerKnownNext = deck.Peek();
+        LastResult = $"{user.Name}: 차트 분석 사용";
+    }
+
+    // 맨 위 캔들을 꺼낸다. 알고 있던 다음 캔들은 이제 지나갔으므로 잊는다.
+    Candle DrawTop()
+    {
+        PlayerKnownNext = null;
+        return deck.Draw();
     }
 
     // 두 사람에게 itemsPerGrant개씩 준다. 4개를 넘는 것은 버려진다.
@@ -251,7 +273,7 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(revealSeconds);
 
-        Candle candle = deck.Draw();
+        Candle candle = DrawTop();
 
         // 행동한 사람은 판정 전에 기억한다: 판정 안의 PassTurn()이 Current를 상대로 바꾸기 때문.
         Participant actor = Current;

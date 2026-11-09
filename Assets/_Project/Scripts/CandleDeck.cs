@@ -61,6 +61,12 @@ public class CandleDeck : MonoBehaviour
         return top;
     }
 
+    // 맨 위 한 장을 보기만 한다(꺼내지 않음). 차트 분석용. 비어 있을 때 부르면 안 된다.
+    public Candle Peek()
+    {
+        return cards[0];
+    }
+
     // 총 장수와 하락 수를 뽑아 채우고 섞는다.
     // Random.Range(int, int)는 끝 값을 포함하지 않는다 → 끝에 +1, 하락은 1 ~ total-1.
     void FillRandom()
