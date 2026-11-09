@@ -57,6 +57,7 @@
     - Ticket 05(`GameManager.cs`, `UIManager.cs`, `PlayerInputHandler.cs` + Restart Action 칸 연결)도 같은 이유로 내 지시에 따라 AI가 반영했다 (2026-11-02).
     - 2026-11-02 Parsec 원격 접속을 끝내고 메인 컴퓨터로 접속했다. 이후 Ticket부터는 원래 규칙(내가 직접 타이핑)으로 돌아간다.
     - Ticket 15(로그 제거: `GameManager.cs`, `UIManager.cs`에서 Ticket 14 코드 삭제 → Ticket 13 버전 `2ede120`과 같은 내용)는 내 지시로 AI가 반영했다 (2026-11-09). 이유: 여러 곳에 흩어진 줄을 내가 지우다 일부만 지워 불안정해질 것 같아서("이번에 한해서"). 새로 쓴 코드는 없고 지우기만 했다. 이후는 다시 원래 규칙.
+    - Ticket 16의 Input Actions(`Item1`~`4`·`Cancel`을 `FallingKnife.inputactions`에 추가, PlayerInputHandler 칸 재연결, 기본 파일 `Assets/Settings/InputSystem_Actions.inputactions`에 잘못 들어간 `Game` 맵 되돌리기)와 ItemData 에셋 4개는 내 지시로 AI가 MCP로 했다 (2026-11-09). 이유: 편집 창에서 두 파일의 `Game` 맵이 헷갈려 기본 파일에 들어갔고, 다시 해도 저장되지 않았다. 스크립트 6개는 내가 직접 타이핑.
 - **파일을 바꾸기 전에 무엇을 바꿀지 먼저 말하고 허락받는다.** 바꾼 뒤에는 다시 읽어서 실제로 반영됐는지 확인하고 결과를 알려준다. (확인 없이 "완료"라고 하지 않는다.)
 - **Unity 파일 안전 규칙**
   - `.meta`, `Library/`, `Temp/`, `Logs/`는 건드리지 않는다. 파일 이동·이름 변경은 Unity Project 창에서 하도록 안내한다(.meta가 같이 움직여야 연결이 유지됨).

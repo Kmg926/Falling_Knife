@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -15,6 +16,13 @@ public class UIManager : MonoBehaviour
         if (game.IsClownThinking)
         {
             message += "\n광대 생각 중...";
+        }
+
+        // 아이템 확인 중: 이름·설명·조작 안내
+        if (game.IsConfirming)
+        {
+            ItemType item = game.Player.Items[game.ConfirmingSlot];
+            message += $"\n확인: {game.ItemName(item)} — {game.ItemDescription(item)} / Space 사용, Esc 취소";
         }
 
         if (game.IsRoundCleared)
@@ -37,6 +45,21 @@ public class UIManager : MonoBehaviour
             $"잔고  플레이어 {game.Player.Balance} / 광대 {game.Clown.Balance}\n" +
             $"레버리지 {game.Leverage.Value}\n" +
             $"남은 캔들  하락 {game.Deck.RemainingDown} / 상승 {game.Deck.RemainingUp}\n" +
+            $"아이템  나: {ItemList(game, game.Player, true)} / 광대: {ItemList(game, game.Clown, false)}\n" +
             $"{message}";
+    }
+
+    // 아이템 이름을 쉼표로 잇는다. 내 것은 키 번호(1~4)를 앞에 붙인다. 없으면 "-".
+    string ItemList(GameManager game, Participant who, bool withKeys)
+    {
+        if (who.Items.Count == 0) return "-";
+
+        List<string> names = new List<string>();
+        for (int i = 0; i < who.Items.Count; i++)
+        {
+            string name = game.ItemName(who.Items[i]);
+            names.Add(withKeys ? $"{i + 1} {name}" : name);
+        }
+        return string.Join(", ", names);
     }
 }

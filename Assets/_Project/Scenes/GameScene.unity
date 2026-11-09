@@ -758,6 +758,14 @@ MonoBehaviour:
     fixedOrder: 
   revealSeconds: 0.5
   clownThinkSeconds: 1
+  itemDatas:
+  - {fileID: 11400000, guid: 34923b93d70835f448fab45f6cd68c83, type: 2}
+  - {fileID: 11400000, guid: 9fa720211fe4f2a409e7a6ff3f627d56, type: 2}
+  - {fileID: 11400000, guid: 47a61241fbf52e241834e5ebcf2b92b5, type: 2}
+  - {fileID: 11400000, guid: c76f2e658e8a2df47af0673dcc32cc29, type: 2}
+  itemsPerGrant: 2
+  useFixedItems: 0
+  fixedItems: 
 --- !u!4 &2083682520
 Transform:
   m_ObjectHideFlags: 0
@@ -789,6 +797,11 @@ MonoBehaviour:
   selectAction: {fileID: 9006943453902745480, guid: 25a01783779223a43b95a36e386a206d, type: 3}
   executeAction: {fileID: 5830669545994181091, guid: 25a01783779223a43b95a36e386a206d, type: 3}
   restartAction: {fileID: -8065348930506006513, guid: 25a01783779223a43b95a36e386a206d, type: 3}
+  item1Action: {fileID: 3945539792083934758, guid: 25a01783779223a43b95a36e386a206d, type: 3}
+  item2Action: {fileID: 4823027441185168146, guid: 25a01783779223a43b95a36e386a206d, type: 3}
+  item3Action: {fileID: -3044711246850792350, guid: 25a01783779223a43b95a36e386a206d, type: 3}
+  item4Action: {fileID: 6771101038540426397, guid: 25a01783779223a43b95a36e386a206d, type: 3}
+  cancelAction: {fileID: -8442179560666183086, guid: 25a01783779223a43b95a36e386a206d, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

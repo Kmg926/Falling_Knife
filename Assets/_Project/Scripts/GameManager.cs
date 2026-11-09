@@ -21,6 +21,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] float revealSeconds = 1f;
     [SerializeField] float clownThinkSeconds = 0.5f;
 
+    [Header("아이템")]
+    [SerializeField] ItemData[] itemDatas;
+    [SerializeField] int itemsPerGrant = 2;
+
+    [Header("테스트용 아이템 (C 차트 분석 / J 찌라시 / S 거래 정지 / L 복권)")]
+    [SerializeField] bool useFixedItems = false;
+    [SerializeField] string fixedItems = "";
+    int fixedItemIndex;
+
     public Participant Player { get; private set; }
     public Participant Clown { get; private set; }
     public Participant Current { get; private set; }
@@ -31,6 +40,10 @@ public class GameManager : MonoBehaviour
     public bool IsRevealing { get; private set; }
     public bool IsClownThinking { get; private set; }
     public string LastResult { get; private set; }
+
+    // 1~4로 확인 중인 내 아이템 슬롯 번호. 확인 중이 아니면 -1.
+    public int ConfirmingSlot { get; private set; } = -1;
+    public bool IsConfirming => ConfirmingSlot >= 0;
 
     // 지금 라운드 (1부터). StartRound 밖에서만 바꾼다.
     public int RoundNumber { get; private set; }
@@ -52,6 +65,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        fixedItemIndex = 0;
         RoundNumber = 1;
         StartRound();
     }
@@ -68,24 +82,33 @@ public class GameManager : MonoBehaviour
         Selected = PlayerAction.Hold;
         IsRevealing = false;
         IsClownThinking = false;
+        ConfirmingSlot = -1;
         LastResult = "";
         deck.SetComposition(config.minCards, config.maxCards, config.fixedOrder);
         deck.Fill();
+        GiveItems();
         ui.Refresh(this);
     }
 
-    // A/D·←/→. 공개 중, 라운드 끝, 광대 차례면 무시한다.
+    // A/D·←/→. 공개 중, 라운드 끝, 광대 차례, 아이템 확인 중이면 무시한다.
     public void Select(PlayerAction action)
     {
-        if (IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (IsRevealing || IsRoundOver || IsClownTurn || IsConfirming) return;
         Selected = action;
         ui.Refresh(this);
     }
 
-    // Space. 공개 중이면 무시. 라운드 클리어 화면이면 다음 라운드. 최종 승리·패배면 무시. 광대 차례면 무시.
+    // Space. 공개 중이면 무시. 아이템 확인 중이면 그 아이템 사용. 라운드 클리어 화면이면 다음 라운드.
+    // 최종 승리·패배면 무시. 광대 차례면 무시.
     public void Execute()
     {
         if (IsRevealing) return;
+
+        if (IsConfirming)
+        {
+            UseConfirmedItem();
+            return;
+        }
 
         if (IsRoundCleared)
         {
@@ -103,6 +126,23 @@ public class GameManager : MonoBehaviour
         StartCoroutine(RevealRoutine(Selected));
     }
 
+    // 1~4. 내 차례(공개 중·광대 차례·라운드 끝이 아닐 때)에 그 슬롯에 아이템이 있으면 확인을 연다.
+    public void SelectItem(int slot)
+    {
+        if (IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (slot < 0 || slot >= Player.Items.Count) return;
+        ConfirmingSlot = slot;
+        ui.Refresh(this);
+    }
+
+    // Esc. 확인을 닫는다. 아이템은 그대로 남는다.
+    public void CancelItem()
+    {
+        if (!IsConfirming) return;
+        ConfirmingSlot = -1;
+        ui.Refresh(this);
+    }
+
     // 다음 줄로 라운드 번호를 올리고 새로 시작한다.
     void NextRound()
     {
@@ -114,9 +154,94 @@ public class GameManager : MonoBehaviour
     public void Restart()
     {
         if (IsRevealing || !IsRoundOver) return;
+        fixedItemIndex = 0;
         RoundNumber = 1;
         StartRound();
     }
+
+    // 확인 중인 내 아이템을 쓴다. 아이템은 행동이 아니라서 차례는 넘어가지 않는다.
+    void UseConfirmedItem()
+    {
+        ItemType item = Player.Items[ConfirmingSlot];
+
+        switch (item)
+        {
+            case ItemType.Rumor:
+                Player.RemoveItemAt(ConfirmingSlot);
+                UseRumor(Player);
+                break;
+            default:
+                // 17~19에서 하나씩 채운다. 지금은 아이템을 남겨 둔다.
+                LastResult = $"{ItemName(item)}: 아직 쓸 수 없음";
+                break;
+        }
+
+        ConfirmingSlot = -1;
+        ui.Refresh(this);
+    }
+
+    // 찌라시: 다음 캔들을 모두 앞에서 공개하고 버린다. 덱이 비면 바로 재장전.
+    void UseRumor(Participant user)
+    {
+        Candle top = deck.Draw();
+        LastResult = $"{user.Name}: 찌라시 → 다음 캔들은 {CandleName(top)} (버림)";
+
+        if (deck.IsEmpty)
+        {
+            Reload();
+        }
+    }
+
+    // 두 사람에게 itemsPerGrant개씩 준다. 4개를 넘는 것은 버려진다.
+    void GiveItems()
+    {
+        for (int i = 0; i < itemsPerGrant; i++) Player.AddItem(NextItem());
+        for (int i = 0; i < itemsPerGrant; i++) Clown.AddItem(NextItem());
+    }
+
+    // 다음에 줄 아이템. 고정 지급이 켜져 있으면 문자열에서 순서대로, 다 쓰면 무작위.
+    ItemType NextItem()
+    {
+        if (useFixedItems)
+        {
+            while (fixedItemIndex < fixedItems.Length)
+            {
+                char c = char.ToUpper(fixedItems[fixedItemIndex]);
+                fixedItemIndex++;
+                if (c == 'C') return ItemType.ChartAnalysis;
+                if (c == 'J') return ItemType.Rumor;
+                if (c == 'S') return ItemType.TradingHalt;
+                if (c == 'L') return ItemType.Lottery;
+                // 공백 등 다른 글자는 건너뛴다.
+            }
+        }
+        return (ItemType)Random.Range(0, 4);
+    }
+
+    // 화면에 쓸 이름. 에셋이 연결되지 않았으면 enum 이름.
+    public string ItemName(ItemType item)
+    {
+        ItemData data = DataOf(item);
+        return data != null ? data.displayName : item.ToString();
+    }
+
+    public string ItemDescription(ItemType item)
+    {
+        ItemData data = DataOf(item);
+        return data != null ? data.description : "";
+    }
+
+    ItemData DataOf(ItemType item)
+    {
+        if (itemDatas == null) return null;
+        foreach (ItemData data in itemDatas)
+        {
+            if (data != null && data.type == item) return data;
+        }
+        return null;
+    }
+
+    static string CandleName(Candle candle) => candle == Candle.Down ? "하락" : "상승";
 
     // "공개 중..." (revealSeconds) → 캔들 공개 → 고른 행동대로 결과 적용
     IEnumerator RevealRoutine(PlayerAction action)
@@ -200,11 +325,12 @@ public class GameManager : MonoBehaviour
         PassTurn();
     }
 
-    // 구성을 새로 뽑아 채운다. 잔고·레버리지·차례는 그대로. (아이템 지급은 ②)
+    // 구성을 새로 뽑아 채우고 두 사람에게 아이템을 준다. 잔고·레버리지·차례는 그대로.
     void Reload()
     {
         deck.Fill();
-        LastResult += $"\n덱 재장전 (하락{deck.RemainingDown} / 상승{deck.RemainingUp})";
+        GiveItems();
+        LastResult += $"\n덱 재장전 (하락{deck.RemainingDown} / 상승{deck.RemainingUp}), 아이템 +{itemsPerGrant}";
     }
 
     // 상대에게 차례를 넘기고 선택은 보유로 되돌린다.
