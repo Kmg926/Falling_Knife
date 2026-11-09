@@ -1,0 +1,129 @@
+{
+    "name": "FallingKnife",
+    "maps": [
+        {
+            "name": "Game",
+            "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c01",
+            "actions": [
+                {
+                    "name": "Select",
+                    "type": "Value",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c02",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Execute",
+                    "type": "Button",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c03",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Restart",
+                    "type": "Button",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c04",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "AD",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c11",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c12",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c13",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "Arrows",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c14",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c15",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c16",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c17",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Execute",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3f6c2a1e-8b4d-4e7a-9c21-5d0e7a1b2c18",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Restart",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
