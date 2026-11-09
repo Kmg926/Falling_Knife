@@ -1,0 +1,61 @@
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+
+public class UIManager : MonoBehaviour
+{
+    [SerializeField] TMP_Text statusText;
+
+    [Header("행동 로그 (왼쪽 아래)")]
+    [SerializeField] TMP_Text logText;
+    [SerializeField] int logLines = 8;
+
+    // 상태를 읽어서 글자로만 보여준다. 값을 바꾸지 않는다.
+    public void Refresh(GameManager game)
+    {
+        string choice = game.Selected == PlayerAction.Hold ? "[보유]  매도" : " 보유  [매도]";
+        string message = game.IsRevealing ? "공개 중..." : game.LastResult;
+
+        // 결과 줄을 덮지 않고 덧붙인다: 내 직전 결과를 읽을 수 있게.
+        if (game.IsClownThinking)
+        {
+            message += "\n광대 생각 중...";
+        }
+
+        if (game.IsRoundCleared)
+        {
+            message += $"\n라운드 {game.RoundNumber} 클리어! - Space로 다음 라운드";
+        }
+        else if (game.IsFinalVictory)
+        {
+            message += "\n최종 승리! - R로 처음부터";
+        }
+        else if (game.IsRoundOver)
+        {
+            message += "\n패배... - R로 처음부터";
+        }
+
+        statusText.text =
+            $"라운드 {game.RoundNumber} / {game.RoundCount}\n" +
+            $"차례: {game.Current.Name}\n" +
+            $"선택: {choice}\n" +
+            $"잔고  플레이어 {game.Player.Balance} / 광대 {game.Clown.Balance}\n" +
+            $"레버리지 {game.Leverage.Value}\n" +
+            $"남은 캔들  하락 {game.Deck.RemainingDown} / 상승 {game.Deck.RemainingUp}\n" +
+            $"{message}";
+
+        logText.text = RecentLog(game.Log);
+    }
+
+    // 기록의 마지막 logLines줄만 위에서 아래로 이어 붙인다.
+    string RecentLog(IReadOnlyList<string> log)
+    {
+        int start = Mathf.Max(0, log.Count - logLines);
+        List<string> recent = new List<string>();
+        for (int i = start; i < log.Count; i++)
+        {
+            recent.Add(log[i]);
+        }
+        return string.Join("\n", recent);
+    }
+}
