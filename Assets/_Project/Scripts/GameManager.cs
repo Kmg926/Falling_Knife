@@ -128,9 +128,15 @@ public class GameManager : MonoBehaviour
 
         Candle candle = deck.Draw();
 
+        // 행동한 사람은 판정 전에 기억한다: 판정 안의 PassTurn()이 Current를 상대로 바꾸기 때문.
+        Participant actor = Current;
+
         // 처리 순서: ① 피해 적용 → ② 잔고 0 판정 → ③ 덱 소진 확인
         if (action == PlayerAction.Hold) ResolveHold(candle);
         else ResolveSell(candle);
+
+        // 결과 문구 앞에 행동한 사람. 재장전 줄은 이 뒤에 붙는다.
+        LastResult = $"{actor.Name}: {LastResult}";
 
         if (!IsRoundOver && deck.IsEmpty)
         {
@@ -165,7 +171,7 @@ public class GameManager : MonoBehaviour
         if (candle == Candle.Up)
         {
             Leverage.Increase();
-            LastResult = $"보유 → 상승! {Current.Name} 레버리지 {Leverage.Value}, 차례 유지";
+            LastResult = $"보유 → 상승! 레버리지 {Leverage.Value}, 차례 유지";
         }
         else
         {
