@@ -4,6 +4,9 @@ using UnityEngine;
 // 차례인 사람이 고를 수 있는 행동
 public enum PlayerAction { Hold, Sell }
 
+// 복권 결과 4가지 (각 25%)
+public enum LotteryPrize { Heal, Leverage, Item, Nothing }
+
 public class GameManager : MonoBehaviour
 {
     [SerializeField] CandleDeck deck;
@@ -29,6 +32,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] bool useFixedItems = false;
     [SerializeField] string fixedItems = "";
     int fixedItemIndex;
+
+    [Header("테스트용 복권")]
+    [SerializeField] bool useFixedLottery = false;
+    [SerializeField] LotteryPrize fixedLottery = LotteryPrize.Nothing;
 
     public Participant Player { get; private set; }
     public Participant Clown { get; private set; }
@@ -188,6 +195,10 @@ public class GameManager : MonoBehaviour
                 Player.RemoveItemAt(ConfirmingSlot);
                 UseTradingHalt(Player);
                 break;
+            case ItemType.Lottery:
+                Player.RemoveItemAt(ConfirmingSlot);
+                UseLottery(Player);
+                break;
             default:
                 // 17~19에서 하나씩 채운다. 지금은 아이템을 남겨 둔다.
                 LastResult = $"{ItemName(item)}: 아직 쓸 수 없음";
@@ -222,6 +233,40 @@ public class GameManager : MonoBehaviour
     {
         Opponent.Halt();
         LastResult = $"{user.Name}: 거래 정지 사용 → {Opponent.Name} 다음 턴 건너뜀";
+    }
+
+    // 복권: 25%씩 잔고 +1 / 레버리지 +1 / 아이템 +1 / 꽝. 적용할 수 없으면 꽝.
+    void UseLottery(Participant user)
+    {
+        LotteryPrize prize = useFixedLottery ? fixedLottery : (LotteryPrize)Random.Range(0, 4);
+        string result;
+
+        switch (prize)
+        {
+            case LotteryPrize.Heal:
+                result = user.Heal(1) ? "잔고 +1" : "꽝 (잔고가 이미 가득)";
+                break;
+            case LotteryPrize.Leverage:
+                if (Leverage.Value < LeverageCounter.Max)
+                {
+                    Leverage.Increase();
+                    result = $"레버리지 +1 (레버리지 {Leverage.Value})";
+                }
+                else
+                {
+                    result = "꽝 (레버리지가 이미 최대)";
+                }
+                break;
+            case LotteryPrize.Item:
+                ItemType bonus = NextItem();
+                result = user.AddItem(bonus) ? $"아이템 +1 ({ItemName(bonus)})" : "꽝 (아이템이 이미 가득)";
+                break;
+            default:
+                result = "꽝";
+                break;
+        }
+
+        LastResult = $"{user.Name}: 복권 → {result}";
     }
 
     // 맨 위 캔들을 꺼낸다. 알고 있던 다음 캔들은 이제 지나갔으므로 잊는다.
