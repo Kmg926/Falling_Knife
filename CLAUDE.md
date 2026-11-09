@@ -70,7 +70,7 @@
 - AI 생성 에셋(광대·아이템·배경)은 도구·프롬프트·직접 보정한 부분·권리 조건을 기록한다. 폰트 후보: Galmuri (SIL OFL 1.1).
 - **GDD(v1.6)는 제출본이라 수정 불가.** GDD와 달라지는 결정(변경·구체화·임시)이 생길 때마다 묻지 않고 `docs/gdd-changes.md` 표에 한 줄 추가한다. 최종 제출 때 이 표를 쓴다.
 
-## 6. 진행 현황 (마지막 갱신 2026-11-02)
+## 6. 진행 현황 (마지막 갱신 2026-11-09)
 - [x] 첫 세션 설정: 코드 작성 범위 확정, Unity 6.6(6000.6.2f1) 통일(GDD는 `docs/gdd-changes.md` #1), 9주차 1교시 설치(CLI beta.15·Pipeline·MCP `unity-editor-mcp`·스킬) 확인. 자세한 과정은 `_작업기록.md`
   - 주의: 앱 터미널(PowerShell)에서는 `npx` 대신 `npx.cmd`. 명령은 `C:\Falling_Knife`에서 실행
   - 주의: Unity를 다시 켜면 MCP 연결이 끊길 수 있다 → Unity가 완전히 열린 뒤 다시 확인
@@ -79,11 +79,17 @@
   - 코드는 Parsec 지연 때문에 AI가 반영(4장 예외 기록). 다음 Ticket부터 직접 타이핑
 - [x] 되돌아갈 지점: Git 저장소(`main`) (2026-11-09, 9주차 1교시 6단계). Ticket 구현 전마다 커밋한다
   - 원격: GitHub **Public** 저장소(주소는 `CLAUDE.local.md`). 개인 정보는 `CLAUDE.local.md`로 분리했고, 공개 전 기록은 개인 정보 없는 새 커밋 하나로 다시 만들었다. push는 내가 요청할 때만
+- [x] **10주차 완료: 3라운드 진행** (`.scratch/three-rounds/`: grilling·spec·analysis·issues 06~08·draft 06~08·`making-log.md`, 모두 done, 커밋 `cc6fff4`)
+  - 코드는 내가 직접 타이핑. 공개 시간 0.5초(gdd-changes #20)
+  - 경험: 텍스트 UI라 라운드 전환 느낌 약함 → 정식 UI 과제 / 클리어 화면 `차례: 광대` 보류
+  - 주의: MCP 테스트 전 컴파일 시각이 스크립트 저장 시각보다 나중인지 확인 (Unity 포커스 없으면 재컴파일 안 됨)
+  - 임시: Run In Background 켜짐(MCP 테스트용) → 최종 빌드 전 끄기
 - 다음 할 일
   - [x] 9주차 보충: Grilling 대화 기록(`.scratch/candle-deck-turn/grilling.md`), Ticket "시연 순서" (2026-11-09)
-  - [ ] 구술 면담 대비: `draft/01`~`05` README의 줄별 설명을 읽고 내 말로 설명할 수 있게 하기
-  - [ ] 마일스톤 ② Grilling: 아이템·광대 AI·3라운드·정식 UI
-  - [ ] 아직 확인 못 함: 한 판에서 재장전 2번 이상 / GDD 원문 대조(`docs/gdd-changes.md` "원문 확인" 칸)
+  - [ ] **광대 행동(광대 AI) Grilling** — 지금은 광대 차례도 사람이 누르는 핫시트
+  - [ ] 구술 면담 대비: `draft/01`~`08` README의 줄별 설명을 읽고 내 말로 설명할 수 있게 하기
+  - [ ] 마일스톤 ② 나머지: 아이템·정식 UI(라운드 전환 표시 포함)
+  - [ ] 아직 확인 못 함: 한 판에서 재장전 2번 이상 / 3라운드 재장전·패배 / GDD 원문 대조(`docs/gdd-changes.md` "원문 확인" 칸)
 
 ## 7. 지금까지의 진행 상황 (강의 실습, `C:\GameEngineI`)
 - 4주차 점프 코스, 5주차 수집·위험·목표(영상 제출 완료) 끝.
