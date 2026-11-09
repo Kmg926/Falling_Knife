@@ -21,7 +21,7 @@ public class UIManager : MonoBehaviour
         }
         else if (game.IsRoundOver)
         {
-            message += "\n패배... - R로 재시작";
+            message += "\n패배... - R로 처음부터";
         }
 
         statusText.text =
