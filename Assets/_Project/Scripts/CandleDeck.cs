@@ -9,9 +9,9 @@ public class CandleDeck : MonoBehaviour
     [Header("테스트용")]
     [SerializeField] bool useFixedOrder = false;
 
-    // 이번 라운드 구성. GameManager가 SetComposition으로 넘겨준다.
-    int downCount;
-    int upCount;
+    // 이번 라운드의 총 장수 범위와 고정 순서. GameManager가 SetComposition으로 넘겨준다.
+    int minCards;
+    int maxCards;
     string fixedOrder = "";
 
     // 0번이 덱 맨 위 (다음에 공개될 캔들)
@@ -22,19 +22,31 @@ public class CandleDeck : MonoBehaviour
     public bool IsEmpty => cards.Count == 0;
 
     // 라운드 시작 때 GameManager가 부른다. 저장해 둔 값은 재장전(Fill)도 그대로 쓴다.
-    public void SetComposition(int down, int up, string order)
+    public void SetComposition(int min, int max, string order)
     {
-        downCount = down;
-        upCount = up;
+        // 안전장치: 하락·상승을 1장씩 넣으려면 최소 2장이 필요하다.
+        if (min < 2)
+        {
+            Debug.LogWarning($"최소 장수 {min}은(는) 너무 작아 2로 맞춥니다.");
+            min = 2;
+        }
+        if (max < min)
+        {
+            Debug.LogWarning($"최대 장수 {max}이(가) 최소 장수 {min}보다 작아 {min}으로 맞춥니다.");
+            max = min;
+        }
+
+        minCards = min;
+        maxCards = max;
         fixedOrder = order ?? "";
     }
-    
-    // 라운드 시작 때 부른다. 재장전(04)도 이 함수를 다시 쓴다.
+
+    // 라운드 시작과 재장전 때 부른다. 부를 때마다 구성을 새로 뽑는다.
     public void Fill()
     {
         if (!useFixedOrder || !TryFillFixedOrder())
         {
-            FillShuffled();
+            FillRandom();
         }
         Recount();
         Debug.Log("덱 순서(위→아래): " + string.Join(" ", cards));
@@ -49,11 +61,17 @@ public class CandleDeck : MonoBehaviour
         return top;
     }
 
-    void FillShuffled()
+    // 총 장수와 하락 수를 뽑아 채우고 섞는다.
+    // Random.Range(int, int)는 끝 값을 포함하지 않는다 → 끝에 +1, 하락은 1 ~ total-1.
+    void FillRandom()
     {
+        int total = Random.Range(minCards, maxCards + 1);
+        int down = Random.Range(1, total);
+        int up = total - down;
+
         cards.Clear();
-        for (int i = 0; i < downCount; i++) cards.Add(Candle.Down);
-        for (int i = 0; i < upCount; i++) cards.Add(Candle.Up);
+        for (int i = 0; i < down; i++) cards.Add(Candle.Down);
+        for (int i = 0; i < up; i++) cards.Add(Candle.Up);
 
         // Fisher-Yates: 뒤에서부터 한 장씩, 자기 자리 또는 앞쪽 아무 자리와 맞바꾼다
         for (int i = cards.Count - 1; i > 0; i--)
@@ -65,28 +83,22 @@ public class CandleDeck : MonoBehaviour
         }
     }
 
-    // 성공하면 true. 구성과 안 맞으면 경고하고 false (→ 무작위로 섞음)
+    // 문자열이 빈칸이 아니고 D/U/공백만 있으면 그대로 덱이 된다(true).
+    // 빈칸이면 조용히 false, 다른 글자가 있으면 경고하고 false (→ 랜덤).
     bool TryFillFixedOrder()
     {
-        cards.Clear();
-        int downs = 0;
-        int ups = 0;
+        if (string.IsNullOrWhiteSpace(fixedOrder)) return false;
 
+        cards.Clear();
         foreach (char c in fixedOrder.ToUpper())
         {
-            if (c == 'D') { cards.Add(Candle.Down); downs++; }
-            else if (c == 'U') { cards.Add(Candle.Up); ups++; }
+            if (c == 'D') cards.Add(Candle.Down);
+            else if (c == 'U') cards.Add(Candle.Up);
             else if (c != ' ')
             {
-                Debug.LogWarning($"고정 순서에 D/U가 아닌 글자 '{c}'가 있어 무작위로 섞습니다.");
+                Debug.LogWarning($"고정 순서에 D/U가 아닌 글자 '{c}'가 있어 랜덤으로 채웁니다.");
                 return false;
             }
-        }
-
-        if (downs != downCount || ups != upCount)
-        {
-            Debug.LogWarning($"고정 순서(하락{downs}/상승{ups})가 덱 구성(하락{downCount}/상승{upCount})과 달라 무작위로 섞습니다.");
-            return false;
         }
         return true;
     }

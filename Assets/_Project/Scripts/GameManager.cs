@@ -9,12 +9,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] CandleDeck deck;
     [SerializeField] UIManager ui;
 
-    [Header("라운드 표 (잔고 / 하락 / 상승 / 고정 순서)")]
+    [Header("라운드 표 (잔고 / 최소 장수 / 최대 장수 / 고정 순서)")]
     [SerializeField] RoundConfig[] rounds =
     {
-        new RoundConfig { startingBalance = 2, downCount = 2, upCount = 3 },
-        new RoundConfig { startingBalance = 3, downCount = 3, upCount = 4 },
-        new RoundConfig { startingBalance = 4, downCount = 4, upCount = 4 },
+        new RoundConfig { startingBalance = 10, minCards = 4, maxCards = 6 },
+        new RoundConfig { startingBalance = 10, minCards = 6, maxCards = 8 },
+        new RoundConfig { startingBalance = 10, minCards = 7, maxCards = 9 },
     };
 
     [Header("연출")]
@@ -69,7 +69,7 @@ public class GameManager : MonoBehaviour
         IsRevealing = false;
         IsClownThinking = false;
         LastResult = "";
-        deck.SetComposition(config.downCount, config.upCount, config.fixedOrder);
+        deck.SetComposition(config.minCards, config.maxCards, config.fixedOrder);
         deck.Fill();
         ui.Refresh(this);
     }
@@ -194,7 +194,7 @@ public class GameManager : MonoBehaviour
         PassTurn();
     }
 
-    // 같은 구성으로 다시 섞어 채운다. 잔고·레버리지·차례는 그대로. (아이템 지급은 ②)
+    // 구성을 새로 뽑아 채운다. 잔고·레버리지·차례는 그대로. (아이템 지급은 ②)
     void Reload()
     {
         deck.Fill();

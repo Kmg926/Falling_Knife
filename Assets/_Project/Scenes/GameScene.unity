@@ -745,16 +745,16 @@ MonoBehaviour:
   ui: {fileID: 837047266}
   rounds:
   - startingBalance: 2
-    downCount: 2
-    upCount: 3
+    minCards: 4
+    maxCards: 6
     fixedOrder: 
   - startingBalance: 3
-    downCount: 3
-    upCount: 4
+    minCards: 6
+    maxCards: 8
     fixedOrder: 
   - startingBalance: 4
-    downCount: 4
-    upCount: 4
+    minCards: 7
+    maxCards: 9
     fixedOrder: 
   revealSeconds: 0.5
   clownThinkSeconds: 0.5
