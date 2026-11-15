@@ -62,7 +62,7 @@
     - 2026-11-02 Parsec 원격 접속을 끝내고 메인 컴퓨터로 접속했다. 이후 Ticket부터는 원래 규칙(내가 직접 타이핑)으로 돌아간다.
     - Ticket 15(로그 제거: `GameManager.cs`, `UIManager.cs`에서 Ticket 14 코드 삭제 → Ticket 13 버전 `2ede120`과 같은 내용)는 내 지시로 AI가 반영했다 (2026-11-09). 이유: 여러 곳에 흩어진 줄을 내가 지우다 일부만 지워 불안정해질 것 같아서("이번에 한해서"). 새로 쓴 코드는 없고 지우기만 했다. 이후는 다시 원래 규칙.
     - Ticket 16의 Input Actions(`Item1`~`4`·`Cancel`을 `FallingKnife.inputactions`에 추가, PlayerInputHandler 칸 재연결, 기본 파일 `Assets/Settings/InputSystem_Actions.inputactions`에 잘못 들어간 `Game` 맵 되돌리기)와 ItemData 에셋 4개는 내 지시로 AI가 MCP로 했다 (2026-11-09). 이유: 편집 창에서 두 파일의 `Game` 맵이 헷갈려 기본 파일에 들어갔고, 다시 해도 저장되지 않았다. 스크립트 6개는 내가 직접 타이핑.
-  - **에셋 만드는 코드(`tools/`)는 AI가 쓴다** (2026-11-15, sound-feel Grilling Q3, ADR 0003). 게임 코드(`Assets/_Project/Scripts`)가 아니라 그림·소리를 만드는 도구라서 직접 타이핑 규칙과 구분한다. 결과물은 내가 보고 듣고 고르고, 그림은 직접 보정한다. 배경음악은 AI로 만들지 않는다(내가 구함).
+  - **에셋 만드는 코드(`tools/`)는 AI가 쓴다** (2026-11-15, sound-feel Grilling Q3, ADR 0003). 게임 코드(`Assets/_Project/Scripts`)가 아니라 그림·소리를 만드는 도구라서 직접 타이핑 규칙과 구분한다. 결과물은 내가 보고 듣고 고른다. 그림(스프라이트)도 AI가 만들고 고친다 — 나는 시안을 고르고 고칠 곳을 말로 지시, 직접 픽셀 보정은 안 함(2026-11-16, gdd-changes #42). 배경음악은 AI로 만들지 않는다(내가 구함).
 - **파일을 바꾸기 전에 무엇을 바꿀지 먼저 말하고 허락받는다.** 바꾼 뒤에는 다시 읽어서 실제로 반영됐는지 확인하고 결과를 알려준다. (확인 없이 "완료"라고 하지 않는다.)
 - **Unity 파일 안전 규칙**
   - `.meta`, `Library/`, `Temp/`, `Logs/`는 건드리지 않는다. 파일 이동·이름 변경은 Unity Project 창에서 하도록 안내한다(.meta가 같이 움직여야 연결이 유지됨).

@@ -56,7 +56,7 @@ Status: ready-for-agent
 
 ## Solution
 
-먼저 아트 방향 메모(사이트 7항목)를 쓰고, 스케치에서 16색 팔레트를 뽑는다. AI가 `tools/make_art.py`로 도트 PNG를 만들면 사용자가 고르고 보정한다. 그림은 SpriteRenderer + Pixel Perfect Camera(320×180), 글자·버튼은 Canvas로 놓는다. UIManager가 지금처럼 GameManager를 읽어 화면 조각들을 새로 그린다. 결과 기록은 GameManager가 숫자 몇 개만 더 센다. 화면 단위로 Ticket을 나눠 플레이 화면부터 바꾼다.
+먼저 아트 방향 메모(사이트 7항목)를 쓰고, 스케치에서 16색 팔레트를 뽑는다. AI가 `tools/make_art.py`로 도트 PNG를 만들면 사용자가 고른다. 고칠 곳은 사용자가 지시하고 AI가 고친다(#42). 그림은 SpriteRenderer + Pixel Perfect Camera(320×180), 글자·버튼은 Canvas로 놓는다. UIManager가 지금처럼 GameManager를 읽어 화면 조각들을 새로 그린다. 결과 기록은 GameManager가 숫자 몇 개만 더 센다. 화면 단위로 Ticket을 나눠 플레이 화면부터 바꾼다.
 
 ## User Stories
 
@@ -73,7 +73,7 @@ Status: ready-for-agent
 11. 플레이어로서, 타이틀에서 목표와 조작을 보고 시작하고 싶다.
 12. 플레이어로서, 게임 중 Esc로 잠깐 멈추고 싶다.
 13. 개발자로서, 개발용 글자를 F1로 다시 켜서 상태를 확인하고 싶다.
-14. 개발자로서, 그림을 만든 코드·실행 값·고른 시안·보정 내용을 기록하고 싶다(평가 15점).
+14. 개발자로서, 그림을 만든 코드·실행 값·고른 시안·지시한 수정을 기록하고 싶다(평가 15점).
 15. 개발자(구술 면담 대비)로서, 판정(GameManager)과 화면(UIManager·화면 조각)이 나뉘어 있길 원한다.
 
 ## Implementation Decisions
@@ -81,7 +81,7 @@ Status: ready-for-agent
 - **아트 방향 메모 (`.scratch/art/art-direction.md`, 사이트 형식):** 기준 이미지(스케치 v2 장면별 역할), 시점(1인칭 고정, 테이블 너머 광대), 표현 방식(1도트 = 화면 4px, 외곽선 1도트, 명암 2~3단계, 광대 머리:몸 비율은 스케치 기준), 색(어두운 바탕 + 강조색 노랑 = 선택·내 차례, 빨강 = 피해·위험), 넣지 않을 것(그림 안 글자·UI·숫자 — 글자는 전부 Canvas TMP), 고른/버린 시안과 이유, 파일 규격(숫자). 확인한 것과 정하지 않은 것을 구분한다.
   - 기준 이미지 저장 시 스케치 머리글(이름·학번)을 잘라 게임 화면 부분만 둔다(공개 저장소).
 - **팔레트:** 스케치 플레이 화면에서 16색 이하를 뽑아 `tools/palette.txt`(또는 `.png`)로 고정. 그림은 이 색만 쓴다(C1).
-- **그림 만들기 (`tools/make_art.py`, AI 작성 — ADR 0003):** numpy로 픽셀 지정 → PNG(투명 배경). 시안 여러 개 → 사용자 선택 → 보정 → `Assets/_Project/Sprites/`. 가져오기 설정: Pixels Per Unit 1, Filter Point, Compression None. 기록: `docs/asset-rights.md`(그림마다 만든 코드·실행 값·고른 시안·직접 보정한 부분) + AI 제작 로그(목적·도구·입력·결과·판단).
+- **그림 만들기 (`tools/make_art.py`, AI 작성 — ADR 0003):** numpy로 픽셀 지정 → PNG(투명 배경). 시안 여러 개 → 사용자 선택 → (사용자 지시 시 AI가 수정, #42) → `Assets/_Project/Sprites/`. 가져오기 설정: Pixels Per Unit 1, Filter Point, Compression None. 기록: `docs/asset-rights.md`(그림마다 만든 코드·실행 값·고른 시안·사용자가 지시한 수정) + AI 제작 로그(목적·도구·입력·결과·판단).
 - **카메라:** Main Camera에 Pixel Perfect Camera(URP, 기준 320×180, Assets PPU 1). Game 뷰 1280×720.
 - **Canvas:** Scale With Screen Size, 기준 해상도 320×180 → 1 UI 단위 = 1도트. 글꼴 Galmuri11(기존).
 - **구조 (U6):** GameManager는 기존처럼 `ui.Refresh(this)`만 부른다(9곳 그대로). UIManager가 개발용 글자(F1) + 화면 조각들을 갖고, `Refresh`에서 조각마다 `Refresh(game)`를 부른다. 조각(AI 제안): `BalanceView`(동전·숫자, 플레이어·광대 하나씩), `RoundTurnView`, `TerminalView`(남은 개수·구성·캔들), `LeverageView`, `ActionButtonsView`, `ItemSlotsView`, `ItemCloseupPanel`(GDD 08장 이름), `ResultPanel`, `PausePanel`. 피해 깜빡임(`FlashDamage`)과 긴장 색은 UIManager에서 그림 쪽으로 옮긴다.
@@ -94,7 +94,7 @@ Status: ready-for-agent
 
 ### AI 제안 → 사용자 채택 (2026-11-16, 8개 모두)
 1. **시안 저장 위치:** 사이트 예시는 `Assets/Art/Drafts`인데, 소리처럼 **`.scratch/art/drafts/`(Assets 밖)**에 시안을 두고 고른 것만 `Assets/_Project/Sprites/`로 옮긴다. 이유: 고르기 전 파일이 Unity에 쌓이지 않음(sound-feel Q8과 같은 이유).
-2. **첫 기준 애셋 = 광대(평소 장면):** 가장 어렵고 화면 중심이라 스타일 기준이 된다. 스케치에 광대 도트가 이미 있어 기준 이미지가 분명하다. 품질이 모자라면 일찍 알고 직접 보정 비중을 정할 수 있다.
+2. **첫 기준 애셋 = 광대(평소 장면):** 가장 어렵고 화면 중심이라 스타일 기준이 된다. 스케치에 광대 도트가 이미 있어 기준 이미지가 분명하다. 품질이 모자라면 일찍 알고 직접 보정 비중을 정할 수 있다(→ 2026-11-16: 직접 보정 안 함, AI가 지시대로 수정, #42).
 3. **광대 파일 규격:** 캔버스 약 96×96, 투명, 몸 높이(머리 꼭대기~테이블에 가린 선) 약 80도트, 기준점 아래 가운데(테이블 선). 숫자는 스케치를 4로 나눠 재어 메모에 확정(어림값, 기준 애셋 Ticket에서 확정).
 4. **버튼 클릭 = 선택 + 실행 한 번에:** 마우스로는 두 번 누를 이유가 없다. 키보드는 지금처럼 A/D 선택 → Space 실행.
 5. **슬롯 클릭 = 그 슬롯 확인 패널 열기, 패널의 `사용`/`취소` 버튼 클릭 = Space/Esc.** 같은 슬롯을 다시 누르는 동작은 없음(실수 방지).
@@ -116,7 +116,7 @@ Status: ready-for-agent
 
 ## Further Notes
 
-- 게임 코드(화면 조각·UIManager·GameManager 기록·PlayerInputHandler)는 **내가 직접 타이핑**. `tools/make_art.py`·팔레트는 AI 작성, 그림 보정은 내가.
+- 게임 코드(화면 조각·UIManager·GameManager 기록·PlayerInputHandler)는 **내가 직접 타이핑**. `tools/make_art.py`·팔레트·그림 수정은 AI(#42), 시안 고르기·수정 지시는 내가.
 - gdd-changes에 추가할 것(Ticket 때): 광대 아이템 표시 위치(제안 6), 클릭 = 선택+실행(제안 4), 결과 한 줄 유지(제안 7), 동전 10개(제안 8) — 구체화 줄.
 - 최종 빌드 전 정리: F1 개발용 글자(#41), Run In Background, 고정 순서·아이템·복권.
 - 구현 전 커밋.
