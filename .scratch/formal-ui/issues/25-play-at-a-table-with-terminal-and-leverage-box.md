@@ -24,3 +24,6 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q3, Q10)
 3. 광대 차례 → 생각 중 그림 → 결과 한 줄
 
 ## Comments
+- 2026-11-16 AI 작업(Ticket 24 done 뒤 시작): `tools/make_art.py play` 추가 → 시안 12개(방 배경·테이블 A/B·단말기 틀·다음 캔들 칸·레버리지 상자·캔들 상승/하락·불꽃 켜짐/꺼짐·광대 평소/생각 중)와 합친 미리보기 `.scratch/art/drafts/play-preview-x2.png`. 팔레트 검사 모두 OK. 규격은 아트 메모 7-2절. 광대 눈동자 투명 구멍을 찾아 막음(`fill_holes`) → Sprites의 `clown-idle.png` 교체 필요. **다음:** 사용자 선택(테이블 A/B, 생각 중 눈) → Sprites·Scene(MCP) → 게임 코드 초안(TerminalView·LeverageView·광대 교체·결과 한 줄).
+- 2026-11-16 사용자 선택: 테이블 **A(민무늬)**. 광대 생각 중(눈동자 위로)은 별도 의견 없어 이 시안으로 진행(바꾸려면 지시).
+- 2026-11-16 AI가 MCP로(Scene 저장 안 된 변경 없음 확인): 그림 11개를 `Sprites/Play/`·`Sprites/Clown/`에 가져옴(PPU 1·Point·압축 없음, 기준점 왼쪽 위 / 광대만 아래 가운데). `clown-idle.png`는 눈동자 구멍 막은 판으로 같은 이름 교체(.meta·연결 유지). 고정 그림 5개를 `PlayArt` 아래 배치(Room −10, Clown 0, Table 10, Terminal·LeverageBox 20, NextCandleBox 21) → 저장. Play 캡처 `.scratch/art/captures/25-static-art.png`(1280×720): 스케치 배치와 같음. Console 새 오류 0. 캔들·불꽃·광대 교체는 코드(TerminalView·LeverageView)가 맡음 → 초안 다음.

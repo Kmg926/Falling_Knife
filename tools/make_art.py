@@ -2,6 +2,7 @@
 
 사용법 (C:\\Falling_Knife 에서):
     python tools/make_art.py clown     # 광대 시안 A·B·C + 미리보기 + 팔레트 검사
+    python tools/make_art.py play      # Ticket 25 플레이 화면 그림 + 합친 미리보기
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -201,7 +202,20 @@ def to_rgba(idx, mask, pal):
     return rgba
 
 
-def make_clown(pal):
+def fill_holes(mask):
+    """광대 안쪽에 갇힌 빈칸(눈동자처럼 바탕색과 같은 어두운 칸)을 채운다.
+    바깥 테두리에서 이어진 빈칸만 진짜 바깥 → 나머지 빈칸은 그림의 일부(불투명)."""
+    h, w = mask.shape
+    outside = np.zeros_like(mask)
+    for sx, sy in [(x, 0) for x in range(w)] + [(x, h - 1) for x in range(w)] + \
+                  [(0, y) for y in range(h)] + [(w - 1, y) for y in range(h)]:
+        if not mask[sy, sx] and not outside[sy, sx]:
+            outside |= flood(~mask & ~outside, (sx, sy))
+    return ~outside
+
+
+def clown_base(pal):
+    """스케치에서 광대만 떼어 낸 (색 번호, 불투명 여부). 시안 A와 '생각 중' 그림의 공통 바탕."""
     names = list(pal.keys())
     ref = read_png(REF_PLAY)[..., :3]
     idx_full = quantize(ref, pal)
@@ -216,6 +230,14 @@ def make_clown(pal):
     if len(wide):
         mask[wide.min():] = False
     mask = flood(mask, (CLOWN_SEED[0] - x, CLOWN_SEED[1] - y))   # 잘라 낸 뒤 떨어진 점(테두리 모서리) 제거
+    mask = fill_holes(mask)                                        # 눈동자(어두운 칸)가 투명 구멍이 되지 않게
+    return idx, mask
+
+
+def make_clown(pal):
+    names = list(pal.keys())
+    w, h = CLOWN_BOX[2], CLOWN_BOX[3]
+    idx, mask = clown_base(pal)
     print(f"광대 영역: {mask.sum()}픽셀, 몸 높이 {np.ptp(np.where(mask.any(1))[0]) + 1}도트, "
           f"너비 {np.ptp(np.where(mask.any(0))[0]) + 1}도트")
 
@@ -245,8 +267,186 @@ def make_clown(pal):
     check(files, pal)
 
 
+# ---------- 플레이 화면 그림 (Ticket 25) ----------
+# 위치·크기는 스케치 320x180에서 잰 값(아트 메모 7절). (x, y) = 그림 왼쪽 위, 화면 위쪽이 y 0.
+TERMINAL = (114, 97, 92, 42)      # GE코인 단말기 틀
+QBOX = (182, 111, 19, 23)         # 단말기 안 "다음 캔들" 칸(? 글자는 Canvas)
+LEVER_BOX = (214, 102, 70, 40)    # 레버리지 상자 틀
+TABLE = (0, 100, 320, 41)         # 테이블(사다리꼴), 위 끝 x 30~290 → 아래 끝 x 0~319
+CANDLE = (5, 18)                  # 캔들 1개(너비, 높이): 심지 3 + 몸통 13 + 심지 2
+FLAME = (6, 9)                    # 불꽃 1개
+
+
+def sprite(w, h):
+    """빈(투명) 그림: (색 번호, 불투명 여부)."""
+    return np.zeros((h, w), int), np.zeros((h, w), bool)
+
+
+def put(idx, mask, ys, xs, color, names):
+    idx[ys, xs] = names.index(color)
+    mask[ys, xs] = True
+
+
+def frame(w, h, border, inside, names):
+    """1도트 테두리 틀. 안쪽은 inside 색(없으면 투명)."""
+    idx, mask = sprite(w, h)
+    if inside:
+        put(idx, mask, slice(None), slice(None), inside, names)
+    for ys, xs in ((0, slice(None)), (h - 1, slice(None)), (slice(None), 0), (slice(None), w - 1)):
+        put(idx, mask, ys, xs, border, names)
+    return idx, mask
+
+
+def room(pal):
+    """방 배경 320x180(불투명): bg0 + 스케치의 붉은 차트 선(red0). 광대·글자 칸·테이블 자리는 바탕색."""
+    names = list(pal.keys())
+    q = quantize(read_png(REF_PLAY)[..., :3], pal)
+    idx = np.full((180, 320), names.index("bg0"))
+    _, cmask = clown_base(pal)
+    clown = np.zeros((180, 320), bool)
+    x, y, w, h = CLOWN_BOX
+    clown[y:y + h, x:x + w] = cmask
+    # 스케치의 차트 선은 아주 어두운 갈색-빨강이라 팔레트로 맞추면 wood·bg1·red0 중 하나가 된다
+    curve = np.isin(q, [names.index(n) for n in ("wood", "bg1", "red0", "red1")]) & ~clown
+    curve[TABLE[1]:] = False                         # 테이블부터 아래는 다른 그림
+    curve[:36, :76] = False                          # 왼쪽 위 '광대 잔고' 글자 칸
+    curve[:36, 248:] = False                         # 오른쪽 위 'ROUND' 글자 칸
+    # 떨어진 한 점(스케치 주석 번호·잡티)은 선이 아니다 → 주변 8칸에 선이 하나도 없으면 지움
+    pad = np.pad(curve, 1)
+    neighbours = sum(pad[1 + dy:181 + dy, 1 + dx:321 + dx] for dy in (-1, 0, 1) for dx in (-1, 0, 1)) - curve
+    curve &= neighbours > 0
+    idx[curve] = names.index("red0")
+    return idx, np.ones((180, 320), bool)
+
+
+def table(pal, grain):
+    """테이블 사다리꼴. 위 끝 1줄 = 어두운 금색 모서리. grain=True면 원근 나뭇결 선 4개."""
+    names = list(pal.keys())
+    w, h = TABLE[2], TABLE[3]
+    idx, mask = sprite(w, h)
+    for r in range(h):
+        left = round(30 - r * 30 / (h - 1))
+        right = round(290 + r * 29 / (h - 1))
+        put(idx, mask, r, slice(left, right + 1), "gold0" if r == 0 else "wood", names)
+    if grain:
+        for top_x in (80, 130, 190, 240):            # 위 끝 점에서 화면 가운데(160) 반대쪽으로 벌어지는 선
+            for r in range(2, h, 1):
+                gx = round(top_x + (top_x - 160) * r / 60)
+                if 0 <= gx < w and mask[r, gx]:
+                    put(idx, mask, r, gx, "bg1", names)
+    return idx, mask
+
+
+def candle(pal, color):
+    names = list(pal.keys())
+    w, h = CANDLE
+    idx, mask = sprite(w, h)
+    put(idx, mask, slice(0, 3), w // 2, color, names)          # 위 심지
+    put(idx, mask, slice(3, 16), slice(None), color, names)    # 몸통
+    put(idx, mask, slice(16, 18), w // 2, color, names)        # 아래 심지
+    return idx, mask
+
+
+def flame(pal, lit):
+    """불꽃: 켜짐 = 주황 덩어리 + 밝은 노랑 심, 꺼짐 = 주황 테두리만."""
+    names = list(pal.keys())
+    shape = ["..#...",
+             "..##..",
+             ".###..",
+             ".####.",
+             "######",
+             "######",
+             "######",
+             ".####.",
+             "..##.."]
+    idx, mask = sprite(*FLAME)
+    for r, row in enumerate(shape):
+        for c, ch in enumerate(row):
+            if ch == "#":
+                edge = any(not (0 <= r + dr < len(shape) and 0 <= c + dc < len(row)) or shape[r + dr][c + dc] != "#"
+                           for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+                if lit or edge:
+                    put(idx, mask, r, c, "orange", names)
+    if lit:
+        put(idx, mask, slice(5, 7), slice(2, 4), "gold2", names)   # 밝은 심
+    return idx, mask
+
+
+def clown_thinking(pal, up=2):
+    """광대 '생각 중': 평소 그림(A)에서 눈동자(가운데 어두운 세로 칸)만 위로 up칸 올린다(위를 보며 생각)."""
+    names = list(pal.keys())
+    idx, mask = clown_base(pal)
+    idx = idx.copy()
+    dark = names.index("bg0")
+    skin = names.index("cream")
+    for px in (152 - CLOWN_BOX[0], 168 - CLOWN_BOX[0]):            # 두 눈동자 열(스케치 x 152, 168)
+        col = [yy for yy in range(30, 50) if idx[yy, px] == dark and mask[yy, px]]
+        for yy in col:
+            idx[yy, px] = skin
+        for yy in col:
+            idx[yy - up, px] = dark
+    return idx, mask
+
+
+def make_play(pal):
+    """Ticket 25 그림 시안 + 스케치 배치대로 합친 미리보기(4배) + 팔레트 검사."""
+    names = list(pal.keys())
+    DRAFTS.mkdir(parents=True, exist_ok=True)
+    parts = {
+        "room": room(pal),
+        "table-A": table(pal, grain=False),
+        "table-B": table(pal, grain=True),
+        "terminal": frame(TERMINAL[2], TERMINAL[3], "navy", "bg0", names),
+        "terminal-qbox": frame(QBOX[2], QBOX[3], "gold1", None, names),
+        "leverage-box": frame(LEVER_BOX[2], LEVER_BOX[3], "orange", "bg1", names),
+        "candle-up": candle(pal, "green"),
+        "candle-down": candle(pal, "red2"),
+        "flame-on": flame(pal, True),
+        "flame-off": flame(pal, False),
+        "clown-thinking": clown_thinking(pal),
+        "clown-idle": clown_base(pal),
+    }
+    files = []
+    for name, (idx, mask) in parts.items():
+        p = DRAFTS / f"{name}.png"
+        write_png(p, to_rgba(idx, mask, pal))
+        files.append(p)
+
+    def scene(table_name, clown_name):
+        canvas = np.zeros((180, 320, 3), np.uint8)
+        cols = np.array(list(pal.values()), np.uint8)
+
+        def paste(name, x, y):
+            idx, mask = parts[name]
+            h, w = idx.shape
+            reg = canvas[y:y + h, x:x + w]
+            reg[mask] = cols[idx][mask]
+
+        paste("room", 0, 0)
+        paste(clown_name, CLOWN_BOX[0], CLOWN_BOX[1])
+        paste(table_name, TABLE[0], TABLE[1])
+        paste("terminal", TERMINAL[0], TERMINAL[1])
+        paste("terminal-qbox", QBOX[0], QBOX[1])
+        paste("candle-up", 122, 108)
+        paste("candle-down", 132, 108)
+        paste("leverage-box", LEVER_BOX[0], LEVER_BOX[1])
+        for i, lit in enumerate((True, True, False)):
+            paste("flame-on" if lit else "flame-off", 218 + i * 8, 118)
+        return canvas
+
+    gap = np.full((180, 4, 3), 255, np.uint8)
+    top = np.concatenate([scene("table-A", "clown-idle"), gap, scene("table-B", "clown-thinking")], 1)
+    write_png(DRAFTS / "play-preview-x2.png", top.repeat(2, 0).repeat(2, 1))
+    write_png(DRAFTS / "play-preview-A-x4.png", scene("table-A", "clown-idle").repeat(4, 0).repeat(4, 1))
+    print("팔레트 검사 (C1):")
+    check(files, pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
     if len(sys.argv) > 1 and sys.argv[1] == "check":
         sys.exit(0 if check(sys.argv[2:], palette) else 1)
-    make_clown(palette)
+    if len(sys.argv) > 1 and sys.argv[1] == "play":
+        make_play(palette)
+    else:
+        make_clown(palette)
