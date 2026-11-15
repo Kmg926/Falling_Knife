@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] CandleDeck deck;
     [SerializeField] UIManager ui;
+    [SerializeField] AudioManager audioManager;
 
     [Header("라운드 표 (잔고 / 최소 장수 / 최대 장수 / 고정 순서)")]
     [SerializeField] RoundConfig[] rounds =
@@ -23,6 +24,8 @@ public class GameManager : MonoBehaviour
     [Header("연출")]
     [SerializeField] float revealSeconds = 1f;
     [SerializeField] float clownThinkSeconds = 0.5f;
+    // 공개가 시작되고 이만큼 뒤에 초침 (앞부분은 GDD "공개 직전 잠깐 무음")
+    [SerializeField] float tickDelaySeconds = 0.2f;
 
     [Header("아이템")]
     [SerializeField] ItemData[] itemDatas;
@@ -110,6 +113,7 @@ public class GameManager : MonoBehaviour
     public void Select(PlayerAction action)
     {
         if (IsRevealing || IsRoundOver || IsClownTurn || IsConfirming) return;
+        if (Selected != action) audioManager.PlayClick();   // 실제로 바뀔 때만
         Selected = action;
         ui.Refresh(this);
     }
@@ -148,6 +152,7 @@ public class GameManager : MonoBehaviour
         if (IsRevealing || IsRoundOver || IsClownTurn) return;
         if (slot < 0 || slot >= Player.Items.Count) return;
         ConfirmingSlot = slot;
+        audioManager.PlayClick();
         ui.Refresh(this);
     }
 
@@ -156,6 +161,7 @@ public class GameManager : MonoBehaviour
     {
         if (!IsConfirming) return;
         ConfirmingSlot = -1;
+        audioManager.PlayClick();
         ui.Refresh(this);
     }
 
@@ -340,7 +346,11 @@ public class GameManager : MonoBehaviour
         IsRevealing = true;
         ui.Refresh(this);
 
-        yield return new WaitForSeconds(revealSeconds);
+        // 잠깐 조용히 → 초침 → 남은 시간. 공개 시간 전체(revealSeconds)는 그대로.
+        float delay = Mathf.Min(tickDelaySeconds, revealSeconds);
+        yield return new WaitForSeconds(delay);
+        audioManager.PlayTick();
+        yield return new WaitForSeconds(revealSeconds - delay);
 
         Candle candle = DrawTop();
 
@@ -419,6 +429,7 @@ public class GameManager : MonoBehaviour
         {
             int damage = 1 + Leverage.Value;
             Current.TakeDamage(damage);
+            audioManager.PlayImpact();
             Leverage.Reset();
             LastResult = $"보유 → 하락! {Current.Name} -{damage}";
             PassTurn();
@@ -432,6 +443,7 @@ public class GameManager : MonoBehaviour
         {
             int damage = 1 + Leverage.Value;
             Opponent.TakeDamage(damage);
+            audioManager.PlayImpact();
             Leverage.Reset();
             LastResult = $"매도 → 하락! {Opponent.Name} -{damage}";
         }
@@ -447,6 +459,7 @@ public class GameManager : MonoBehaviour
     {
         deck.Fill();
         GiveItems();
+        audioManager.PlayShuffle();
         LastResult += $"\n덱 재장전 (하락{deck.RemainingDown} / 상승{deck.RemainingUp}), 아이템 +{itemsPerGrant}";
     }
 
