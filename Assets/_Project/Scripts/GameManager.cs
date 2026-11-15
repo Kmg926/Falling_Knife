@@ -344,6 +344,7 @@ public class GameManager : MonoBehaviour
     IEnumerator RevealRoutine(PlayerAction action)
     {
         IsRevealing = true;
+        audioManager.SetRevealDuck(true);
         ui.Refresh(this);
 
         // 잠깐 조용히 → 초침 → 남은 시간. 공개 시간 전체(revealSeconds)는 그대로.
@@ -370,6 +371,7 @@ public class GameManager : MonoBehaviour
         }
 
         IsRevealing = false;
+        audioManager.SetRevealDuck(false);
         ui.Refresh(this);
 
         // 결과 뒤에도 광대 차례면(내가 넘겼거나, 광대가 보유+상승) 광대가 행동한다.

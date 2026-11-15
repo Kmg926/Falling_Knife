@@ -38,10 +38,10 @@
 ## 3. 구현 계획 (GDD 08·09장)
 - Scene: `TitleScene`, `GameScene` (결과·일시정지는 GameScene 안 패널)
 - 주요 스크립트: GameManager, CandleDeck, LeverageCounter(GDD의 StackCounter, ADR 0001), Participant, PlayerInputHandler, ClownAI, UIManager, ItemCloseupPanel, AudioManager, ItemData/ItemEffect(ScriptableObject)
-  - 지금 있는 것(2026-11-15): GameManager, CandleDeck, LeverageCounter, Participant, PlayerInputHandler, ClownAI(+ClownMove), UIManager, RoundConfig, ItemType, ItemData(이름·설명만, ItemEffect는 만들지 않음 #33). AudioManager는 Ticket 21 초안. ItemCloseupPanel·TitleScene은 아직 없음
+  - 지금 있는 것(2026-11-15): GameManager, CandleDeck, LeverageCounter, Participant, PlayerInputHandler, ClownAI(+ClownMove), UIManager, RoundConfig, ItemType, ItemData(이름·설명만, ItemEffect는 만들지 않음 #33). AudioManager(효과음·배경음악, Ticket 21·23). ItemCloseupPanel·TitleScene은 아직 없음
 - 수업에서 안 배우는 것(직접 학습): 코루틴, ScriptableObject, 셔플, Scene 전환, Pixel Perfect Camera
 - **마일스톤:** ① 텍스트 UI로 덱·보유·매도·레버리지·잔고·턴, 1라운드 완주 → ② 아이템·AI·3라운드·정식 UI → ③ Alpha + 3인 플레이테스트 → ④ 수정·제출 후보 → ⑤ 최종 빌드
-  - 2026-11-15: ① 완료, ② 중 3라운드·광대 AI·아이템 완료, **정식 UI 남음**(12주차 소리·화면 반응 진행 중)
+  - 2026-11-15: ① 완료, ② 중 3라운드·광대 AI·아이템 완료, **정식 UI 남음**(12주차 소리·화면 반응은 2026-11-16 완료)
   - GDD는 원래 주차(9~16주)로 적혀 있지만 **연휴로 실제 수업이 약 2주 밀렸다.** 실제 공지에 맞춰 조정 필요.
 - **범위 밖:** 멀티플레이, 상점, 추가 아이템, 여러 상대, 실제 시세 연동
 
@@ -79,7 +79,7 @@
 - AI 생성 에셋(광대·아이템·배경·효과음)은 도구·프롬프트(또는 만든 코드)·직접 보정한 부분·권리 조건을 `docs/asset-rights.md`에 기록한다. 폰트: Galmuri11 (SIL OFL 1.1, 사용 중, TMP 에셋 Multi Atlas Textures 켬). 외부 곡(배경음악)은 출처·라이선스를 외부 에셋 표에.
 - **GDD(v1.6)는 제출본이라 수정 불가.** GDD와 달라지는 결정(변경·구체화·임시)이 생길 때마다 묻지 않고 `docs/gdd-changes.md` 표에 한 줄 추가한다. 최종 제출 때 이 표를 쓴다.
 
-## 6. 진행 현황 (마지막 갱신 2026-11-15)
+## 6. 진행 현황 (마지막 갱신 2026-11-16)
 - [x] 첫 세션 설정: 코드 작성 범위 확정, Unity 6.6(6000.6.2f1) 통일(GDD는 `docs/gdd-changes.md` #1), 9주차 1교시 설치(CLI beta.15·Pipeline·MCP `unity-editor-mcp`·스킬) 확인. 자세한 과정은 `_작업기록.md`
   - 주의: 앱 터미널(PowerShell)에서는 `npx` 대신 `npx.cmd`. 명령은 `C:\Falling_Knife`에서 실행
   - 주의: Unity를 다시 켜면 MCP 연결이 끊길 수 있다 → Unity가 완전히 열린 뒤 다시 확인
@@ -102,7 +102,7 @@
     - 주의: AI는 Scene 저장 전에 내가 Inspector에서 바꾼 값이 있는지 먼저 확인한다
   - [x] **마일스톤 ② 아이템** (`.scratch/items/`): Ticket 16 지급·찌라시 / 17 차트 분석 / 18 거래 정지 / 19 복권 / 20 광대 아이템(규칙 ①~④) 모두 done. 16의 입력·에셋은 AI가 MCP로(4장 예외). 경험 확인은 직접 플레이로
   - [x] Comfy Cloud 구독 안 함 → 그림·효과음은 AI가 코드로 만듦(ADR 0003, gdd-changes #36~38). 배경음악은 내가 구함(인더스트리얼 다크 하우스·하드 테크노)
-  - [ ] **12주차 소리·화면 반응** (`.scratch/sound-feel/`): Grilling·Spec·Ticket 21~23 커밋(`436c7dd`). **Ticket 21 진행 중**: `tools/make_sfx.py`로 후보 12개 생성, 내가 고르기 전 **임시로 후보 A**를 `Assets/_Project/Audio/Sounds/`에, 게임 코드 초안 `draft/21`(AudioManager·GameManager) → 내가 타이핑할 차례. 22 피해 깜빡임·긴장 색 / 23 배경음악 자리(곡은 내가 구함)
+  - [x] **12주차 소리·화면 반응** (`.scratch/sound-feel/`): Ticket 21 효과음 4종(`9839d6f`) / 22 피해 깜빡임 0.2초·잔고 3 이하 긴장 색(`444f788`) / 23 배경음악 자리·공개 중 음악 20% done. 코드는 내가 직접 타이핑. **남은 것(나):** 스피커로 듣고 효과음 최종 선택(지금 임시 후보 A), 배경음악 곡 구해서 연결·라이선스 기록, 긴장 색 대비 확인
   - [ ] 11주차 아트 방향 메모·그림(코드 생성) → 정식 UI 교체
   - [ ] 정식 UI(단말기·잔고·레버리지 그림). 남은 개수·공개 기록 표시 여부는 이때 결정
   - [ ] 나중 과제: 더 고차원적인 광대 규칙(사용자 메모)
