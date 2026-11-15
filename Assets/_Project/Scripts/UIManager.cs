@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -5,6 +6,37 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
     [SerializeField] TMP_Text statusText;
+
+    [Header("화면 반응")]
+    [SerializeField] float flashSeconds = 0.2f;
+    [SerializeField] Color flashColor = new Color(0.85f, 0.25f, 0.22f);
+    // 내 잔고가 이 값 이하면 잔고 줄을 어두운 빨강으로 (긴장 연출)
+    [SerializeField] int dangerBalance = 3;
+    [SerializeField] string dangerColorHex = "#8A3A34";
+
+    Color normalColor;
+    Coroutine flashRoutine;
+
+    // 원래 글자 색을 기억해 둔다(깜빡임 뒤 되돌릴 색).
+    void Awake()
+    {
+        normalColor = statusText.color;
+    }
+
+    // 피해: 글자를 잠깐 빨강으로. 이미 깜빡이는 중이면 처음부터 다시.
+    public void FlashDamage()
+    {
+        if (flashRoutine != null) StopCoroutine(flashRoutine);
+        flashRoutine = StartCoroutine(FlashRoutine());
+    }
+
+    IEnumerator FlashRoutine()
+    {
+        statusText.color = flashColor;
+        yield return new WaitForSeconds(flashSeconds);
+        statusText.color = normalColor;
+        flashRoutine = null;
+    }
 
     // 상태를 읽어서 글자로만 보여준다. 값을 바꾸지 않는다.
     public void Refresh(GameManager game)
@@ -51,11 +83,18 @@ public class UIManager : MonoBehaviour
             message += "\n패배... - R로 처음부터";
         }
 
+        // 내 잔고가 위험하면 잔고 줄 전체를 어두운 빨강으로 감싼다(TMP 색 태그).
+        string balanceLine = $"잔고  플레이어 {game.Player.Balance}{HaltMark(game.Player)} / 광대 {game.Clown.Balance}{HaltMark(game.Clown)}";
+        if (game.Player.Balance <= dangerBalance)
+        {
+            balanceLine = $"<color={dangerColorHex}>{balanceLine}</color>";
+        }
+
         statusText.text =
             $"라운드 {game.RoundNumber} / {game.RoundCount}\n" +
             $"차례: {game.Current.Name}\n" +
             $"선택: {choice}\n" +
-            $"잔고  플레이어 {game.Player.Balance}{HaltMark(game.Player)} / 광대 {game.Clown.Balance}{HaltMark(game.Clown)}\n" +
+            $"{balanceLine}\n" +
             $"레버리지 {game.Leverage.Value}\n" +
             $"남은 캔들  하락 {game.Deck.RemainingDown} / 상승 {game.Deck.RemainingUp}\n" +
             $"아이템  나: {ItemList(game, game.Player, true)} / 광대: {ItemList(game, game.Clown, false)}\n" +

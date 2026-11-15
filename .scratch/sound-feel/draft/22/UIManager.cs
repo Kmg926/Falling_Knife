@@ -1,0 +1,123 @@
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+
+public class UIManager : MonoBehaviour
+{
+    [SerializeField] TMP_Text statusText;
+
+    [Header("화면 반응")]
+    [SerializeField] float flashSeconds = 0.2f;
+    [SerializeField] Color flashColor = new Color(0.85f, 0.25f, 0.22f);
+    // 내 잔고가 이 값 이하면 잔고 줄을 어두운 빨강으로 (긴장 연출)
+    [SerializeField] int dangerBalance = 3;
+    [SerializeField] string dangerColorHex = "#8A3A34";
+
+    Color normalColor;
+    Coroutine flashRoutine;
+
+    // 원래 글자 색을 기억해 둔다(깜빡임 뒤 되돌릴 색).
+    void Awake()
+    {
+        normalColor = statusText.color;
+    }
+
+    // 피해: 글자를 잠깐 빨강으로. 이미 깜빡이는 중이면 처음부터 다시.
+    public void FlashDamage()
+    {
+        if (flashRoutine != null) StopCoroutine(flashRoutine);
+        flashRoutine = StartCoroutine(FlashRoutine());
+    }
+
+    IEnumerator FlashRoutine()
+    {
+        statusText.color = flashColor;
+        yield return new WaitForSeconds(flashSeconds);
+        statusText.color = normalColor;
+        flashRoutine = null;
+    }
+
+    // 상태를 읽어서 글자로만 보여준다. 값을 바꾸지 않는다.
+    public void Refresh(GameManager game)
+    {
+        string choice = game.Selected == PlayerAction.Hold ? "[보유]  매도" : " 보유  [매도]";
+        string message = game.IsRevealing ? "공개 중..." : game.LastResult;
+
+        // 결과 줄을 덮지 않고 덧붙인다: 내 직전 결과를 읽을 수 있게.
+        if (game.IsClownThinking)
+        {
+            message += "\n광대 생각 중...";
+        }
+
+        // 차트 분석으로 아는 다음 캔들 (플레이어만). 그 캔들이 나오면 GameManager가 지운다.
+        if (game.PlayerKnownNext.HasValue)
+        {
+            string next = game.PlayerKnownNext.Value == Candle.Down ? "하락" : "상승";
+            message += $"\n차트 분석: 다음 캔들은 {next}";
+        }
+
+        // 아이템 확인 중: 이름·설명·조작 안내
+        if (game.IsConfirming)
+        {
+            ItemType item = game.Player.Items[game.ConfirmingSlot];
+            message += $"\n확인: {game.ItemName(item)} — {game.ItemDescription(item)} / Space 사용, Esc 취소";
+
+            // 거래 정지는 상대가 이미 정지면 쓸 수 없다고 미리 알려 준다.
+            if (item == ItemType.TradingHalt && game.Clown.IsHalted)
+            {
+                message += " (사용 불가: 상대가 이미 정지 상태)";
+            }
+        }
+
+        if (game.IsRoundCleared)
+        {
+            message += $"\n라운드 {game.RoundNumber} 클리어! - Space로 다음 라운드";
+        }
+        else if (game.IsFinalVictory)
+        {
+            message += "\n최종 승리! - R로 처음부터";
+        }
+        else if (game.IsRoundOver)
+        {
+            message += "\n패배... - R로 처음부터";
+        }
+
+        // 내 잔고가 위험하면 잔고 줄 전체를 어두운 빨강으로 감싼다(TMP 색 태그).
+        string balanceLine = $"잔고  플레이어 {game.Player.Balance}{HaltMark(game.Player)} / 광대 {game.Clown.Balance}{HaltMark(game.Clown)}";
+        if (game.Player.Balance <= dangerBalance)
+        {
+            balanceLine = $"<color={dangerColorHex}>{balanceLine}</color>";
+        }
+
+        statusText.text =
+            $"라운드 {game.RoundNumber} / {game.RoundCount}\n" +
+            $"차례: {game.Current.Name}\n" +
+            $"선택: {choice}\n" +
+            $"{balanceLine}\n" +
+            $"레버리지 {game.Leverage.Value}\n" +
+            $"남은 캔들  하락 {game.Deck.RemainingDown} / 상승 {game.Deck.RemainingUp}\n" +
+            $"아이템  나: {ItemList(game, game.Player, true)} / 광대: {ItemList(game, game.Clown, false)}\n" +
+            $"{message}";
+    }
+
+    // 거래 정지 상태면 잔고 옆에 붙일 표시.
+    string HaltMark(Participant who)
+    {
+        return who.IsHalted ? " (정지)" : "";
+    }
+
+    // 아이템 이름을 쉼표로 잇는다. 내 것은 키 번호(1~4)를 앞에 붙인다. 없으면 "-".
+    string ItemList(GameManager game, Participant who, bool withKeys)
+    {
+        if (who.Items.Count == 0) return "-";
+
+        List<string> names = new List<string>();
+        for (int i = 0; i < who.Items.Count; i++)
+        {
+            string name = game.ItemName(who.Items[i]);
+            names.Add(withKeys ? $"{i + 1} {name}" : name);
+        }
+        return string.Join(", ", names);
+    }
+}

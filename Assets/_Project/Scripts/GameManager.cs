@@ -430,6 +430,7 @@ public class GameManager : MonoBehaviour
             int damage = 1 + Leverage.Value;
             Current.TakeDamage(damage);
             audioManager.PlayImpact();
+            ui.FlashDamage();
             Leverage.Reset();
             LastResult = $"보유 → 하락! {Current.Name} -{damage}";
             PassTurn();
@@ -444,6 +445,7 @@ public class GameManager : MonoBehaviour
             int damage = 1 + Leverage.Value;
             Opponent.TakeDamage(damage);
             audioManager.PlayImpact();
+            ui.FlashDamage();
             Leverage.Reset();
             LastResult = $"매도 → 하락! {Opponent.Name} -{damage}";
         }
