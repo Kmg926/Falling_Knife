@@ -20,6 +20,10 @@ public class CandleDeck : MonoBehaviour
     public int RemainingDown { get; private set; }
     public int RemainingUp { get; private set; }
     public bool IsEmpty => cards.Count == 0;
+    // 남은 장수 (단말기 `남은 N`)                                                      // ← 25 추가
+    public int Remaining => cards.Count;                                                // ← 25 추가
+    // 방금 채웠고 아직 한 장도 안 뽑았으면 true → 단말기가 하락/상승 개수를 보여 준다(#40) // ← 25 추가
+    public bool JustFilled { get; private set; }                                        // ← 25 추가
 
     // 라운드 시작 때 GameManager가 부른다. 저장해 둔 값은 재장전(Fill)도 그대로 쓴다.
     public void SetComposition(int min, int max, string order)
@@ -49,6 +53,7 @@ public class CandleDeck : MonoBehaviour
             FillRandom();
         }
         Recount();
+        JustFilled = true;                                                              // ← 25 추가
         Debug.Log("덱 순서(위→아래): " + string.Join(" ", cards));
     }
 
@@ -58,6 +63,7 @@ public class CandleDeck : MonoBehaviour
         Candle top = cards[0];
         cards.RemoveAt(0);
         Recount();
+        JustFilled = false;                                                             // ← 25 추가
         return top;
     }
 

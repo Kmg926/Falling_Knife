@@ -52,6 +52,10 @@ public class GameManager : MonoBehaviour
     public bool IsRevealing { get; private set; }
     public bool IsClownThinking { get; private set; }
     public string LastResult { get; private set; }
+    // 단말기에 떠 있는 캔들(공개 중·공개 뒤, 찌라시로 본 것). 라운드 시작엔 없음(null). // ← 25 추가
+    public Candle? ShownCandle { get; private set; }                                   // ← 25 추가
+    // 단말기가 캔들을 그리는 시간 = 공개 시간                                           // ← 25 추가
+    public float RevealSeconds => revealSeconds;                                       // ← 25 추가
 
     // 1~4로 확인 중인 내 아이템 슬롯 번호. 확인 중이 아니면 -1.
     public int ConfirmingSlot { get; private set; } = -1;
@@ -103,6 +107,7 @@ public class GameManager : MonoBehaviour
         PlayerKnownNext = null;
         clownKnownNext = null;
         LastResult = "";
+        ShownCandle = null;                                                            // ← 25 추가
         deck.SetComposition(config.minCards, config.maxCards, config.fixedOrder);
         deck.Fill();
         GiveItems();
@@ -224,6 +229,7 @@ public class GameManager : MonoBehaviour
     void UseRumor(Participant user)
     {
         Candle top = DrawTop();
+        ShownCandle = top;                                                             // ← 25 추가
         LastResult = $"{user.Name}: 찌라시 → 다음 캔들은 {CandleName(top)} (버림)";
 
         if (deck.IsEmpty)
@@ -344,6 +350,7 @@ public class GameManager : MonoBehaviour
     IEnumerator RevealRoutine(PlayerAction action)
     {
         IsRevealing = true;
+        ShownCandle = deck.Peek();   // 공개될 캔들(맨 위). 공개 중 단말기가 이걸 그린다 // ← 25 추가
         audioManager.SetRevealDuck(true);
         ui.Refresh(this);
 

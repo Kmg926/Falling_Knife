@@ -7,6 +7,11 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] TMP_Text statusText;
 
+    [Header("플레이 화면 조각 (Ticket 25)")]                                             // ← 25 추가
+    [SerializeField] TerminalView terminalView;                                        // ← 25 추가
+    [SerializeField] LeverageView leverageView;                                        // ← 25 추가
+    [SerializeField] ClownView clownView;                                              // ← 25 추가
+
     [Header("화면 반응")]
     [SerializeField] float flashSeconds = 0.2f;
     [SerializeField] Color flashColor = new Color(0.85f, 0.25f, 0.22f);
@@ -41,6 +46,11 @@ public class UIManager : MonoBehaviour
     // 상태를 읽어서 글자로만 보여준다. 값을 바꾸지 않는다.
     public void Refresh(GameManager game)
     {
+        // 그림 쪽 화면 조각들도 같은 상태를 읽어 다시 그린다.                           // ← 25 추가
+        terminalView.Refresh(game);                                                    // ← 25 추가
+        leverageView.Refresh(game);                                                    // ← 25 추가
+        clownView.Refresh(game);                                                       // ← 25 추가
+
         string choice = game.Selected == PlayerAction.Hold ? "[보유]  매도" : " 보유  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;
 

@@ -27,3 +27,19 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q3, Q10)
 - 2026-11-16 AI 작업(Ticket 24 done 뒤 시작): `tools/make_art.py play` 추가 → 시안 12개(방 배경·테이블 A/B·단말기 틀·다음 캔들 칸·레버리지 상자·캔들 상승/하락·불꽃 켜짐/꺼짐·광대 평소/생각 중)와 합친 미리보기 `.scratch/art/drafts/play-preview-x2.png`. 팔레트 검사 모두 OK. 규격은 아트 메모 7-2절. 광대 눈동자 투명 구멍을 찾아 막음(`fill_holes`) → Sprites의 `clown-idle.png` 교체 필요. **다음:** 사용자 선택(테이블 A/B, 생각 중 눈) → Sprites·Scene(MCP) → 게임 코드 초안(TerminalView·LeverageView·광대 교체·결과 한 줄).
 - 2026-11-16 사용자 선택: 테이블 **A(민무늬)**. 광대 생각 중(눈동자 위로)은 별도 의견 없어 이 시안으로 진행(바꾸려면 지시).
 - 2026-11-16 AI가 MCP로(Scene 저장 안 된 변경 없음 확인): 그림 11개를 `Sprites/Play/`·`Sprites/Clown/`에 가져옴(PPU 1·Point·압축 없음, 기준점 왼쪽 위 / 광대만 아래 가운데). `clown-idle.png`는 눈동자 구멍 막은 판으로 같은 이름 교체(.meta·연결 유지). 고정 그림 5개를 `PlayArt` 아래 배치(Room −10, Clown 0, Table 10, Terminal·LeverageBox 20, NextCandleBox 21) → 저장. Play 캡처 `.scratch/art/captures/25-static-art.png`(1280×720): 스케치 배치와 같음. Console 새 오류 0. 캔들·불꽃·광대 교체는 코드(TerminalView·LeverageView)가 맡음 → 초안 다음.
+- 2026-11-16 그림·고정 배치 커밋 `dcb1b0f`. 게임 코드 초안 `draft/25`(CandleDeck·GameManager·UIManager 바뀐 줄 + 새 파일 TerminalView·LeverageView·ClownView, README 줄별 설명·Scene 연결 계획·테스트 T147~T155). 사용자 직접 타이핑 차례.
+- 2026-11-16 "반영함" 리뷰: 6개 파일 모두 초안과 코드 차이 0(채팅 전문의 `// ← 25 추가` 표시 주석만 남음 — 지워도 되고 둬도 동작 같음). 저장 06:43:18~06:44:01, 컴파일 06:44:05 > 마지막 저장, 오류 0(Console의 CS0146 `MonoBehaviour.cs`는 새 파일을 기본 이름으로 만든 중간 기록).
+- Scene(AI가 MCP로, 저장 안 된 변경 없음 확인): `PlayArt` 아래 ShownCandle(122,108)·KnownCandle(189,113)·Flame1~3(218/226/234,118) 정렬 22. 새 Canvas `HUD`(Screen Space - Camera, 320×180, 정렬 100) + 글자 7개(GE코인 gold1, 남은 개수 cream·자동 크기 6~11, `?` gold1, 결과 한 줄 cream 화면 y 141 가운데, 레버리지 cream, `n/3` cream, 다음 피해 red3, Galmuri11 크기 11). Terminal에 TerminalView, LeverageBox에 LeverageView, Clown에 ClownView, UIManager 칸 3개 연결 → 저장.
+  - 발견·수정: Game 창이 1610×787(홀수)이면 Canvas 비율과 4배 그림 영역이 달라 글자가 어긋남 → Pixel Perfect Camera **Crop Frame = Windowbox**(4배 영역 밖은 검은 테두리, Canvas도 1280×720 영역에 맞음, 배율 4 확인). 구성 글자가 `GE코인`과 겹쳐 남은 개수 칸을 x 146·너비 57로 줄이고 자동 크기. `?` 정렬은 처음부터 가운데(어긋남은 위 비율 문제였음).
+- 테스트(AI가 MCP로, Play 중에만 값 변경: 고정 덱·아이템, 공개 시간):
+  - T147 ✅ 시작: `하락 1 · 상승 2`, 캔들 숨김, `?` 보임, 결과 빈칸 (C5)
+  - T148 ✅ 공개(3초로 늘려 관찰): 1줄 → 3줄 → 18줄, 끝나면 결과·`남은 N` (C5). 공개 시간 값 자체는 코드 그대로(U2)
+  - T149 ✅ 상승 보유: 레버리지 1 → 불꽃 1·`1/3`·`다음 피해 2`·`남은 3` / 2 → 불꽃 2·`2/3`·`다음 피해 3` / 하락 보유 → 플레이어 10→7(피해 3) (C6)
+  - T150 ✅ 플레이어 차트 분석 → ? 칸에 하락 캔들, `?` 숨김 / 광대 차트 분석 → `?` 그대로, 캔들 안 보임 (C5)
+  - T151 ✅ 찌라시 → 버린 하락 캔들이 단말기에, `?` 다시 보임, 결과 `플레이어: 찌라시 → …`
+  - T152 ✅ 광대 생각 중 → `clown-thinking` 그림, 결과 한 줄 `광대: 보유 → 상승! …` (Q10, 제안 7)
+  - T153 ✅ 재장전 → `하락 n · 상승 m` 다시 보임
+  - T154 △ 판정은 위 테스트 안에서 같음(피해·레버리지 초기화·광대 행동), Console 오류 0. `clown-ai` T65~T68·소리 T142~T143을 따로 다시 돌리지는 않음(코드는 화면 읽기·`Peek`만 추가)
+  - T155 ✅ 캡처 `.scratch/art/captures/25-terminal-leverage.png` (스케치 화면 2와 같은 배치)
+- 남은 것: 결과 한 줄 위치(화면 y 141 가운데, 26의 아래 HUD와 겹칠 수 있음) → 26에서 다시 배치. gdd-changes 구체화(결과 한 줄 유지, Crop Frame).
+- 2026-11-16 코드 반영 방식: 사용자 확인 "직접 타이핑"(6개 파일).
