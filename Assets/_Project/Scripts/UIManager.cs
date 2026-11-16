@@ -23,6 +23,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] ItemCloseupPanel closeupPanel;   // Ticket 27
     [SerializeField] ResultPanel resultPanel;          // Ticket 28
     [SerializeField] PausePanel pausePanel;            // Ticket 29
+    [SerializeField] DeckRevealView deckReveal;        // ui-revamp 31
     // 피해 때 화면 전체를 덮는 반투명 빨강
     [SerializeField] Image damageFlash;
 
@@ -89,6 +90,7 @@ public class UIManager : MonoBehaviour
         closeupPanel.Refresh(game);
         resultPanel.Refresh(game);
         pausePanel.Refresh(game);
+        deckReveal.Refresh(game);
 
         string choice = game.Selected == PlayerAction.Hold ? "[보유]  매도" : " 보유  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;

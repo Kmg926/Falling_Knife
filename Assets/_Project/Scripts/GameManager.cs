@@ -83,10 +83,31 @@ public class GameManager : MonoBehaviour
     public bool IsClownTurn => Current == Clown && !IsRoundOver;
 
     // 지금 플레이어가 보유·매도를 고를 수 있는가 (버튼을 밝게/회색으로 보일 때 쓴다)
-    public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused;
+    public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused && !IsPresenting;
 
     // 일시정지 중인가 (Ticket 29). 멈춘 동안은 Time.timeScale = 0 → 공개·광대 생각의 WaitForSeconds도 멈춘다.
     public bool IsPaused { get; private set; }
+
+    // ── 덱 공개 연출 (ui-revamp 31). 판정은 하지 않고, 연출 동안 입력과 광대 차례 시작만 미룬다. ──
+    public bool IsPresenting { get; private set; }
+    // 연출 중 Space를 누르면 켜진다 → 화면(DeckRevealView)이 보고 연출을 바로 끝낸다
+    public bool SkipRequested { get; private set; }
+    // 마지막으로 덱을 채운 게 라운드 시작이었나(true) 재장전이었나(false) → 연출 길이(1.5초 / 1.0초)
+    public bool LastFillWasRoundStart { get; private set; }
+
+    public void BeginPresentation()
+    {
+        IsPresenting = true;
+        SkipRequested = false;
+        ui.Refresh(this);
+    }
+
+    public void EndPresentation()
+    {
+        IsPresenting = false;
+        SkipRequested = false;
+        ui.Refresh(this);
+    }
 
     // 지금 차례가 아닌 쪽
     Participant Opponent => (Current == Player) ? Clown : Player;
@@ -142,6 +163,7 @@ public class GameManager : MonoBehaviour
         LastResult = "";
         ShownCandle = null;                                                            // ← 25 추가
         deck.SetComposition(config.minCards, config.maxCards, config.fixedOrder);
+        LastFillWasRoundStart = true;
         deck.Fill();
         GiveItems();
         ui.Refresh(this);
@@ -150,7 +172,7 @@ public class GameManager : MonoBehaviour
     // A/D·←/→. 공개 중, 라운드 끝, 광대 차례, 아이템 확인 중이면 무시한다.
     public void Select(PlayerAction action)
     {
-        if (IsPaused || IsRevealing || IsRoundOver || IsClownTurn || IsConfirming) return;
+        if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn || IsConfirming) return;
         if (Selected != action) audioManager.PlayClick();   // 실제로 바뀔 때만
         Selected = action;
         ui.Refresh(this);
@@ -161,6 +183,13 @@ public class GameManager : MonoBehaviour
     public void Execute()
     {
         if (IsPaused || IsRevealing) return;
+
+        // 연출 중 Space = 건너뛰기 (Q3)
+        if (IsPresenting)
+        {
+            SkipRequested = true;
+            return;
+        }
 
         if (IsConfirming)
         {
@@ -187,7 +216,7 @@ public class GameManager : MonoBehaviour
     // 1~4. 내 차례(공개 중·광대 차례·라운드 끝이 아닐 때)에 그 슬롯에 아이템이 있으면 확인을 연다.
     public void SelectItem(int slot)
     {
-        if (IsPaused || IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
         if (slot < 0 || slot >= Player.Items.Count) return;
         ConfirmingSlot = slot;
         audioManager.PlayClick();
@@ -461,6 +490,9 @@ public class GameManager : MonoBehaviour
     // → 아이템이면 쓰고 다시 생각(①부터), 보유·매도면 기존 공개 처리
     IEnumerator ClownTurnRoutine()
     {
+        // 덱 공개 연출이 끝난 뒤에 생각을 시작한다(연출 중에 광대가 움직이지 않게)
+        while (IsPresenting) yield return null;
+
         IsClownThinking = true;
         ui.Refresh(this);
 
@@ -552,6 +584,7 @@ public class GameManager : MonoBehaviour
     // 구성을 새로 뽑아 채우고 두 사람에게 아이템을 준다. 잔고·레버리지·차례는 그대로.
     void Reload()
     {
+        LastFillWasRoundStart = false;
         deck.Fill();
         GiveItems();
         audioManager.PlayShuffle();

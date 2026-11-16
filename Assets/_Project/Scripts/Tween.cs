@@ -22,11 +22,12 @@ public static class Tween
         float t = 0f;
         while (t < seconds)
         {
+            if (target == null) yield break;   // 움직이는 도중 물건이 지워졌으면 조용히 끝 (ui-revamp 31)
             target.anchoredPosition = Snap(Vector2.LerpUnclamped(from, to, ease(t / seconds)));
             t += Time.deltaTime;
             yield return null;
         }
-        target.anchoredPosition = Snap(to);
+        if (target != null) target.anchoredPosition = Snap(to);
     }
 
     // 월드 물건(Transform)을 부모 기준 from → to로 옮긴다.
@@ -35,11 +36,12 @@ public static class Tween
         float t = 0f;
         while (t < seconds)
         {
+            if (target == null) yield break;   // 움직이는 도중 물건이 지워졌으면 조용히 끝 (ui-revamp 31)
             target.localPosition = Snap(Vector3.LerpUnclamped(from, to, ease(t / seconds)));
             t += Time.deltaTime;
             yield return null;
         }
-        target.localPosition = Snap(to);
+        if (target != null) target.localPosition = Snap(to);
     }
 
     static Vector2 Snap(Vector2 v) => new Vector2(Mathf.Round(v.x), Mathf.Round(v.y));

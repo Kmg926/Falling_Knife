@@ -24,6 +24,8 @@ public class CandleDeck : MonoBehaviour
     public int Remaining => cards.Count;                                                // ← 25 추가
     // 방금 채웠고 아직 한 장도 안 뽑았으면 true → 단말기가 하락/상승 개수를 보여 준다(#40) // ← 25 추가
     public bool JustFilled { get; private set; }                                        // ← 25 추가
+    // 지금까지 덱을 채운 횟수 (ui-revamp 31). 화면이 "방금 새로 채워졌다"를 놓치지 않고 알아차리는 데 쓴다
+    public int FillCount { get; private set; }
 
     // 라운드 시작 때 GameManager가 부른다. 저장해 둔 값은 재장전(Fill)도 그대로 쓴다.
     public void SetComposition(int min, int max, string order)
@@ -54,6 +56,7 @@ public class CandleDeck : MonoBehaviour
         }
         Recount();
         JustFilled = true;                                                              // ← 25 추가
+        FillCount++;
         Debug.Log("덱 순서(위→아래): " + string.Join(" ", cards));
     }
 
