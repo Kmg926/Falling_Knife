@@ -9,6 +9,7 @@
     python tools/make_art.py title     # Ticket 29 타이틀·일시정지 그림 + 미리보기
     python tools/make_art.py revamp30  # UI 개편 30: 한 단계 어두운 광대·턴 띠
     python tools/make_art.py revamp31  # UI 개편 31: 캔들 뒷면
+    python tools/make_art.py revamp32  # UI 개편 32: 아이템 회전 그림 4x8 + 그림자
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -872,8 +873,84 @@ def make_revamp31(pal):
     check(files, pal)
 
 
+# ---------- UI 개편 32: 아이템 회전 그림(유사 3D) ----------
+SPIN_FRAMES = 8          # 45° 간격 한 바퀴
+SPIN_THICK = 3           # 아이콘 두께(도트)
+SPIN_W = 20              # 회전 그림 캔버스 너비(아이콘 17 + 두께 여유)
+
+
+def spin_frames(pal, idx, mask):
+    """아이콘을 두께 SPIN_THICK 도트짜리 물체로 세우고 Y축으로 돌린 SPIN_FRAMES장(정사영, 무작위 없음).
+    앞을 향한 면 = 원래 색, 옆으로 보이는 면 = 한 단계 어두운 색(DARKER) → 두께가 느껴진다."""
+    names = list(pal.keys())
+    h, w = idx.shape
+    cx = w // 2                                           # 정수 중심(0°에서 도트가 반 칸에 걸리지 않게)
+    frames = []
+    for f in range(SPIN_FRAMES):
+        a = np.radians(f * 360 / SPIN_FRAMES)
+        ca, sa = np.cos(a), np.sin(a)
+        out_i, out_m = sprite(SPIN_W, h)
+        depth = np.full((h, SPIN_W), -1e9)
+        front = 1 if ca >= 0 else -1                       # 지금 카메라를 향한 판
+        for y in range(h):
+            for x in range(w):
+                if not mask[y, x]:
+                    continue
+                for z in range(-(SPIN_THICK // 2), SPIN_THICK // 2 + 1):
+                    px = (x - cx) * ca - z * sa             # 회전 뒤 가로 위치
+                    pz = (x - cx) * sa + z * ca             # 회전 뒤 깊이(클수록 앞)
+                    sx = int(np.floor(px + 0.5)) + SPIN_W // 2   # 반올림을 한 방향으로(빈 줄무늬 방지)
+                    if not 0 <= sx < SPIN_W or pz <= depth[y, sx]:
+                        continue
+                    depth[y, sx] = pz
+                    n = names[idx[y, x]]
+                    facing = (z == front * (SPIN_THICK // 2)) and abs(ca) > 0.35
+                    color = n if facing else DARKER.get(n, n)
+                    out_i[y, sx] = names.index(color)
+                    out_m[y, sx] = True
+        frames.append((out_i, out_m))
+    return frames
+
+
+def make_revamp32(pal):
+    """아이템 4종 x 회전 8장(2배 = 40x26) + 그림자 + 미리보기 시트 + 팔레트 검사."""
+    names = list(pal.keys())
+    icons = {"chart": sketch_icon(pal, ICON_REGIONS["item-chart"]),
+             "rumor": sketch_icon(pal, ICON_REGIONS["item-rumor"]),
+             "halt": sketch_icon(pal, ICON_REGIONS["item-halt"]),
+             "lottery": lottery_icon(pal)}
+    files = []
+    sheet_rows = []
+    for name, (i, m) in icons.items():
+        row = []
+        for k, (fi, fm) in enumerate(spin_frames(pal, i, m)):
+            bi, bm = big_icon(fi, fm)
+            p = DRAFTS / f"spin-{name}-{k}.png"
+            write_png(p, to_rgba(bi, bm, pal))
+            files.append(p)
+            row.append((bi, bm))
+        sheet_rows.append(row)
+    shadow = dim_dither(names, 32, 3)
+    write_png(DRAFTS / "spin-shadow.png", to_rgba(*shadow, pal))
+    files.append(DRAFTS / "spin-shadow.png")
+
+    cols = np.array(list(pal.values()), np.uint8)
+    H, W = 26, 40
+    sheet = np.tile(pal["wood"].astype(np.uint8), (len(sheet_rows) * (H + 4), SPIN_FRAMES * (W + 4), 1))
+    for r, row in enumerate(sheet_rows):
+        for c, (bi, bm) in enumerate(row):
+            reg = sheet[r * (H + 4):r * (H + 4) + H, c * (W + 4):c * (W + 4) + W]
+            reg[bm] = cols[bi][bm]
+    write_png(DRAFTS / "spin-preview-x3.png", sheet.repeat(3, 0).repeat(3, 1))
+    print("팔레트 검사 (C5):")
+    check(files, pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
+    if len(sys.argv) > 1 and sys.argv[1] == "revamp32":
+        make_revamp32(palette)
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "revamp31":
         make_revamp31(palette)
         sys.exit(0)

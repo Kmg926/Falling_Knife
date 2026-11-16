@@ -36,6 +36,7 @@
 | 19 | 그림 `Sprites/Title/` 그래프·조작 상자·시작 버튼·일시정지 어둡게·패널 | `tools/make_art.py title` (Claude 작성, 무작위 없음) | 그래프는 사용자 스케치 화면 1의 선을 떼어 냄, 나머지 1도트 테두리·바둑판 | 없음(#42) | 원본 사용자 스케치 / 외부 이미지·모델 없음 | 2026-11-16 |
 | 20 | 그림 `Sprites/Clown/clown-dim.png`, `Sprites/HUD/turn-banner.png` | `tools/make_art.py revamp30` (Claude 작성, 무작위 없음) | #5 광대를 한 단계 어둡게 / 바둑판 bg0 점 320×16 | 없음(#42) | #5와 같음 / 외부 이미지 없음 | 2026-11-16 |
 | 21 | 그림 `Sprites/Play/candle-back.png` (뒤집힌 캔들) | `tools/make_art.py revamp31` (Claude 작성, 무작위 없음) | 5×18 회색 테두리·남색 몸통·금색 점 | 없음(#42) | 외부 이미지 없음 | 2026-11-17 |
+| 22 | 그림 `Sprites/Closeup/Spin/spin-*-0~7.png` (아이템 4종 × 회전 8장) + `spin-shadow.png` | `tools/make_art.py revamp32` (Claude 작성, 무작위 없음) `spin_frames()` | #13·#14 아이콘을 두께 3도트 물체로 세워 Y축 45°마다 정사영, 옆면 한 단계 어둡게, 2배 | 없음(#42) | 원본 #13(사용자 스케치)·#14 / 외부 이미지·모델 없음 | 2026-11-17 |
 
 ## 3. 게임 내 크레딧 문구 (초안)
 
