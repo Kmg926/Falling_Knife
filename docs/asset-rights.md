@@ -25,6 +25,12 @@
 | 8 | 그림 `Sprites/Play/terminal.png`·`terminal-qbox.png`·`leverage-box.png` (틀 3개) | 위와 같음 `frame()` | 1도트 테두리 + 안쪽 색, 크기는 스케치에서 잼 | 없음 | 위와 같음 | 2026-11-16 |
 | 9 | 그림 `Sprites/Play/candle-up/down.png`·`flame-on/off.png` | 위와 같음 `candle()`·`flame()` | 캔들 5×18(심지·몸통), 불꽃 6×9 모양 문자열 | 없음 | 위와 같음 | 2026-11-16 |
 | 10 | 그림 `Sprites/Clown/clown-thinking.png` (광대 생각 중) | 위와 같음 `clown_thinking()` | #5 광대에서 눈동자만 2칸 위로 | 없음 — 사용자 별도 의견 없어 이 시안으로 진행(바꾸려면 지시) | 위와 같음 | 2026-11-16 |
+| 11 | 그림 `Sprites/HUD/` 틀·띠·버튼·슬롯 9개(`hud-box`·`hud-box-wide`·`hud-bar`·`button-normal/selected/disabled`·`slot-normal/selected`) | `tools/make_art.py hud` (Claude 작성, 무작위 없음) `frame()`·`button()` | 1도트 테두리 + 안쪽 색, 크기는 스케치에서 잼(광대 잔고 틀만 넓힘) | 없음(#42) | 외부 이미지·모델 없음. 이용약관 해당 없음 | 2026-11-16 |
+| 12 | 그림 `Sprites/HUD/coin-on/danger/off.png` | 위와 같음 `coin()` | 7×7 모양 문자열, 금색·빨강·회색 점선 | 없음 | 위와 같음 | 2026-11-16 |
+| 13 | 그림 `Sprites/HUD/item-chart/rumor/halt.png` | 위와 같음 `sketch_icon()` | 사용자가 그린 스케치 슬롯 아이콘을 팔레트로 맞춰 떼어 냄 | 없음 | 원본은 사용자 스케치 | 2026-11-16 |
+| 14 | 그림 `Sprites/HUD/item-lottery.png` | 위와 같음 `lottery_icon()` | 스케치에 없어 새로 그림: 금색 표 + 크림 안 + 빨간 별 점 | 없음 | 외부 이미지·모델 없음 | 2026-11-16 |
+| 15 | 그림 `Sprites/Closeup/` 패널·아이콘 칸·분류 표·배경 바둑판(`closeup-panel/iconbox/tag/dim`) | `tools/make_art.py closeup` (Claude 작성, 무작위 없음) | 1도트 테두리 틀, 바둑판 점(반투명 대신) | 없음(#42) | 외부 이미지·모델 없음 | 2026-11-16 |
+| 16 | 그림 `Sprites/Closeup/item-*-big.png` (큰 아이콘 4개) | 위와 같음 `big_icon()` | #13·#14 아이콘을 2배(도트 하나 = 2×2) | 없음 | #13(사용자 스케치)·#14와 같음 | 2026-11-16 |
 
 ## 3. 게임 내 크레딧 문구 (초안)
 

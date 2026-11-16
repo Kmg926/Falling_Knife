@@ -4,6 +4,7 @@
     python tools/make_art.py clown     # 광대 시안 A·B·C + 미리보기 + 팔레트 검사
     python tools/make_art.py play      # Ticket 25 플레이 화면 그림 + 합친 미리보기
     python tools/make_art.py hud       # Ticket 26 정식 UI 그림(틀·버튼·슬롯·동전·아이콘) + 미리보기
+    python tools/make_art.py closeup   # Ticket 27 아이템 확인 패널 그림 + 미리보기
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -600,8 +601,79 @@ def make_hud(pal):
     check(files, pal)
 
 
+# ---------- 아이템 확인 패널 (Ticket 27) ----------
+# 스케치 화면 3을 기준으로, 아래 띠(y 144~)와 선택 슬롯이 가려지지 않게 패널을 y 30~139로 올림(아트 메모 7-4절).
+CLOSEUP_PANEL = (86, 30, 168, 110)   # x, y, w, h
+ICON_BOX = (42, 42)
+CATEGORY_TAG = (30, 12)
+
+
+def big_icon(idx, mask):
+    """작은 아이콘(17x13)을 2배로 키운 큰 아이콘(34x26). 확인 패널 전용 — 도트 하나가 2x2가 된다(스케치 화면 3과 같은 굵기)."""
+    return idx.repeat(2, 0).repeat(2, 1), mask.repeat(2, 0).repeat(2, 1)
+
+
+def dim_dither(names, w=320, h=144):
+    """배경 어둡게: 한 칸 걸러 bg0 점(바둑판). 반투명 대신 점으로 덮어 팔레트 밖 색이 생기지 않는다."""
+    idx, mask = sprite(w, h)
+    yy, xx = np.mgrid[0:h, 0:w]
+    on = (yy + xx) % 2 == 0
+    idx[on] = names.index("bg0")
+    mask[on] = True
+    return idx, mask
+
+
+def make_closeup(pal):
+    """Ticket 27 그림: 패널 틀, 큰 아이콘 칸, 분류 표, 큰 아이콘 4개 + 플레이 화면 위 미리보기(4배) + 팔레트 검사."""
+    names = list(pal.keys())
+    icon_box_idx, icon_box_mask = frame(*ICON_BOX, "navy", "wood", names)
+    tag_idx, tag_mask = frame(*CATEGORY_TAG, "navy", "navy", names)
+    parts = {
+        "closeup-panel": frame(CLOSEUP_PANEL[2], CLOSEUP_PANEL[3], "gold1", "bg0", names),
+        "closeup-iconbox": (icon_box_idx, icon_box_mask),
+        "closeup-tag": (tag_idx, tag_mask),
+        "closeup-dim": dim_dither(names),
+    }
+    small = {"item-chart": sketch_icon(pal, ICON_REGIONS["item-chart"]),
+             "item-rumor": sketch_icon(pal, ICON_REGIONS["item-rumor"]),
+             "item-halt": sketch_icon(pal, ICON_REGIONS["item-halt"]),
+             "item-lottery": lottery_icon(pal)}
+    for name, (i, m) in small.items():
+        parts[name + "-big"] = big_icon(i, m)
+    files = []
+    for name, (idx, mask) in parts.items():
+        p = DRAFTS / f"{name}.png"
+        write_png(p, to_rgba(idx, mask, pal))
+        files.append(p)
+
+    # 미리보기: HUD 미리보기 위에 어둡게(바둑판 무늬로 bg0를 반만 덮어 '어둡게' 흉내) + 패널
+    base = read_png(DRAFTS / "hud-preview-x4.png")[::4, ::4, :3].copy()
+    cols = np.array(list(pal.values()), np.uint8)
+    yy, xx = np.mgrid[0:144, 0:320]
+    base[:144][(yy + xx) % 2 == 0] = pal["bg0"].astype(np.uint8)
+
+    def paste(name, x, y):
+        idx, mask = parts[name]
+        h, w = idx.shape
+        reg = base[y:y + h, x:x + w]
+        reg[mask] = cols[idx][mask]
+
+    px, py, pw, ph = CLOSEUP_PANEL
+    paste("closeup-panel", px, py)
+    bx = px + (pw - ICON_BOX[0]) // 2
+    paste("closeup-iconbox", bx, py + 5)
+    paste("item-chart-big", bx + 4, py + 5 + 8)
+    paste("closeup-tag", px + (pw - CATEGORY_TAG[0]) // 2, py + 62)
+    write_png(DRAFTS / "closeup-preview-x4.png", base.repeat(4, 0).repeat(4, 1))
+    print("팔레트 검사 (C1):")
+    check(files, pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
+    if len(sys.argv) > 1 and sys.argv[1] == "closeup":
+        make_closeup(palette)
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "hud":
         make_hud(palette)
         sys.exit(0)

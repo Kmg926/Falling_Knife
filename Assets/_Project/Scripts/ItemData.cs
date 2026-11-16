@@ -7,5 +7,7 @@ public class ItemData : ScriptableObject
 {
     public ItemType type;
     public string displayName;
+    // 분류 (GDD 아이템 표: 정보 / 조작 / 방해 / 도박). 확인 패널의 작은 표에 보인다.
+    public string category;
     [TextArea] public string description;
 }

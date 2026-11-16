@@ -331,6 +331,12 @@ public class GameManager : MonoBehaviour
         return data != null ? data.displayName : item.ToString();
     }
 
+    public string ItemCategory(ItemType item)
+    {
+        ItemData data = DataOf(item);
+        return data != null ? data.category : "";
+    }
+
     public string ItemDescription(ItemType item)
     {
         ItemData data = DataOf(item);
