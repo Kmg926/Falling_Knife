@@ -30,6 +30,14 @@ public class UIManager : MonoBehaviour
     [Header("개발용 글자 (F1로 켜고 끔, 최종 빌드 전 제거 #41)")]
     [SerializeField] bool showDevText = false;
 
+    [Header("피해 흔들림 (ui-revamp 33, 제안 7)")]
+    [SerializeField] bool screenShake = true;          // 끄면 흔들림 없음(멀미 대비)
+    [SerializeField] Transform[] shakeTargets;         // 흔들 월드 그림 묶음(PlayArt·Clown). 카메라는 건드리지 않는다
+    [SerializeField] float shakeSeconds = 0.15f;
+    [SerializeField] int shakeDots = 2;
+    Vector3[] shakeHomes;
+    Coroutine shakeRoutine;
+
     [Header("화면 반응")]
     [SerializeField] float flashSeconds = 0.2f;
     [SerializeField] Color flashColor = new Color(0.85f, 0.25f, 0.22f);
@@ -63,6 +71,35 @@ public class UIManager : MonoBehaviour
     {
         if (flashRoutine != null) StopCoroutine(flashRoutine);
         flashRoutine = StartCoroutine(FlashRoutine());
+
+        if (screenShake && shakeTargets != null && shakeTargets.Length > 0)
+        {
+            if (shakeRoutine != null) StopCoroutine(shakeRoutine);
+            else shakeHomes = HomesOf(shakeTargets);   // 흔드는 중이 아닐 때만 원래 자리를 새로 기억
+            shakeRoutine = StartCoroutine(ShakeRoutine());
+        }
+    }
+
+    // 피해 흔들림: 정해진 도트 무늬로 0.15초 흔든 뒤 정확히 제자리(정수 도트라 흐려지지 않음)
+    IEnumerator ShakeRoutine()
+    {
+        Vector2[] pattern = { new Vector2(shakeDots, 0), new Vector2(-shakeDots, 0), new Vector2(0, shakeDots / 2), new Vector2(-shakeDots / 2, 0) };
+        float step = shakeSeconds / pattern.Length;
+        foreach (Vector2 offset in pattern)
+        {
+            for (int i = 0; i < shakeTargets.Length; i++)
+                shakeTargets[i].localPosition = shakeHomes[i] + new Vector3(offset.x, offset.y, 0f);
+            yield return new WaitForSeconds(step);
+        }
+        for (int i = 0; i < shakeTargets.Length; i++) shakeTargets[i].localPosition = shakeHomes[i];
+        shakeRoutine = null;
+    }
+
+    static Vector3[] HomesOf(Transform[] targets)
+    {
+        Vector3[] homes = new Vector3[targets.Length];
+        for (int i = 0; i < targets.Length; i++) homes[i] = targets[i].localPosition;
+        return homes;
     }
 
     IEnumerator FlashRoutine()

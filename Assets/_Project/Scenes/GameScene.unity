@@ -4711,6 +4711,12 @@ MonoBehaviour:
   deckReveal: {fileID: 1887937189}
   damageFlash: {fileID: 1668009728}
   showDevText: 0
+  screenShake: 1
+  shakeTargets:
+  - {fileID: 1340410154}
+  - {fileID: 587867401}
+  shakeSeconds: 0.15
+  shakeDots: 2
   flashSeconds: 0.2
   flashColor: {r: 0.85, g: 0.25, b: 0.22, a: 1}
   dangerBalance: 3
@@ -5220,6 +5226,8 @@ MonoBehaviour:
   dangerBalance: 3
   normalColor: {r: 0.46666667, g: 0.4509804, b: 0.41960785, a: 1}
   dangerColor: {r: 0.76862746, g: 0.22745098, b: 0.22745098, a: 1}
+  dropSeconds: 0.3
+  dropDots: 8
 --- !u!1 &981481523
 GameObject:
   m_ObjectHideFlags: 0
@@ -7374,6 +7382,7 @@ MonoBehaviour:
   normalSprite: {fileID: 21300000, guid: a966efad1754f724fbd0a2abc7f84724, type: 3}
   selectedSprite: {fileID: 21300000, guid: d719e0c4d22666c4da97aff371feb382, type: 3}
   disabledSprite: {fileID: 21300000, guid: 5663127165ed60343910bd3fb1effd77, type: 3}
+  pressSeconds: 0.1
 --- !u!1 &1221278561
 GameObject:
   m_ObjectHideFlags: 0
@@ -7742,6 +7751,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 533d28281ca42f0419a2447733ceedf2, type: 3}
   - {fileID: 21300000, guid: 263ee15f208b04d4fb637478bf92c09b, type: 3}
   - {fileID: 21300000, guid: 178d8c77fac6f494387f1fda8afd8522, type: 3}
+  pressSeconds: 0.1
 --- !u!1 &1259023119
 GameObject:
   m_ObjectHideFlags: 0
@@ -13099,6 +13109,8 @@ MonoBehaviour:
   dangerBalance: 3
   normalColor: {r: 0.46666667, g: 0.4509804, b: 0.41960785, a: 1}
   dangerColor: {r: 0.76862746, g: 0.22745098, b: 0.22745098, a: 1}
+  dropSeconds: 0.3
+  dropDots: 8
 --- !u!1 &2102777730
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,8 +15,16 @@ public class ActionButtonsView : MonoBehaviour
     [SerializeField] Sprite disabledSprite;
 
     // 버튼을 누르면 부를 함수를 한 번만 등록한다.
+    [Header("눌림 (ui-revamp 33)")]
+    [SerializeField] float pressSeconds = 0.1f;
+    Vector2 holdHome;
+    Vector2 sellHome;
+    bool wasRevealing;
+
     void Awake()
     {
+        holdHome = holdImage.rectTransform.anchoredPosition;
+        sellHome = sellImage.rectTransform.anchoredPosition;
         holdButton.onClick.AddListener(() => OnClick(PlayerAction.Hold));
         sellButton.onClick.AddListener(() => OnClick(PlayerAction.Sell));
     }
@@ -35,6 +44,21 @@ public class ActionButtonsView : MonoBehaviour
         sellButton.interactable = can;
         holdImage.sprite = SpriteFor(can, game.Selected == PlayerAction.Hold);
         sellImage.sprite = SpriteFor(can, game.Selected == PlayerAction.Sell);
+
+        // 내 실행으로 공개가 막 시작된 순간(클릭이든 Space든) → 고른 버튼이 1도트 눌림
+        if (game.IsRevealing && !wasRevealing && game.Current == game.Player)
+        {
+            bool hold = game.Selected == PlayerAction.Hold;
+            StartCoroutine(Press(hold ? holdImage.rectTransform : sellImage.rectTransform, hold ? holdHome : sellHome));
+        }
+        wasRevealing = game.IsRevealing;
+    }
+
+    IEnumerator Press(RectTransform target, Vector2 home)
+    {
+        target.anchoredPosition = home + new Vector2(0f, -1f);
+        yield return new WaitForSeconds(pressSeconds);
+        target.anchoredPosition = home;
     }
 
     Sprite SpriteFor(bool can, bool selected)
