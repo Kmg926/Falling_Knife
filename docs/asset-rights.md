@@ -38,6 +38,7 @@
 | 21 | 그림 `Sprites/Play/candle-back.png` (뒤집힌 캔들) | `tools/make_art.py revamp31` (Claude 작성, 무작위 없음) | 5×18 회색 테두리·남색 몸통·금색 점 | 없음(#42) | 외부 이미지 없음 | 2026-11-17 |
 | 22 | 그림 `Sprites/Closeup/Spin/spin-*-0~7.png` (아이템 4종 × 회전 8장) + `spin-shadow.png` | `tools/make_art.py revamp32` (Claude 작성, 무작위 없음) `spin_frames()` | #13·#14 아이콘을 두께 3도트 물체로 세워 Y축 45°마다 정사영, 옆면 한 단계 어둡게, 2배 | 없음(#42) | 원본 #13(사용자 스케치)·#14 / 외부 이미지·모델 없음 | 2026-11-17 |
 | 23 | 그림(640 격자, PPU 2) `Sprites/Play/table.png`(테이블·펠트 매트 2장, 640×160), `Sprites/HUD/hud-bar.png`(464×72), `coin-on/danger/off.png`(내 동전 탑 1개·빈 자리 고리 17×10), `coin-clown-on/spot.png`(광대 15×7) — 옛 #7·#8의 같은 이름 파일을 덮어씀 | `tools/make_art_hd.py game` (Claude 작성, 무작위 없음) | 32색 팔레트, 원근 판자·결·이음새·램프 빛, 펠트 매트 테두리·바느질, 동전 윗면 타원·옆면 층·반짝임. 시안 3개 중 사용자가 B 선택(art-hd Ticket 34) | 없음(#42) | 외부 이미지 없음 | 2026-11-17 |
+| 24 | 그림(640 격자, PPU 2) `Sprites/Play/candle-up/down/back.png`(10×36), `flame-on/off.png`(12×18), `leverage-box.png`(120×76), `Sprites/HUD/slot-normal/selected.png`(50×60), `button-normal/selected/disabled.png`(116×60), `item-chart/rumor/halt/lottery.png`(42×32), `Sprites/Closeup/item-*-big.png`(68×52), `Closeup/Spin/spin-*-0~7.png`(80×52)·`spin-shadow.png`(64×6) — 옛 #7·#8·#13·#14·#21·#22의 같은 이름 파일을 덮어씀 | `tools/make_art_hd_items.py game` (Claude 작성, 무작위 없음) | 32색, 아이콘은 설계 좌표(21×16)로 모양을 정해 크기별로 따로 그림(옛 아이콘의 모양만 이어받음: 돋보기·신문·자물쇠·복권), 회전은 두께 6 정사영 | 없음(#42) | 외부 이미지 없음, 원래 아이콘 모양은 #13(사용자 스케치) | 2026-11-17 |
 
 ## 3. 게임 내 크레딧 문구 (초안)
 
