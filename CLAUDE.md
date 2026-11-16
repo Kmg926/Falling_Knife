@@ -67,6 +67,7 @@
     - Ticket 27(`ItemData.cs`·`GameManager.cs`·`UIManager.cs` 바뀐 줄 + 새 파일 `ItemCloseupPanel.cs`)도 내 지시("AI가 작성")로 AI가 `draft/27` 그대로 Scripts에 직접 썼다 (2026-11-16). ItemData 에셋 4개의 분류 값도 AI가 MCP로 입력. 면담 대비: `.scratch/formal-ui/draft/27/README.md`.
     - Ticket 28(`GameManager.cs`·`UIManager.cs`·`RoundTurnView.cs`·`PlayerInputHandler.cs` 바뀐 줄 + 새 파일 `ResultPanel.cs`)도 내 지시("진행, AI가 작성")로 AI가 `draft/28`을 만들고 Scripts에 직접 썼다 (2026-11-16). 입력 파일의 Restart 동작 삭제도 AI가 MCP로. 면담 대비: `.scratch/formal-ui/draft/28/README.md`.
     - Ticket 29(`GameManager.cs`·`PlayerInputHandler.cs`·`ResultPanel.cs`·`UIManager.cs` 바뀐 줄 + 새 파일 `PausePanel.cs`·`TitleMenu.cs`)도 내 지시("진행, AI가 작성")로 AI가 `draft/29`를 만들고 Scripts에 직접 썼다 (2026-11-16). TitleScene 만들기·Build Settings도 AI가 MCP로. 면담 대비: `.scratch/formal-ui/draft/29/README.md`.
+    - ui-revamp Ticket 30~(`Tween.cs` 새 파일, `ClownView.cs`·`RoundTurnView.cs` …)도 내 지시(Grilling Q8 "코드는 AI가 작성")로 AI가 `.scratch/ui-revamp/draft/NN`을 만들고 Scripts에 직접 쓴다 (2026-11-16~). 면담 대비: 각 draft README.
   - **에셋 만드는 코드(`tools/`)는 AI가 쓴다** (2026-11-15, sound-feel Grilling Q3, ADR 0003). 게임 코드(`Assets/_Project/Scripts`)가 아니라 그림·소리를 만드는 도구라서 직접 타이핑 규칙과 구분한다. 결과물은 내가 보고 듣고 고른다. 그림(스프라이트)도 AI가 만들고 고친다 — 나는 시안을 고르고 고칠 곳을 말로 지시, 직접 픽셀 보정은 안 함(2026-11-16, gdd-changes #42). 배경음악은 AI로 만들지 않는다(내가 구함).
 - **파일을 바꾸기 전에 무엇을 바꿀지 먼저 말하고 허락받는다.** 바꾼 뒤에는 다시 읽어서 실제로 반영됐는지 확인하고 결과를 알려준다. (확인 없이 "완료"라고 하지 않는다.)
 - **Unity 파일 안전 규칙**

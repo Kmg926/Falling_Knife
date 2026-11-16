@@ -21,7 +21,7 @@ public class TerminalView : MonoBehaviour
     {
         CandleDeck deck = game.Deck;
         remainingText.text = deck.JustFilled
-            ? $"하락 {deck.RemainingDown} · 상승 {deck.RemainingUp}"
+            ? $"하락{deck.RemainingDown} 상승{deck.RemainingUp}"   // ui-revamp 30: 좁은 칸에 9 이상 크기로 들어가게 짧게
             : $"남은 {deck.Remaining}";
 
         // 공개가 막 시작된 순간(전에는 아니었는데 지금은 공개 중) → 캔들 그리기 시작

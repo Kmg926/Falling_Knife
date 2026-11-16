@@ -7,6 +7,7 @@
     python tools/make_art.py closeup   # Ticket 27 아이템 확인 패널 그림 + 미리보기
     python tools/make_art.py result    # Ticket 28 결과 화면 그림 + 미리보기
     python tools/make_art.py title     # Ticket 29 타이틀·일시정지 그림 + 미리보기
+    python tools/make_art.py revamp30  # UI 개편 30: 한 단계 어두운 광대·턴 띠
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -820,8 +821,41 @@ def make_title(pal):
     check(files, pal)
 
 
+# ---------- UI 개편 30: 조명·턴 띠 ----------
+def clown_dim(pal, steps=1):
+    """내 차례의 광대: 평소 그림을 steps 단계 어둡게(조명이 광대에게서 비켜남, ui-revamp 제안 4)."""
+    names = list(pal.keys())
+    idx, mask = clown_base(pal)
+    darker = dict(DARKER)
+    darker.update({"navy": "bg1", "gray0": "bg1", "red0": "bg1", "wood": "bg1", "gold0": "wood"})
+    out = idx.copy()
+    for _ in range(steps):
+        for y in range(out.shape[0]):
+            for x in range(out.shape[1]):
+                n = names[out[y, x]]
+                if mask[y, x] and n in darker:
+                    out[y, x] = names.index(darker[n])
+    return out, mask
+
+
+def make_revamp30(pal):
+    """ui-revamp Ticket 30 그림: 한 단계 어두운 광대, 턴 띠(바둑판 320x16) + 팔레트 검사."""
+    names = list(pal.keys())
+    parts = {"clown-dim": clown_dim(pal, 1), "turn-banner": dim_dither(names, 320, 16)}
+    files = []
+    for name, (idx, mask) in parts.items():
+        p = DRAFTS / f"{name}.png"
+        write_png(p, to_rgba(idx, mask, pal))
+        files.append(p)
+    print("팔레트 검사 (C1):")
+    check(files, pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
+    if len(sys.argv) > 1 and sys.argv[1] == "revamp30":
+        make_revamp30(palette)
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "title":
         make_title(palette)
         sys.exit(0)
