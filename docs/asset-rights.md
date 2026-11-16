@@ -37,6 +37,7 @@
 | 20 | 그림 `Sprites/Clown/clown-dim.png`, `Sprites/HUD/turn-banner.png` | `tools/make_art.py revamp30` (Claude 작성, 무작위 없음) | #5 광대를 한 단계 어둡게 / 바둑판 bg0 점 320×16 | 없음(#42) | #5와 같음 / 외부 이미지 없음 | 2026-11-16 |
 | 21 | 그림 `Sprites/Play/candle-back.png` (뒤집힌 캔들) | `tools/make_art.py revamp31` (Claude 작성, 무작위 없음) | 5×18 회색 테두리·남색 몸통·금색 점 | 없음(#42) | 외부 이미지 없음 | 2026-11-17 |
 | 22 | 그림 `Sprites/Closeup/Spin/spin-*-0~7.png` (아이템 4종 × 회전 8장) + `spin-shadow.png` | `tools/make_art.py revamp32` (Claude 작성, 무작위 없음) `spin_frames()` | #13·#14 아이콘을 두께 3도트 물체로 세워 Y축 45°마다 정사영, 옆면 한 단계 어둡게, 2배 | 없음(#42) | 원본 #13(사용자 스케치)·#14 / 외부 이미지·모델 없음 | 2026-11-17 |
+| 23 | 그림(640 격자, PPU 2) `Sprites/Play/table.png`(테이블·펠트 매트 2장, 640×160), `Sprites/HUD/hud-bar.png`(464×72), `coin-on/danger/off.png`(내 동전 탑 1개·빈 자리 고리 17×10), `coin-clown-on/spot.png`(광대 15×7) — 옛 #7·#8의 같은 이름 파일을 덮어씀 | `tools/make_art_hd.py game` (Claude 작성, 무작위 없음) | 32색 팔레트, 원근 판자·결·이음새·램프 빛, 펠트 매트 테두리·바느질, 동전 윗면 타원·옆면 층·반짝임. 시안 3개 중 사용자가 B 선택(art-hd Ticket 34) | 없음(#42) | 외부 이미지 없음 | 2026-11-17 |
 
 ## 3. 게임 내 크레딧 문구 (초안)
 

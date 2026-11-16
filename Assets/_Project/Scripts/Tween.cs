@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 // 공통 움직임 도구 (ui-revamp 30, 제안 8). 외부 패키지(DOTween 등) 없이 코루틴 + easing 함수.
-// 위치는 정수 도트로 반올림한다 → 4배 확대된 도트가 반 칸에 걸쳐 흐려지지 않는다.
+// 위치는 도트 단위로 반올림한다 → 확대된 도트가 반 칸에 걸쳐 흐려지지 않는다(art-hd 35부터 0.5단위 = 새 도트 1개).
 public static class Tween
 {
     // easing: 0~1 진행률을 받아 0~1(조금 넘을 수도 있음) 움직임 비율로 바꾼다. 직선 속도는 딱딱해 보여서 피한다.
@@ -44,6 +44,9 @@ public static class Tween
         if (target != null) target.localPosition = Snap(to);
     }
 
-    static Vector2 Snap(Vector2 v) => new Vector2(Mathf.Round(v.x), Mathf.Round(v.y));
-    static Vector3 Snap(Vector3 v) => new Vector3(Mathf.Round(v.x), Mathf.Round(v.y), v.z);
+    // art-hd 35 (Spec 제안 4): 화면 도트가 2배로 세밀해져 1단위 = 새 도트 2개 → 0.5단위(새 도트 1개)로 반올림해 더 부드럽게
+    const float Dot = 0.5f;
+    static float SnapDot(float f) => Mathf.Round(f / Dot) * Dot;
+    static Vector2 Snap(Vector2 v) => new Vector2(SnapDot(v.x), SnapDot(v.y));
+    static Vector3 Snap(Vector3 v) => new Vector3(SnapDot(v.x), SnapDot(v.y), v.z);
 }

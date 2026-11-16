@@ -3,7 +3,7 @@
 사용법 (C:\\Falling_Knife 에서):
     python tools/make_art_hd.py draft <캡처폴더>   # Ticket 34: 테이블·동전 탑 시안 A·B·C + 색표 + 팔레트 검사
 
-- 팔레트: tools/palette32.txt (지금 16색 + 새 16색 제안판)
+- 팔레트: tools/palette.txt (32색 = 처음 16색 + 새 16색)
 - 캡처폴더: 게임 화면을 검정 바탕(X_k.png)·흰 바탕(X_w.png)으로 1280x720 찍은 것(방·테이블·동전·아래 띠는 숨김).
   두 장의 차이로 글자·광대·단말기 같은 '앞 물건'의 투명도를 얻어 새 테이블 위에 겹친다(자리 표시용, 그림 아님).
 - 출력: .scratch/art/drafts/hd/ (Assets 밖). 외부 라이브러리는 numpy만. 무작위 없음.
@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from make_art import read_png, write_png  # noqa: E402  PNG 읽기·쓰기는 기존 도구 그대로
 
 ROOT = Path(__file__).resolve().parent.parent
-PAL32 = ROOT / "tools" / "palette32.txt"
+PAL32 = ROOT / "tools" / "palette.txt"     # 32색 (Ticket 35에서 palette32.txt 제안판을 합침)
 OUT = ROOT / ".scratch" / "art" / "drafts" / "hd"
 W, H = 640, 360
 
@@ -351,7 +351,70 @@ def make_draft(cap_dir):
     return check32(art_files, pal)
 
 
+# ---------- Ticket 35: 게임에 넣을 그림(시안 B) ----------
+SPRITES = OUT / "sprites"
+TABLE_TOP = 200                       # 테이블 그림 맨 위 줄(640 격자) = 지금 좌표 y 100
+
+
+def crop_rgba(cv, x0, y0, x1, y1):
+    return cv.rgba()[y0:y1, x0:x1]
+
+
+def coin_sprites(pal, rx, ry, th, prefix):
+    """동전 1개 그림(옆면 포함) + 빈 자리 고리. 크기 (2rx+1) x (2ry+1+th). 그림 왼쪽 위 = 윗면 타원 왼쪽 위."""
+    w, h = 2 * rx + 1, 2 * ry + 1 + th
+    cx, cy = 40, 40                                            # 큰 도화지 안 아무 자리에 그리고 잘라 낸다
+    out = {}
+    for name, col in ((f"{prefix}-on", GOLD), (f"{prefix}-danger", RED)):
+        cv = Canvas(pal)
+        draw_coin(cv, cx, cy, rx, ry, th, col)
+        out[name] = crop_rgba(cv, cx - rx, cy - ry, cx - rx + w, cy - ry + h)
+    cv = Canvas(pal)
+    draw_spot(cv, cx, cy + th, rx, ry)                         # 탑 맨 아래 동전 바닥 자리
+    out[f"{prefix}-spot"] = crop_rgba(cv, cx - rx, cy - ry, cx - rx + w, cy - ry + h)
+    return out
+
+
+def coin_layout(x, by, rx, ry, th, gap=3):
+    """동전 10칸의 왼쪽 위(640 격자). 0~4 왼쪽 탑 아래→위, 5~9 오른쪽 탑 아래→위 = 잃을 때 오른쪽 탑 맨 위부터."""
+    xs = [x, x + 2 * rx + 1 + gap]
+    return [(cx - rx, by - i * th - ry) for cx in xs for i in range(5)]
+
+
+def make_game(pal):
+    v = VARIANTS["B"]
+    SPRITES.mkdir(parents=True, exist_ok=True)
+    files = {}
+    # 테이블(매트 포함, 동전 없음): 640 x 160, 지금 좌표 (0, 100)에 왼쪽 위를 맞춰 놓음
+    cv = Canvas(pal)
+    draw_table(cv, v["corner"], False)
+    draw_mat(cv, *v["clown_mat"])
+    draw_mat(cv, *v["me_mat"])
+    files["table"] = crop_rgba(cv, 0, TABLE_TOP, W, H)
+    # 아래 띠: 테이블 모서리가 내려온 x 176부터 → 464 x 72, 지금 좌표 (88, 144)
+    bar = Canvas(pal)
+    draw_bar(bar, x0=v["corner"][0])
+    files["hud-bar"] = crop_rgba(bar, v["corner"][0], 288, W, H)
+    # 동전: 나(크게)·광대(작게)
+    files.update(coin_sprites(pal, *ME_COIN, "coin"))
+    files.update(coin_sprites(pal, *CLOWN_COIN, "coin-clown"))
+    paths = []
+    for name, img in files.items():
+        p = SPRITES / f"{name}.png"
+        write_png(p, img)
+        paths.append(p)
+    # Scene 배치표(지금 좌표 = 640 격자 / 2, 그룹 왼쪽 위 기준 anchoredPosition (x, -y))
+    print("동전 칸 자리(지금 좌표, 그룹 기준 anchoredPosition):")
+    for who, (x, by), (rx, ry, th) in (("나", v["me_stack"], ME_COIN), ("광대", v["clown_stack"], CLOWN_COIN)):
+        cells = [(px / 2, -py / 2) for px, py in coin_layout(x, by, rx, ry, th)]
+        print(f"  {who} 크기 {(2 * rx + 1) / 2} x {(2 * ry + 1 + th) / 2}: {cells}")
+    print("팔레트 검사 (C2, 32색):")
+    return check32(paths, pal)
+
+
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "game":
+        sys.exit(0 if make_game(load_pal()) else 1)
     if len(sys.argv) > 1 and sys.argv[1] == "draft":
         sys.exit(0 if make_draft(Path(sys.argv[2]) if len(sys.argv) > 2 else None) else 1)
     print(__doc__)
