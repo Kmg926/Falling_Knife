@@ -8,7 +8,6 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] GameManager game;
     [SerializeField] InputActionReference selectAction;
     [SerializeField] InputActionReference executeAction;
-    [SerializeField] InputActionReference restartAction;
 
     [Header("아이템 (1~4 확인, Esc 취소)")]
     [SerializeField] InputActionReference item1Action;
@@ -21,7 +20,6 @@ public class PlayerInputHandler : MonoBehaviour
     {
         selectAction.action.performed += OnSelect;
         executeAction.action.performed += OnExecute;
-        restartAction.action.performed += OnRestart;
         item1Action.action.performed += OnItem1;
         item2Action.action.performed += OnItem2;
         item3Action.action.performed += OnItem3;
@@ -30,7 +28,6 @@ public class PlayerInputHandler : MonoBehaviour
 
         selectAction.action.Enable();
         executeAction.action.Enable();
-        restartAction.action.Enable();
         item1Action.action.Enable();
         item2Action.action.Enable();
         item3Action.action.Enable();
@@ -42,7 +39,6 @@ public class PlayerInputHandler : MonoBehaviour
     {
         selectAction.action.performed -= OnSelect;
         executeAction.action.performed -= OnExecute;
-        restartAction.action.performed -= OnRestart;
         item1Action.action.performed -= OnItem1;
         item2Action.action.performed -= OnItem2;
         item3Action.action.performed -= OnItem3;
@@ -51,7 +47,6 @@ public class PlayerInputHandler : MonoBehaviour
 
         selectAction.action.Disable();
         executeAction.action.Disable();
-        restartAction.action.Disable();
         item1Action.action.Disable();
         item2Action.action.Disable();
         item3Action.action.Disable();
@@ -70,12 +65,6 @@ public class PlayerInputHandler : MonoBehaviour
     void OnExecute(InputAction.CallbackContext context)
     {
         game.Execute();
-    }
-
-    // R (테스트용, 최종 빌드 전 제거)
-    void OnRestart(InputAction.CallbackContext context)
-    {
-        game.Restart();
     }
 
     // 1~4 키 → 슬롯 0~3 (화면 번호는 1부터, 코드 번호는 0부터)

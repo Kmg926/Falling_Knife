@@ -4,14 +4,14 @@
 
 **Blocked by:** 26 (버튼·Canvas)
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-16) — 작동 확인 완료. 실제 마우스·R 무반응은 사용자 직접 확인 남음
 
-- [ ] 파산: 제목·이유·원인 문장이 마지막 피해와 같음 (C11)
-- [ ] 생존: 결정타 = 광대를 0으로 만든 피해, 광대 어둡게 (C11)
-- [ ] 도달 라운드·최대 레버리지·아이템 사용 횟수·시간이 직접 센 값과 같음 (C11)
-- [ ] `다시하기` → 1라운드, 기록 초기화 (C11)
-- [ ] R 눌러도 아무 일 없음, Restart 동작 없음 (C16), gdd-changes #19 해소
-- [ ] 퇴행 C17 (`clown-ai` T65~T68의 재시작은 다시하기 버튼으로)
+- [x] 파산: 제목·이유·원인 문장이 마지막 피해와 같음 (C11)
+- [x] 생존: 결정타 = 광대를 0으로 만든 피해, 광대 어둡게 (C11)
+- [x] 도달 라운드·최대 레버리지·아이템 사용 횟수·시간이 직접 센 값과 같음 (C11)
+- [x] `다시하기` → 1라운드, 기록 초기화 (C11)
+- [x] R 눌러도 아무 일 없음, Restart 동작 없음 (C16), gdd-changes #19 해소
+- [x] 퇴행 C17 (`clown-ai` T65~T68의 재시작은 다시하기 버튼으로)
 
 Spec: `../spec.md` (결과 기록, R 키) · Grilling: `../grilling.md` (Q9, Q12) · 스케치 화면 4·5
 
@@ -21,3 +21,15 @@ Spec: `../spec.md` (결과 기록, R 키) · Grilling: `../grilling.md` (Q9, Q12
 3. R → 반응 없음
 
 ## Comments
+- 2026-11-16 AI 작업(사용자 "커밋 후 28", 27 커밋 `372f15b`): 스케치 화면 4·5를 재서 `tools/make_art.py result` 추가 → 그림 7개(파산 바탕 사선 줄무늬·생존 바탕·상자 2종·다시하기·타이틀 버튼·어두운 광대) + 미리보기, 팔레트 검사 OK. 규격 아트 메모 7-5절. **다음:** 사용자 확인 → Sprites·Scene → 코드(GameManager 한 판 기록, ResultPanel, R 키 제거).
+- 2026-11-16 사용자 "진행, AI가 작성": AI가 `draft/28`을 만들고 Scripts에 직접 씀(CLAUDE.md 4장 예외) — GameManager(IsGameOver·한 판 기록·StartGame·Restart 조건), 새 ResultPanel, UIManager, RoundTurnView(가운데 안내는 라운드 클리어만), PlayerInputHandler(R 7줄 삭제). 쓰기 전 Scripts = 마지막 커밋, 쓴 뒤 초안과 같음, 컴파일 오류 0.
+- AI가 MCP로: 그림 7개 `Sprites/Result/`, `FallingKnife.inputactions`에서 `Restart` 동작 삭제(남은 동작: Select·Execute·Item1~4·Cancel), `HUD/ResultScreen`(바탕·상자·광대·제목·이유·원인·기록·다시하기·타이틀) 배치·ResultPanel 연결·UIManager 칸 → 저장. 원인·기록 글자가 상자 밖으로 나가 자동 크기(6~10)·너비 188.
+- 테스트(AI가 MCP로, Play 중에만 값 변경):
+  - ✅ 시작 결과 화면 꺼짐
+  - T175 ✅ 파산: `파산`·`잔고가 0이 되었다`·`원인`·`R1, 플레이어 보유, 하락, 피해 2 (레버리지 1)`, 붉은 바탕·빨간 상자·평소 광대 (C11)
+  - T176 ✅ 기록 `도달 라운드 1/3   최대 레버리지 1 / 아이템 사용 1회   시간 0:01`, 0.6초 뒤에도 시간 1.01초 그대로 (C11)
+  - T177 ✅ 다시하기 클릭 → 꺼짐, 1라운드, 기록 0 / 타이틀 버튼은 눌리지 않음(29 전)
+  - T179 ✅ 1라운드 클리어 → 결과 화면 안 켜짐, 가운데 안내 → Space → 2라운드 (C12)
+  - T178 ✅ 생존: `생존`·`광대의 잔고가 0이 되었다`·`결정타`·`R3, 플레이어 매도, 하락, 피해 1 (레버리지 0)`·`클리어 3/3`, 어두운 광대·어두운 바탕 (C11), 캡처 `.scratch/art/captures/28-result-survive.png`
+  - T180 ✅ 입력 파일에 Restart 없음, PlayerInputHandler에 R 코드 없음 (C16) — 실제 R 키 무반응은 사용자 확인
+  - T181 ✅ 퇴행 T65(패배 → 결과 화면 → 다시하기)·T66·T67·T68·T143 모두 같음, Console 오류 0

@@ -5,6 +5,7 @@
     python tools/make_art.py play      # Ticket 25 플레이 화면 그림 + 합친 미리보기
     python tools/make_art.py hud       # Ticket 26 정식 UI 그림(틀·버튼·슬롯·동전·아이콘) + 미리보기
     python tools/make_art.py closeup   # Ticket 27 아이템 확인 패널 그림 + 미리보기
+    python tools/make_art.py result    # Ticket 28 결과 화면 그림 + 미리보기
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -669,8 +670,94 @@ def make_closeup(pal):
     check(files, pal)
 
 
+# ---------- 결과 화면 (Ticket 28) ----------
+# 스케치 화면 4(파산)·5(생존)에서 잰 배치(아트 메모 7-5절). 글자(파산·생존·원인·기록·버튼 이름)는 Canvas.
+RESULT_BOX = (200, 57)       # 원인/결정타·기록 상자, (20, 84)
+RETRY_BUTTON = (72, 21)      # 다시하기, (20, 150)
+TITLE_BUTTON = (64, 21)      # 타이틀, (98, 150)
+
+
+def result_background(names, bankrupt):
+    """결과 화면 바탕 320x180(불투명). 파산 = bg0 위에 bg1 사선 줄무늬(붉은 어둠), 생존 = bg0만."""
+    idx = np.full((180, 320), names.index("bg0"))
+    if bankrupt:
+        yy, xx = np.mgrid[0:180, 0:320]
+        idx[(xx + yy) % 6 == 0] = names.index("bg1")
+    return idx, np.ones((180, 320), bool)
+
+
+def result_box(names, border):
+    """원인·기록 상자: 1도트 테두리 + 안 bg0 + 가운데 가로 구분선(wood, 위 원인 / 아래 기록)."""
+    idx, mask = frame(*RESULT_BOX, border, "bg0", names)
+    put(idx, mask, 30, slice(4, RESULT_BOX[0] - 4), "wood", names)
+    return idx, mask
+
+
+def clown_lights_off(pal):
+    """생존 화면 광대: 평소 그림을 두 단계 어둡게(스케치 화면 5 '조명이 꺼져 어둡게 남음')."""
+    names = list(pal.keys())
+    idx, mask = clown_base(pal)
+    darker = dict(DARKER)
+    darker.update({"navy": "bg1", "gray0": "bg1", "red0": "bg1", "wood": "bg1", "gold0": "wood"})
+    out = idx.copy()
+    for _ in range(2):
+        for y in range(out.shape[0]):
+            for x in range(out.shape[1]):
+                n = names[out[y, x]]
+                if mask[y, x] and n in darker:
+                    out[y, x] = names.index(darker[n])
+    return out, mask
+
+
+def make_result(pal):
+    """Ticket 28 그림 + 파산·생존 미리보기(4배) + 팔레트 검사."""
+    names = list(pal.keys())
+    retry = frame(*RETRY_BUTTON, "gold1", "wood", names)
+    parts = {
+        "result-bg-bankrupt": result_background(names, True),
+        "result-bg-survive": result_background(names, False),
+        "result-box-bankrupt": result_box(names, "red0"),
+        "result-box-survive": result_box(names, "gray0"),
+        "result-button-retry": retry,
+        "result-button-title": frame(*TITLE_BUTTON, "navy", "bg0", names),
+        "clown-dark": clown_lights_off(pal),
+    }
+    files = []
+    for name, (idx, mask) in parts.items():
+        p = DRAFTS / f"{name}.png"
+        write_png(p, to_rgba(idx, mask, pal))
+        files.append(p)
+
+    cols = np.array(list(pal.values()), np.uint8)
+
+    def screen(bankrupt):
+        canvas = np.zeros((180, 320, 3), np.uint8)
+
+        def paste(name, x, y, src=None):
+            idx, mask = src if src is not None else parts[name]
+            h, w = idx.shape
+            reg = canvas[y:y + h, x:x + w]
+            reg[mask] = cols[idx][mask]
+
+        paste("result-bg-bankrupt" if bankrupt else "result-bg-survive", 0, 0)
+        paste("result-box-bankrupt" if bankrupt else "result-box-survive", 20, 84)
+        paste("result-button-retry", 20, 150)
+        paste("result-button-title", 98, 150)
+        paste(None, 216, 52, clown_base(pal) if bankrupt else parts["clown-dark"])
+        return canvas
+
+    gap = np.full((180, 4, 3), 255, np.uint8)
+    both = np.concatenate([screen(True), gap, screen(False)], 1)
+    write_png(DRAFTS / "result-preview-x2.png", both.repeat(2, 0).repeat(2, 1))
+    print("팔레트 검사 (C1):")
+    check(files, pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
+    if len(sys.argv) > 1 and sys.argv[1] == "result":
+        make_result(palette)
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "closeup":
         make_closeup(palette)
         sys.exit(0)

@@ -87,10 +87,33 @@ public class GameManager : MonoBehaviour
     // 지금 차례가 아닌 쪽
     Participant Opponent => (Current == Player) ? Clown : Player;
 
+    // 한 판이 끝났는가: 내가 파산(어느 라운드든) 또는 마지막 라운드에서 광대 파산 → 결과 화면
+    public bool IsGameOver => Player.IsBankrupt || IsFinalVictory;
+
+    // ── 한 판 기록 (Ticket 28 결과 화면). 보여 주기만 하고 판정에는 쓰지 않는다. ──
+    public int MaxLeverage { get; private set; }
+    public int ItemUses { get; private set; }          // 플레이어가 실제로 쓴 아이템 수
+    public string LastDamage { get; private set; }     // 마지막 피해 한 줄 (파산 = 원인, 생존 = 결정타)
+    float gameStartTime;
+    float gameEndTime = -1f;                           // 끝나기 전에는 -1
+    // 한 판에 걸린 시간(초). 끝났으면 끝난 순간에서 멈춘다.
+    public float PlaySeconds => (gameEndTime >= 0f ? gameEndTime : Time.time) - gameStartTime;
+
     void Start()
+    {
+        StartGame();
+    }
+
+    // 1라운드부터 새 판. 처음 시작과 다시하기가 같은 길을 지난다.
+    void StartGame()
     {
         fixedItemIndex = 0;
         RoundNumber = 1;
+        MaxLeverage = 0;
+        ItemUses = 0;
+        LastDamage = "";
+        gameStartTime = Time.time;
+        gameEndTime = -1f;
         StartRound();
     }
 
@@ -180,19 +203,19 @@ public class GameManager : MonoBehaviour
         StartRound();
     }
 
-    // R. 라운드가 끝난 화면에서만 받는다. 항상 1라운드부터. (테스트용, 최종 빌드 전 제거)
+    // 결과 화면의 다시하기 버튼. 한 판이 끝났을 때만 받는다. 항상 1라운드부터, 기록도 처음부터.
+    // (R 키는 Ticket 28에서 없앰, gdd-changes #19)
     public void Restart()
     {
-        if (IsRevealing || !IsRoundOver) return;
-        fixedItemIndex = 0;
-        RoundNumber = 1;
-        StartRound();
+        if (IsRevealing || !IsGameOver) return;
+        StartGame();
     }
 
     // 확인 중인 내 아이템을 쓴다. 아이템은 행동이 아니라서 차례는 넘어가지 않는다.
     void UseConfirmedItem()
     {
         ItemType item = Player.Items[ConfirmingSlot];
+        bool used = true;   // 실제로 썼는가(기록용). 쓸 수 없던 경우만 false
 
         switch (item)
         {
@@ -209,6 +232,7 @@ public class GameManager : MonoBehaviour
                 if (Clown.IsHalted)
                 {
                     LastResult = $"{ItemName(item)}: 사용 불가 (상대가 이미 정지 상태)";
+                    used = false;
                     break;
                 }
                 Player.RemoveItemAt(ConfirmingSlot);
@@ -221,9 +245,11 @@ public class GameManager : MonoBehaviour
             default:
                 // 17~19에서 하나씩 채운다. 지금은 아이템을 남겨 둔다.
                 LastResult = $"{ItemName(item)}: 아직 쓸 수 없음";
+                used = false;
                 break;
         }
 
+        if (used) ItemUses++;
         ConfirmingSlot = -1;
         ui.Refresh(this);
     }
@@ -271,6 +297,7 @@ public class GameManager : MonoBehaviour
                 if (Leverage.Value < LeverageCounter.Max)
                 {
                     Leverage.Increase();
+                    RecordLeverage();
                     result = $"레버리지 +1 (레버리지 {Leverage.Value})";
                 }
                 else
@@ -386,6 +413,9 @@ public class GameManager : MonoBehaviour
             Reload();
         }
 
+        // 한 판이 끝난 순간의 시간을 남긴다(결과 화면 시간이 계속 늘지 않게).
+        if (IsGameOver && gameEndTime < 0f) gameEndTime = Time.time;
+
         IsRevealing = false;
         audioManager.SetRevealDuck(false);
         ui.Refresh(this);
@@ -441,18 +471,32 @@ public class GameManager : MonoBehaviour
         if (candle == Candle.Up)
         {
             Leverage.Increase();
+            RecordLeverage();
             LastResult = $"보유 → 상승! 레버리지 {Leverage.Value}, 차례 유지";
         }
         else
         {
             int damage = 1 + Leverage.Value;
             Current.TakeDamage(damage);
+            RecordDamage($"{Current.Name} 보유", damage);
             audioManager.PlayImpact();
             ui.FlashDamage();
             Leverage.Reset();
             LastResult = $"보유 → 하락! {Current.Name} -{damage}";
             PassTurn();
         }
+    }
+
+    // 기록: 지금까지 가장 높았던 레버리지
+    void RecordLeverage()
+    {
+        MaxLeverage = Mathf.Max(MaxLeverage, Leverage.Value);
+    }
+
+    // 기록: 마지막 피해. 피해 = 1 + 레버리지이므로 레버리지 = 피해 - 1 (Reset 전 값). 예) "R2, 광대 매도, 하락, 피해 3 (레버리지 2)"
+    void RecordDamage(string actorAction, int damage)
+    {
+        LastDamage = $"R{RoundNumber}, {actorAction}, 하락, 피해 {damage} (레버리지 {damage - 1})";
     }
 
     // 매도: 하락이면 상대가 맞는다. 어느 쪽이든 차례는 넘어간다.
@@ -462,6 +506,7 @@ public class GameManager : MonoBehaviour
         {
             int damage = 1 + Leverage.Value;
             Opponent.TakeDamage(damage);
+            RecordDamage($"{Current.Name} 매도", damage);
             audioManager.PlayImpact();
             ui.FlashDamage();
             Leverage.Reset();

@@ -31,6 +31,8 @@
 | 14 | 그림 `Sprites/HUD/item-lottery.png` | 위와 같음 `lottery_icon()` | 스케치에 없어 새로 그림: 금색 표 + 크림 안 + 빨간 별 점 | 없음 | 외부 이미지·모델 없음 | 2026-11-16 |
 | 15 | 그림 `Sprites/Closeup/` 패널·아이콘 칸·분류 표·배경 바둑판(`closeup-panel/iconbox/tag/dim`) | `tools/make_art.py closeup` (Claude 작성, 무작위 없음) | 1도트 테두리 틀, 바둑판 점(반투명 대신) | 없음(#42) | 외부 이미지·모델 없음 | 2026-11-16 |
 | 16 | 그림 `Sprites/Closeup/item-*-big.png` (큰 아이콘 4개) | 위와 같음 `big_icon()` | #13·#14 아이콘을 2배(도트 하나 = 2×2) | 없음 | #13(사용자 스케치)·#14와 같음 | 2026-11-16 |
+| 17 | 그림 `Sprites/Result/` 바탕 2·상자 2·버튼 2 | `tools/make_art.py result` (Claude 작성, 무작위 없음) | 사선 줄무늬 바탕, 1도트 테두리 상자·버튼(크기는 스케치 화면 4·5에서 잼) | 없음(#42) | 외부 이미지·모델 없음 | 2026-11-16 |
+| 18 | 그림 `Sprites/Result/clown-dark.png` | 위와 같음 `clown_lights_off()` | #5 광대를 두 단계 어둡게 | 없음 | #5와 같음(원본 사용자 스케치) | 2026-11-16 |
 
 ## 3. 게임 내 크레딧 문구 (초안)
 

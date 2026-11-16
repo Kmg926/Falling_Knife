@@ -18,10 +18,7 @@ public class RoundTurnView : MonoBehaviour
         turnText.text = mine ? "내 턴" : "광대 턴";
         turnText.color = mine ? myTurnColor : clownTurnColor;
 
-        // 결과 화면(Ticket 28)이 생기기 전까지는 끝난 상태를 여기서 안내한다.
-        if (game.IsRoundCleared) noticeText.text = $"라운드 {game.RoundNumber} 클리어! Space로 다음 라운드";
-        else if (game.IsFinalVictory) noticeText.text = "생존! R로 처음부터";
-        else if (game.IsRoundOver) noticeText.text = "파산... R로 처음부터";
-        else noticeText.text = "";
+        // 한 판의 끝(파산·생존)은 결과 화면(Ticket 28)이 보여 준다. 여기는 라운드 클리어만.
+        noticeText.text = game.IsRoundCleared ? $"라운드 {game.RoundNumber} 클리어! Space로 다음 라운드" : "";
     }
 }

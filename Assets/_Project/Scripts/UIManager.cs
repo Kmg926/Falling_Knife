@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] ActionButtonsView actionButtons;
     [SerializeField] ItemSlotsView itemSlots;
     [SerializeField] ItemCloseupPanel closeupPanel;   // Ticket 27
+    [SerializeField] ResultPanel resultPanel;          // Ticket 28
     // 피해 때 화면 전체를 덮는 반투명 빨강
     [SerializeField] Image damageFlash;
 
@@ -85,6 +86,7 @@ public class UIManager : MonoBehaviour
         actionButtons.Refresh(game);
         itemSlots.Refresh(game);
         closeupPanel.Refresh(game);
+        resultPanel.Refresh(game);
 
         string choice = game.Selected == PlayerAction.Hold ? "[보유]  매도" : " 보유  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;
@@ -121,11 +123,11 @@ public class UIManager : MonoBehaviour
         }
         else if (game.IsFinalVictory)
         {
-            message += "\n최종 승리! - R로 처음부터";
+            message += "\n최종 승리! - 다시하기 버튼";
         }
         else if (game.IsRoundOver)
         {
-            message += "\n패배... - R로 처음부터";
+            message += "\n패배... - 다시하기 버튼";
         }
 
         // 내 잔고가 위험하면 잔고 줄 전체를 어두운 빨강으로 감싼다(TMP 색 태그).
