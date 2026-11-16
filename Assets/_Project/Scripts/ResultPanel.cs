@@ -32,12 +32,12 @@ public class ResultPanel : MonoBehaviour
 
     [Header("버튼")]
     [SerializeField] Button retryButton;
-    [SerializeField] Button titleButton;          // TitleScene이 생기는 Ticket 29까지 꺼 둔다
+    [SerializeField] Button titleButton;          // TitleScene으로 (Ticket 29)
 
     void Awake()
     {
         retryButton.onClick.AddListener(() => game.Restart());
-        titleButton.interactable = false;
+        titleButton.onClick.AddListener(() => game.GoToTitle());
     }
 
     public void Refresh(GameManager game)

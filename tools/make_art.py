@@ -6,6 +6,7 @@
     python tools/make_art.py hud       # Ticket 26 정식 UI 그림(틀·버튼·슬롯·동전·아이콘) + 미리보기
     python tools/make_art.py closeup   # Ticket 27 아이템 확인 패널 그림 + 미리보기
     python tools/make_art.py result    # Ticket 28 결과 화면 그림 + 미리보기
+    python tools/make_art.py title     # Ticket 29 타이틀·일시정지 그림 + 미리보기
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -753,8 +754,77 @@ def make_result(pal):
     check(files, pal)
 
 
+# ---------- 타이틀·일시정지 (Ticket 29) ----------
+# 스케치 화면 1(타이틀)에서 잰 배치(아트 메모 7-6절). 로고·부제·목표·조작 글·버튼 이름은 Canvas.
+REF_TITLE = ROOT / ".scratch" / "art" / "reference" / "sketch-title-320.png"
+TITLE_GRAPH_BOX = (14, 18, 172, 30)     # 떨어지는 빨간 그래프 자리 (x, y, w, h)
+CONTROLS_BOX = (140, 36)                # 조작 요약 상자, (22, 122)
+START_BUTTON = (70, 15)                 # Space 시작, (22, 162)
+PAUSE_PANEL = (120, 72)                 # 일시정지 패널, (100, 50)
+
+
+def title_graph(pal):
+    """사용자 스케치의 떨어지는 빨간 그래프(화살표 포함)를 팔레트로 맞춰 떼어 낸다. 빨강 계열만 남김."""
+    names = list(pal.keys())
+    q = quantize(read_png(REF_TITLE)[..., :3], pal)
+    x, y, w, h = TITLE_GRAPH_BOX
+    idx = q[y:y + h, x:x + w].copy()
+    mask = np.isin(idx, [names.index(n) for n in ("red0", "red1", "red2", "red3")])
+    idx[mask] = names.index("red2")
+    return idx, mask
+
+
+def make_title(pal):
+    """Ticket 29 그림 + 타이틀·일시정지 미리보기(2배) + 팔레트 검사."""
+    names = list(pal.keys())
+    parts = {
+        "title-graph": title_graph(pal),
+        "title-controls-box": frame(*CONTROLS_BOX, "navy", "bg0", names),
+        "title-start-button": frame(*START_BUTTON, "gold1", "wood", names),
+        "pause-dim": dim_dither(names, 320, 180),
+        "pause-panel": frame(*PAUSE_PANEL, "gold1", "bg0", names),
+    }
+    files = []
+    for name, (idx, mask) in parts.items():
+        p = DRAFTS / f"{name}.png"
+        write_png(p, to_rgba(idx, mask, pal))
+        files.append(p)
+
+    cols = np.array(list(pal.values()), np.uint8)
+
+    def paste(canvas, src, x, y):
+        idx, mask = src
+        h, w = idx.shape
+        reg = canvas[y:y + h, x:x + w]
+        reg[mask] = cols[idx][mask]
+
+    title = np.tile(pal["bg0"].astype(np.uint8), (180, 320, 1))
+    paste(title, parts["title-graph"], TITLE_GRAPH_BOX[0], TITLE_GRAPH_BOX[1])
+    paste(title, parts["title-controls-box"], 22, 122)
+    paste(title, parts["title-start-button"], 22, 162)
+    paste(title, clown_base(pal), 205, 52)
+
+    pause = read_png(DRAFTS / "hud-preview-x4.png")[::4, ::4, :3].copy()
+    paste(pause, parts["pause-dim"], 0, 0)
+    paste(pause, parts["pause-panel"], 100, 50)
+    retry = read_png(DRAFTS / "result-button-retry.png")
+    titleb = read_png(DRAFTS / "result-button-title.png")
+    a = retry[..., 3] > 0
+    pause[70:70 + retry.shape[0], 124:124 + retry.shape[1]][a] = retry[..., :3][a]
+    b = titleb[..., 3] > 0
+    pause[96:96 + titleb.shape[0], 128:128 + titleb.shape[1]][b] = titleb[..., :3][b]
+
+    gap = np.full((180, 4, 3), 255, np.uint8)
+    write_png(DRAFTS / "title-pause-preview-x2.png", np.concatenate([title, gap, pause], 1).repeat(2, 0).repeat(2, 1))
+    print("팔레트 검사 (C1):")
+    check(files, pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
+    if len(sys.argv) > 1 and sys.argv[1] == "title":
+        make_title(palette)
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "result":
         make_result(palette)
         sys.exit(0)

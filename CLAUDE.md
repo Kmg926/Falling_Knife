@@ -38,10 +38,10 @@
 ## 3. 구현 계획 (GDD 08·09장)
 - Scene: `TitleScene`, `GameScene` (결과·일시정지는 GameScene 안 패널)
 - 주요 스크립트: GameManager, CandleDeck, LeverageCounter(GDD의 StackCounter, ADR 0001), Participant, PlayerInputHandler, ClownAI, UIManager, ItemCloseupPanel, AudioManager, ItemData/ItemEffect(ScriptableObject)
-  - 지금 있는 것(2026-11-15): GameManager, CandleDeck, LeverageCounter, Participant, PlayerInputHandler, ClownAI(+ClownMove), UIManager, RoundConfig, ItemType, ItemData(이름·설명만, ItemEffect는 만들지 않음 #33). AudioManager(효과음·배경음악, Ticket 21·23). ItemCloseupPanel(Ticket 27). TitleScene은 아직 없음
+  - 지금 있는 것(2026-11-15): GameManager, CandleDeck, LeverageCounter, Participant, PlayerInputHandler, ClownAI(+ClownMove), UIManager, RoundConfig, ItemType, ItemData(이름·설명만, ItemEffect는 만들지 않음 #33). AudioManager(효과음·배경음악, Ticket 21·23). ItemCloseupPanel(27), ResultPanel(28), PausePanel·TitleMenu·TitleScene(29), 화면 조각 View 7개(25~26)
 - 수업에서 안 배우는 것(직접 학습): 코루틴, ScriptableObject, 셔플, Scene 전환, Pixel Perfect Camera
 - **마일스톤:** ① 텍스트 UI로 덱·보유·매도·레버리지·잔고·턴, 1라운드 완주 → ② 아이템·AI·3라운드·정식 UI → ③ Alpha + 3인 플레이테스트 → ④ 수정·제출 후보 → ⑤ 최종 빌드
-  - 2026-11-15: ① 완료, ② 중 3라운드·광대 AI·아이템 완료, **정식 UI 남음**(12주차 소리·화면 반응은 2026-11-16 완료)
+  - 2026-11-16: ① 완료, **② 완료**(3라운드·광대 AI·아이템·소리·정식 UI·타이틀·결과·일시정지). 다음은 ③ Alpha + 3인 플레이테스트
   - GDD는 원래 주차(9~16주)로 적혀 있지만 **연휴로 실제 수업이 약 2주 밀렸다.** 실제 공지에 맞춰 조정 필요.
 - **범위 밖:** 멀티플레이, 상점, 추가 아이템, 여러 상대, 실제 시세 연동
 
@@ -66,6 +66,7 @@
     - Ticket 26(`GameManager.cs`·`UIManager.cs` 바뀐 줄 + 새 파일 `BalanceView.cs`·`RoundTurnView.cs`·`ActionButtonsView.cs`·`ItemSlotsView.cs`)는 내 지시("claude md에 그 제한은 없어졌으니 대신 작성해줘")로 AI가 `draft/26` 그대로 Scripts에 직접 썼다 (2026-11-16). 면담 대비로 `.scratch/formal-ui/draft/26/README.md`의 줄별 설명을 읽고 설명할 수 있어야 한다. (이 4장 규칙 자체는 아직 "내가 직접 타이핑"으로 남아 있음 — 바꿀지는 내가 정함)
     - Ticket 27(`ItemData.cs`·`GameManager.cs`·`UIManager.cs` 바뀐 줄 + 새 파일 `ItemCloseupPanel.cs`)도 내 지시("AI가 작성")로 AI가 `draft/27` 그대로 Scripts에 직접 썼다 (2026-11-16). ItemData 에셋 4개의 분류 값도 AI가 MCP로 입력. 면담 대비: `.scratch/formal-ui/draft/27/README.md`.
     - Ticket 28(`GameManager.cs`·`UIManager.cs`·`RoundTurnView.cs`·`PlayerInputHandler.cs` 바뀐 줄 + 새 파일 `ResultPanel.cs`)도 내 지시("진행, AI가 작성")로 AI가 `draft/28`을 만들고 Scripts에 직접 썼다 (2026-11-16). 입력 파일의 Restart 동작 삭제도 AI가 MCP로. 면담 대비: `.scratch/formal-ui/draft/28/README.md`.
+    - Ticket 29(`GameManager.cs`·`PlayerInputHandler.cs`·`ResultPanel.cs`·`UIManager.cs` 바뀐 줄 + 새 파일 `PausePanel.cs`·`TitleMenu.cs`)도 내 지시("진행, AI가 작성")로 AI가 `draft/29`를 만들고 Scripts에 직접 썼다 (2026-11-16). TitleScene 만들기·Build Settings도 AI가 MCP로. 면담 대비: `.scratch/formal-ui/draft/29/README.md`.
   - **에셋 만드는 코드(`tools/`)는 AI가 쓴다** (2026-11-15, sound-feel Grilling Q3, ADR 0003). 게임 코드(`Assets/_Project/Scripts`)가 아니라 그림·소리를 만드는 도구라서 직접 타이핑 규칙과 구분한다. 결과물은 내가 보고 듣고 고른다. 그림(스프라이트)도 AI가 만들고 고친다 — 나는 시안을 고르고 고칠 곳을 말로 지시, 직접 픽셀 보정은 안 함(2026-11-16, gdd-changes #42). 배경음악은 AI로 만들지 않는다(내가 구함).
 - **파일을 바꾸기 전에 무엇을 바꿀지 먼저 말하고 허락받는다.** 바꾼 뒤에는 다시 읽어서 실제로 반영됐는지 확인하고 결과를 알려준다. (확인 없이 "완료"라고 하지 않는다.)
 - **Unity 파일 안전 규칙**
@@ -107,8 +108,8 @@
   - [x] **마일스톤 ② 아이템** (`.scratch/items/`): Ticket 16 지급·찌라시 / 17 차트 분석 / 18 거래 정지 / 19 복권 / 20 광대 아이템(규칙 ①~④) 모두 done. 16의 입력·에셋은 AI가 MCP로(4장 예외). 경험 확인은 직접 플레이로
   - [x] Comfy Cloud 구독 안 함 → 그림·효과음은 AI가 코드로 만듦(ADR 0003, gdd-changes #36~38). 배경음악은 내가 구함(인더스트리얼 다크 하우스·하드 테크노)
   - [x] **12주차 소리·화면 반응** (`.scratch/sound-feel/`): Ticket 21 효과음 4종(`9839d6f`) / 22 피해 깜빡임 0.2초·잔고 3 이하 긴장 색(`444f788`) / 23 배경음악 자리·공개 중 음악 20% done. 코드는 내가 직접 타이핑. **남은 것(나):** 스피커로 듣고 효과음 최종 선택(지금 임시 후보 A), 배경음악 곡 구해서 연결·라이선스 기록, 긴장 색 대비 확인
-  - [ ] 11주차 아트 방향 메모·그림(코드 생성) → 정식 UI 교체 (`.scratch/formal-ui/`: Ticket 24 광대 기준 애셋·아트 메모, 25 단말기·레버리지·광대 생각 중, 26 잔고·턴·버튼·슬롯·클릭·F1, 27 아이템 확인 패널, 28 결과 화면·기록·R 제거 done, 29 남음)
-  - [ ] 정식 UI(단말기·잔고·레버리지 그림). 남은 개수·공개 기록 표시 여부는 이때 결정
+  - [x] **11주차 아트·정식 UI** (`.scratch/formal-ui/`: Ticket 24 광대·아트 메모 / 25 단말기·레버리지 / 26 잔고·버튼·슬롯·클릭·F1 / 27 아이템 확인 패널 / 28 결과 화면·기록·R 제거 / 29 타이틀·일시정지 모두 done, 2026-11-16). 그림은 AI 코드 생성(#42), 25는 붙여넣기·26~29는 AI가 Scripts 작성(4장 예외). **남은 것(나):** 실제 키·마우스·F1 확인, 화면 분위기 직접 보기
+  - [x] 정식 UI(단말기·잔고·레버리지 그림) — 남은 개수·공개 기록은 #39·40으로 결정, Ticket 25~26에서 구현
   - [ ] 나중 과제: 더 고차원적인 광대 규칙(사용자 메모)
   - [ ] 직접 플레이 경험 확인: 광대가 상대처럼 느껴지는가, 아이템 지급량, 한 판 길이
   - [ ] 구술 면담 대비: 각 기능 폴더 `draft/01`~`21` README의 줄별 설명을 읽고 내 말로 설명할 수 있게 하기

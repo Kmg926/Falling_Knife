@@ -74,8 +74,14 @@ public class PlayerInputHandler : MonoBehaviour
     void OnItem4(InputAction.CallbackContext context) { game.SelectItem(3); }
 
     // Esc
+    // Esc·우클릭: 아이템 확인 중이면 취소. 아니면 Esc만 일시정지(우클릭은 취소 전용 — 실수로 멈추지 않게).
     void OnCancel(InputAction.CallbackContext context)
     {
-        game.CancelItem();
+        if (game.IsConfirming)
+        {
+            game.CancelItem();
+            return;
+        }
+        if (context.control.device is Keyboard) game.TogglePause();
     }
 }

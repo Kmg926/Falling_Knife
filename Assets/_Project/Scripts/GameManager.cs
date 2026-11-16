@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 // 차례인 사람이 고를 수 있는 행동
 public enum PlayerAction { Hold, Sell }
@@ -82,7 +83,10 @@ public class GameManager : MonoBehaviour
     public bool IsClownTurn => Current == Clown && !IsRoundOver;
 
     // 지금 플레이어가 보유·매도를 고를 수 있는가 (버튼을 밝게/회색으로 보일 때 쓴다)
-    public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming;
+    public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused;
+
+    // 일시정지 중인가 (Ticket 29). 멈춘 동안은 Time.timeScale = 0 → 공개·광대 생각의 WaitForSeconds도 멈춘다.
+    public bool IsPaused { get; private set; }
 
     // 지금 차례가 아닌 쪽
     Participant Opponent => (Current == Player) ? Clown : Player;
@@ -101,6 +105,9 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        // 타이틀에서 왔든, 일시정지 중 타이틀로 갔다 왔든 시간은 정상 속도로 시작
+        Time.timeScale = 1f;
+        IsPaused = false;
         StartGame();
     }
 
@@ -143,7 +150,7 @@ public class GameManager : MonoBehaviour
     // A/D·←/→. 공개 중, 라운드 끝, 광대 차례, 아이템 확인 중이면 무시한다.
     public void Select(PlayerAction action)
     {
-        if (IsRevealing || IsRoundOver || IsClownTurn || IsConfirming) return;
+        if (IsPaused || IsRevealing || IsRoundOver || IsClownTurn || IsConfirming) return;
         if (Selected != action) audioManager.PlayClick();   // 실제로 바뀔 때만
         Selected = action;
         ui.Refresh(this);
@@ -153,7 +160,7 @@ public class GameManager : MonoBehaviour
     // 최종 승리·패배면 무시. 광대 차례면 무시.
     public void Execute()
     {
-        if (IsRevealing) return;
+        if (IsPaused || IsRevealing) return;
 
         if (IsConfirming)
         {
@@ -180,7 +187,7 @@ public class GameManager : MonoBehaviour
     // 1~4. 내 차례(공개 중·광대 차례·라운드 끝이 아닐 때)에 그 슬롯에 아이템이 있으면 확인을 연다.
     public void SelectItem(int slot)
     {
-        if (IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (IsPaused || IsRevealing || IsRoundOver || IsClownTurn) return;
         if (slot < 0 || slot >= Player.Items.Count) return;
         ConfirmingSlot = slot;
         audioManager.PlayClick();
@@ -190,10 +197,33 @@ public class GameManager : MonoBehaviour
     // Esc. 확인을 닫는다. 아이템은 그대로 남는다.
     public void CancelItem()
     {
-        if (!IsConfirming) return;
+        if (IsPaused || !IsConfirming) return;
         ConfirmingSlot = -1;
         audioManager.PlayClick();
         ui.Refresh(this);
+    }
+
+    // Esc(아이템 확인 중이 아닐 때): 멈추기 ↔ 계속. 한 판이 끝난 결과 화면에서는 멈추지 않는다.
+    public void TogglePause()
+    {
+        if (IsGameOver || IsConfirming) return;
+        IsPaused = !IsPaused;
+        Time.timeScale = IsPaused ? 0f : 1f;
+        ui.Refresh(this);
+    }
+
+    // 일시정지 패널의 계속 버튼
+    public void Resume()
+    {
+        if (!IsPaused) return;
+        TogglePause();
+    }
+
+    // 일시정지·결과 화면의 타이틀 버튼. 멈춘 시간을 먼저 되돌려야 다음 Scene이 정상 속도로 움직인다.
+    public void GoToTitle()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("TitleScene");
     }
 
     // 다음 줄로 라운드 번호를 올리고 새로 시작한다.
