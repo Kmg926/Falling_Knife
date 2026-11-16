@@ -4,7 +4,7 @@
 
 **Blocked by:** 25 (화면 배치·그림)
 
-**Status:** ready-for-agent
+**Status:** done (2026-11-16) — 작동 확인 완료. F1·실제 마우스는 사용자 직접 확인 남음
 
 - [ ] 동전 수 = 잔고(플레이어·광대), 피해·복권 회복 때 바로, ≤ 3 빨강 (C3)
 - [ ] `ROUND n/3`, 턴, 정지 표시 (C4)
@@ -27,3 +27,21 @@ Spec: `../spec.md` (구조, 클릭, 제안 4~6·8) · Grilling: `../grilling.md`
 4. F1 → 개발용 글자
 
 ## Comments
+- 2026-11-16 AI 작업(사용자 "커밋 후 26"): `tools/make_art.py hud` 추가 → 그림 15개(광대 잔고 틀 88×26·ROUND 틀·아래 띠·버튼 3종·슬롯 2종·동전 3종·아이콘 4개)와 미리보기 `.scratch/art/drafts/hud-preview-x4.png`, 팔레트 검사 모두 OK. 아이콘 3개는 사용자 스케치 슬롯에서 떼어 냄, 복권은 새로 그림. 규격 아트 메모 7-3절, gdd-changes #45. **다음:** 사용자 확인 → Sprites → 게임 코드 초안(BalanceView·RoundTurnView·ActionButtonsView·ItemSlotsView·클릭·F1·화면 깜빡임).
+- 2026-11-16 사용자 "이대로 진행": AI가 MCP로 그림 15개를 `Sprites/HUD/`에 가져오고(PPU 1·Point·왼쪽 위 기준), HUD Canvas에 고정 배치(아래 띠, 광대 잔고 틀·글자·동전 10, 광대 아이콘 4, ROUND 틀·글자·안내, 내 잔고 글자·동전 10, 보유/매도 Button 2개(전환 없음·내비게이션 없음), 슬롯 Button 4개·번호·아이콘, 피해 깜빡임 덮개 red3 35%) → 저장. 결과 한 줄은 왼쪽 테이블 위(26,103, 86×36, 줄바꿈·자동 크기)로 옮김(26 아래 띠와 겹침 해소). 남은 개수 칸 x 152·너비 51, 광대 숫자 자동 크기. EventSystem은 InputSystemUIInputModule 확인. 게임 코드 초안 `draft/26`(GameManager `CanPlayerAct`, 새 BalanceView·RoundTurnView·ActionButtonsView·ItemSlotsView, UIManager 조각·F1·깜빡임 덮개), README 줄별 설명·테스트 T156~T167.
+- 2026-11-16 코드 반영: 사용자 지시("claude md에 그 제한은 없어졌으니 대신 작성해줘")로 **AI가 `draft/26` 6개 파일을 Scripts에 직접 씀**(CLAUDE.md 4장 예외 기록). 쓰기 전 Scripts가 마지막 커밋과 같음 확인, 쓴 뒤 초안과 같음 확인. Unity MCP 연결이 끊겨 컴파일·Scene 연결·테스트는 대기.
+- 2026-11-16 Unity 다시 연결 뒤(AI가 MCP로): 컴파일 오류 0, Scene 저장 안 된 변경 없음 확인. BalanceView ×2(동전 10·숫자·그림 3장, 플레이어만 Is Player)·RoundTurnView·ActionButtonsView·ItemSlotsView(아이콘 4장 ItemType 순서) 붙이고 UIManager 칸 5개 + DamageFlash 연결, 내 잔고 숫자 자동 크기 → 저장. **우클릭 취소:** `FallingKnife.inputactions` `Cancel`에 `<Mouse>/rightButton` 바인딩 추가(AI가 MCP로, 파일 diff +11줄 확인).
+- 테스트(AI가 MCP로, Play 중에만 값 변경, 게임 안 코루틴으로 실행):
+  - T156 ✅ 시작: 동전 10/10 두 줄, `ROUND 1/3`·`내 턴`, 보유 선택 그림, 슬롯[차트 분석·찌라시]·광대[거래 정지·복권], 개발용 글자 숨김 (C3·C4·C9·C15)
+  - T160 ✅ 매도 버튼 클릭 → 매도 선택 + 공개 시작 (C8)
+  - T159 ✅ 공개 중 버튼 회색·`interactable` 꺼짐·클릭해도 선택 그대로 / 광대 차례 `광대 턴`·회색 (C7)
+  - T161 ✅ 슬롯 2 클릭 → 확인 상태·노란 테두리·버튼 회색 → 취소 → 원래 테두리 (C8·C9)
+  - T162 ✅ 내 차트 분석 사용 → 아이콘 줄어듦 / 광대가 거래 정지 쓴 뒤 광대 아이콘 1개 (C9)
+  - T163 ✅ 하락 보유 피해 → 덮개 켜짐 → 0.20초 뒤 꺼짐 (Q10, U2). (처음 판정 조건이 재장전 문구의 "하락"을 피해로 잘못 읽어 ❌ → 하락 덱으로 다시 확인)
+  - T157 ✅ 내 잔고 3 → 빨강 동전 3·빨강 숫자 / 복권 회복 4 → 금색 (C3)
+  - T158 ✅ 광대 정지 → `10/10 정지` (C4)
+  - T164 ✅ 광대 0 → `라운드 1 클리어! Space로 다음 라운드` → Space → `ROUND 2/3`, 안내 지워짐 (C12)
+  - T165 △ F1: Unity 창에 포커스가 없어 가짜 키 입력이 들어가지 않음 → **사용자 직접 확인 필요**
+  - T166 ✅ 퇴행 T65~T68·T143 모두 같음, Console 오류 0, Play 뒤 Scene 변경 없음
+  - 캡처 `.scratch/art/captures/26-formal-hud.png`
+- 남은 것(사용자, T167): 실제 마우스 클릭·우클릭 취소·F1·키보드가 함께 헷갈리지 않는지.

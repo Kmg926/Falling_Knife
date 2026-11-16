@@ -81,6 +81,9 @@ public class GameManager : MonoBehaviour
     // 라운드가 진행 중이고 광대 차례 → 광대가 스스로 행동, 플레이어 입력은 무시
     public bool IsClownTurn => Current == Clown && !IsRoundOver;
 
+    // 지금 플레이어가 보유·매도를 고를 수 있는가 (버튼을 밝게/회색으로 보일 때 쓴다)
+    public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming;
+
     // 지금 차례가 아닌 쪽
     Participant Opponent => (Current == Player) ? Clown : Player;
 

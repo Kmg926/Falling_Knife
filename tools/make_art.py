@@ -3,6 +3,7 @@
 사용법 (C:\\Falling_Knife 에서):
     python tools/make_art.py clown     # 광대 시안 A·B·C + 미리보기 + 팔레트 검사
     python tools/make_art.py play      # Ticket 25 플레이 화면 그림 + 합친 미리보기
+    python tools/make_art.py hud       # Ticket 26 정식 UI 그림(틀·버튼·슬롯·동전·아이콘) + 미리보기
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -442,8 +443,168 @@ def make_play(pal):
     check(files, pal)
 
 
+# ---------- 정식 UI 그림 (Ticket 26) ----------
+# 위치·크기는 스케치 320x180에서 잰 값(아트 메모 7-3절). 글자(잔고 숫자·ROUND·버튼 이름·슬롯 번호)는 Canvas.
+HUD_BOX = (66, 26)          # 오른쪽 위 'ROUND' 틀
+HUD_BOX_WIDE = (88, 26)     # 왼쪽 위 '광대 잔고' 틀: 동전 10개(8도트 간격 = 80)가 들어가게 스케치(66)보다 넓힘
+BUTTON = (64, 30)           # 보유·매도 버튼
+SLOT = (19, 25)             # 아이템 슬롯
+COIN = (7, 7)               # 동전(잔고 10개가 들어가게 스케치 9x9보다 작게, 제안 8)
+ICON_REGIONS = {            # 스케치 슬롯 안 아이콘 자리(번호 글자 아래). (x, y, w, h)
+    "item-chart": (233, 161, 17, 13),
+    "item-rumor": (254, 161, 17, 13),
+    "item-halt": (275, 161, 17, 13),
+}
+
+
+def coin(pal, kind):
+    """동전 7x7. on = 금색, danger = 빨강(내 잔고 3 이하), off = 회색 점선 고리(잃은 잔고)."""
+    names = list(pal.keys())
+    shape = ["..###..",
+             ".#####.",
+             "###@###",
+             "#######",
+             "#######",
+             ".#####.",
+             "..###.."]
+    rim, body, hi = {"on": ("gold0", "gold1", "gold2"), "danger": ("red0", "red2", "red3")}.get(kind, (None, None, None))
+    idx, mask = sprite(*COIN)
+    for r, row in enumerate(shape):
+        for c, ch in enumerate(row):
+            if ch == ".":
+                continue
+            edge = r in (0, 6) or c in (0, 6) or shape[r][c - 1] == "." or shape[r][c + 1 if c < 6 else c] == "."                 or shape[r - 1 if r else r][c] == "." or shape[r + 1 if r < 6 else r][c] == "."
+            if kind == "off":
+                if edge and (r + c) % 2 == 0:
+                    put(idx, mask, r, c, "gray0", names)
+            else:
+                put(idx, mask, r, c, rim if edge else (hi if (r, c) in ((2, 2), (2, 3), (3, 2)) else body), names)
+    return idx, mask
+
+
+def button(pal, kind):
+    """버튼 64x30. normal = 남색 1도트 테두리, selected = 금색 2도트 테두리 + 나무색 안, disabled = 회색 테두리."""
+    names = list(pal.keys())
+    w, h = BUTTON
+    if kind == "selected":
+        idx, mask = frame(w, h, "gold1", "wood", names)
+        put(idx, mask, 1, slice(1, w - 1), "gold1", names)
+        put(idx, mask, h - 2, slice(1, w - 1), "gold1", names)
+        put(idx, mask, slice(1, h - 1), 1, "gold1", names)
+        put(idx, mask, slice(1, h - 1), w - 2, "gold1", names)
+        return idx, mask
+    return frame(w, h, "gray0" if kind == "disabled" else "navy", "bg0", names)
+
+
+def sketch_icon(pal, region):
+    """스케치 슬롯 안의 아이콘(사용자 스케치)을 팔레트로 맞춰 떼어 낸다. 바탕(bg0·bg1)은 투명."""
+    names = list(pal.keys())
+    q = quantize(read_png(REF_PLAY)[..., :3], pal)
+    x, y, w, h = region
+    idx = q[y:y + h, x:x + w].copy()
+    mask = ~np.isin(idx, [names.index("bg0"), names.index("bg1")])
+    return idx, mask
+
+
+def lottery_icon(pal):
+    """복권(스케치 4번 칸은 비어 있어 새로 그림): 크림색 표 + 양옆 홈 + 가운데 빨간 별 점."""
+    names = list(pal.keys())
+    shape = ["..............",
+             "..............",
+             ".############.",
+             ".#..........#.",
+             "##...*..*...##",
+             ".#....**....#.",
+             ".#....**....#.",
+             "##...*..*...##",
+             ".#..........#.",
+             ".############.",
+             "..............",
+             ".............."]
+    idx, mask = sprite(17, 13)
+    for r, row in enumerate(shape):
+        for c, ch in enumerate(row):
+            if ch == "#":
+                put(idx, mask, r, c + 1, "gold1", names)
+            elif ch == "*":
+                put(idx, mask, r, c + 1, "red3", names)
+            elif ch == "." and 2 < r < 9 and 1 < c < 12:
+                put(idx, mask, r, c + 1, "cream", names)
+    return idx, mask
+
+
+def make_hud(pal):
+    """Ticket 26 그림 + 플레이 화면 위에 합친 미리보기(4배) + 팔레트 검사."""
+    names = list(pal.keys())
+    parts = {
+        "hud-box": frame(*HUD_BOX, "navy", "bg0", names),
+        "hud-box-wide": frame(*HUD_BOX_WIDE, "navy", "bg0", names),
+        "hud-bar": (lambda: (lambda i, m: (put(i, m, slice(None), slice(None), "bg0", names), put(i, m, 0, slice(None), "wood", names), (i, m))[-1])(*sprite(320, 36)))(),
+        "button-normal": button(pal, "normal"),
+        "button-selected": button(pal, "selected"),
+        "button-disabled": button(pal, "disabled"),
+        "slot-normal": frame(*SLOT, "navy", None, names),
+        "slot-selected": frame(*SLOT, "gold2", None, names),
+        "coin-on": coin(pal, "on"),
+        "coin-danger": coin(pal, "danger"),
+        "coin-off": coin(pal, "off"),
+        "item-lottery": lottery_icon(pal),
+    }
+    for name, region in ICON_REGIONS.items():
+        parts[name] = sketch_icon(pal, region)
+    files = []
+    for name, (idx, mask) in parts.items():
+        p = DRAFTS / f"{name}.png"
+        write_png(p, to_rgba(idx, mask, pal))
+        files.append(p)
+
+    # 미리보기: 25의 플레이 화면 + HUD (글자 없이 그림만, 위치는 스케치 그대로)
+    cols = np.array(list(pal.values()), np.uint8)
+    canvas = np.zeros((180, 320, 3), np.uint8)
+    play = {n: read_png(DRAFTS / f"{n}.png") for n in ("room", "clown-idle", "table-A", "terminal", "terminal-qbox", "leverage-box")}
+
+    def paste_png(im, x, y):
+        h, w = im.shape[:2]
+        reg = canvas[y:y + h, x:x + w]
+        a = im[..., 3] > 0
+        reg[a] = im[..., :3][a]
+
+    def paste(name, x, y):
+        idx, mask = parts[name]
+        h, w = idx.shape
+        reg = canvas[y:y + h, x:x + w]
+        reg[mask] = cols[idx][mask]
+
+    paste_png(play["room"], 0, 0)
+    paste_png(play["clown-idle"], CLOWN_BOX[0], CLOWN_BOX[1])
+    paste_png(play["table-A"], TABLE[0], TABLE[1])
+    paste_png(play["terminal"], TERMINAL[0], TERMINAL[1])
+    paste_png(play["terminal-qbox"], QBOX[0], QBOX[1])
+    paste_png(play["leverage-box"], LEVER_BOX[0], LEVER_BOX[1])
+    paste("hud-box-wide", 6, 6)                 # 광대 잔고
+    for i in range(10):                         # 광대 동전 10개: 7개 남음
+        paste("coin-on" if i < 7 else "coin-off", 9 + i * 8, 20)
+    for i, n in enumerate(("item-chart", "item-lottery")):   # 광대 아이템(틀 아래)
+        paste(n, 6 + i * 19, 34)
+    paste("hud-box", 250, 6)                    # ROUND
+    paste("hud-bar", 0, 144)
+    for i in range(10):                         # 내 동전: 3개(위험) 남음
+        paste("coin-danger" if i < 3 else "coin-off", 6 + i * 8, 165)
+    paste("button-selected", 88, 147)
+    paste("button-normal", 158, 147)
+    for i, n in enumerate(("item-chart", "item-rumor", "item-halt", "item-lottery")):
+        paste("slot-selected" if i == 0 else "slot-normal", 232 + i * 21, 150)
+        paste(n, 233 + i * 21, 161)
+    write_png(DRAFTS / "hud-preview-x4.png", canvas.repeat(4, 0).repeat(4, 1))
+    print("팔레트 검사 (C1):")
+    check(files, pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
+    if len(sys.argv) > 1 and sys.argv[1] == "hud":
+        make_hud(palette)
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "check":
         sys.exit(0 if check(sys.argv[2:], palette) else 1)
     if len(sys.argv) > 1 and sys.argv[1] == "play":

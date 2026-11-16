@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -11,6 +13,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] TerminalView terminalView;                                        // ← 25 추가
     [SerializeField] LeverageView leverageView;                                        // ← 25 추가
     [SerializeField] ClownView clownView;                                              // ← 25 추가
+
+    [Header("정식 UI 조각 (Ticket 26)")]
+    [SerializeField] BalanceView playerBalance;
+    [SerializeField] BalanceView clownBalance;
+    [SerializeField] RoundTurnView roundTurnView;
+    [SerializeField] ActionButtonsView actionButtons;
+    [SerializeField] ItemSlotsView itemSlots;
+    // 피해 때 화면 전체를 덮는 반투명 빨강
+    [SerializeField] Image damageFlash;
+
+    [Header("개발용 글자 (F1로 켜고 끔, 최종 빌드 전 제거 #41)")]
+    [SerializeField] bool showDevText = false;
 
     [Header("화면 반응")]
     [SerializeField] float flashSeconds = 0.2f;
@@ -26,6 +40,18 @@ public class UIManager : MonoBehaviour
     void Awake()
     {
         normalColor = statusText.color;
+        statusText.enabled = showDevText;
+        damageFlash.enabled = false;
+    }
+
+    // F1: 개발용 글자 켜고 끄기. 판정과 상관없는 개발 도구라 PlayerInputHandler를 거치지 않고 키보드를 직접 읽는다.
+    void Update()
+    {
+        if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
+        {
+            showDevText = !showDevText;
+            statusText.enabled = showDevText;
+        }
     }
 
     // 피해: 글자를 잠깐 빨강으로. 이미 깜빡이는 중이면 처음부터 다시.
@@ -38,8 +64,10 @@ public class UIManager : MonoBehaviour
     IEnumerator FlashRoutine()
     {
         statusText.color = flashColor;
+        damageFlash.enabled = true;
         yield return new WaitForSeconds(flashSeconds);
         statusText.color = normalColor;
+        damageFlash.enabled = false;
         flashRoutine = null;
     }
 
@@ -50,6 +78,11 @@ public class UIManager : MonoBehaviour
         terminalView.Refresh(game);                                                    // ← 25 추가
         leverageView.Refresh(game);                                                    // ← 25 추가
         clownView.Refresh(game);                                                       // ← 25 추가
+        playerBalance.Refresh(game);
+        clownBalance.Refresh(game);
+        roundTurnView.Refresh(game);
+        actionButtons.Refresh(game);
+        itemSlots.Refresh(game);
 
         string choice = game.Selected == PlayerAction.Hold ? "[보유]  매도" : " 보유  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;
