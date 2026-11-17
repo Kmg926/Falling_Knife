@@ -7,7 +7,7 @@
 **Status:** done
 
 - [x] 숨쉬기 시안(4장, 움직이는 미리보기) 사용자 선택
-- [x] 몸 그림 a → b → c → b 순서, 한 바퀴 3초, c에서 눈 덮개도 1도트 아래 (C12)
+- [x] 몸 그림 a → b → c → b 순서, 한 바퀴 3초, c에서 눈 덮개도 1도트 아래 (C12) — 3배 뒤: a → b → c → d → c → b, 눈 덮개 0~3도트
 - [x] 광대가 맞음: 화면 전체 빨간 깜빡임 없음, 광대 몸·눈 색이 빨강 ↔ 원래 두 번, 0.2초 뒤 원래 색, 흔들림은 광대만 (C13)
 - [x] 내가 맞음: 화면 전체 빨간 깜빡임·흔들림 그대로 (C14)
 - [x] 퇴행 T65~T68·T143, Console 오류 0 (C15)
@@ -23,3 +23,5 @@
 - 2026-11-18 AI 구현(사용자 "이대로 진행" → 시안 "이대로 넣기"): `tools/make_art_clown_hd.py breath`로 숨 c장 3장(몸 2·머리 1도트), 미리보기 `.scratch/art/drafts/hd/clown/clown-breath-sheet-x3.png`·`breath-preview.html`. `UIManager` 광대만 빨갛게(`ClownTintRoutine`), Scene 칸 연결(저장 전 사용자 변경 없음 확인), 몸 클립 3개를 a·b·c·b 3초 + 눈 위치로(MCP).
   - 테스트 C12~C15 모두 통과(값은 `../draft/48/README.md`). Console 오류 0. 빨간 광대 캡처 `.scratch/art/drafts/hd/clown/clown-hit-red-capture.png`.
   - **남은 것(사용자):** 직접 보고 숨쉬기 크기·빨간 정도 확인.
+- 2026-11-18 사용자 "숨쉬기 3배는 더 크게" → 시안 "이대로 넣기": 몸 0·2·4·6도트, 머리 0·1·2·3도트(그림 a·b·c·d 4장), 순서 a → b → c → d → c → b, 0.5초씩 한 바퀴 3초(한 번에 3도트씩 뛰면 끊겨 보여서 2도트씩 6장). 눈 덮개 위치도 머리와 같이 0 ~ −1.5. b·c 그림은 덮어씀, d 새로.
+  - 다시 확인: C12(0.5초 간격, 눈 위치 = 머리 도트) ✅, 퇴행 C15 ✅, Console 오류 0. 어깨 대부분은 광대 모니터 뒤라 보이는 움직임은 주로 머리·어깨 끝(캡처 `.scratch/art/drafts/hd/clown/clown-breath3-capture.png`).

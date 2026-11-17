@@ -8,7 +8,7 @@
 |---|---|
 | `UIManager.cs` | `FlashDamage`: 화면 전체 빨강은 **내가 맞을 때만**. 광대가 맞으면 `ClownTintRoutine`으로 광대 몸·눈 그림만 빨강 ↔ 원래 2번(0.2초). 칸 3개(`clownTintTargets`·`clownHitColor`·`clownHitBlinks`) |
 | 그림 (`tools/make_art_clown_hd.py breath`) | 숨 c장 3장 `clown-idle-c`·`clown-thinking-c`·`clown-dim-c`(몸 2도트·머리 1도트 아래). b장은 46과 같음 |
-| Animator 클립 (AI가 MCP로) | `Clown_Idle`·`Clown_Thinking`·`Clown_Dim`: a(0) → b(0.75) → c(1.5) → b(2.25) → a(3.0) 반복 + `Eyes` 위치 y: c장 동안만 −0.5(새 도트 1칸) |
+| Animator 클립 (AI가 MCP로) | `Clown_Idle`·`Clown_Thinking`·`Clown_Dim`: a → b → c → d → c → b → a, 0.5초씩 3초 반복 + `Eyes` 위치 y: 머리 도트만큼 0 ~ −1.5(새 도트 1칸 = 0.5). (첫판 a·b·c·b·몸 2도트 → 사용자 "3배 더 크게") |
 | Scene (AI가 MCP로) | UIManager `clownTintTargets` = `Clown`·`Clown/Eyes` |
 
 ## 줄별 핵심
@@ -24,7 +24,7 @@
 ## 테스트 (Ticket 48)
 | # | 방법 | 기대 | 결과 |
 |---|---|---|---|
-| C12 | 7초 동안 몸 그림·눈 위치 기록 | a → b → c → b, 0.75초씩·3초 한 바퀴, c일 때만 눈 −0.5 | ✅ (0.95 b · 1.70 c/−0.5 · 2.45 b · 3.20 a …) |
+| C12 | 6.5초 동안 몸 그림·눈 위치 기록 | a → b → c → d → c → b, 0.5초씩·3초 한 바퀴, 눈 = 머리 도트(0 ~ −1.5) | ✅ (0.88 b/−0.5 · 1.38 c/−1 · 1.88 d/−1.5 · 2.38 c · 2.88 b · 3.38 a …) |
 | C13 | 광대 맞음 0.5초 기록 | 화면 빨강 없음·화면 흔들림 없음, 광대만 흔들림, 색 R·W·R·W(0.05초 간격), 끝 흰색·제자리 | ✅ |
 | C14 | 내가 맞음 | 화면 빨강·화면 흔들림, 광대 색 변화 없음 | ✅ |
 | C15 | 퇴행 T65~T68·T143, Console 오류 | 같음, 0 | ✅ |

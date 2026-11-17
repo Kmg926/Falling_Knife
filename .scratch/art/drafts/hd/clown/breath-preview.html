@@ -1,8 +1,8 @@
 <!doctype html><meta charset="utf-8"><title>숨쉬기 미리보기</title>
 <body style="background:#111;color:#ddd;font-family:sans-serif">
-<p>a → b → c → b, 한 바퀴 3초 (3배 확대). 왼쪽부터 평소·생각 중·어둡게</p>
+<p>a → b → c → d → c → b, 한 바퀴 3초 (3배 확대). 왼쪽부터 평소·생각 중·어둡게</p>
 <div id="w"></div><script>
-const keys=["clown-idle","clown-thinking","clown-dim"],seq=["a","b","c","b"];
+const keys=["clown-idle","clown-thinking","clown-dim"],seq=["a","b","c","d","c","b"];
 const imgs=keys.map(k=>{const i=document.createElement("img");i.style="width:576px;image-rendering:pixelated;margin:4px";document.getElementById("w").appendChild(i);return [k,i];});
-let n=0;function tick(){imgs.forEach(([k,i])=>i.src=k+"-"+seq[n%4]+".png");n++;}tick();setInterval(tick,750);
+let n=0;function tick(){imgs.forEach(([k,i])=>i.src=k+"-"+seq[n%seq.length]+".png");n++;}tick();setInterval(tick,500);
 </script>

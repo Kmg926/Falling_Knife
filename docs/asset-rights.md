@@ -46,7 +46,7 @@
 | 29 | 그림(640 격자, PPU 2) `Sprites/Clown/clown-idle·thinking·dim.png`, `Sprites/Result/clown-dark.png`(광대 192×192 — 옛 #5·#20 계열 1배 그림을 덮어씀) | `tools/make_art_clown_hd.py draft` (Claude 작성, 무작위 없음) — 1배 그림을 Scale2x로 늘린 뒤 넓은 색 구역에만 빛·그늘 한 단계 | 원본 = 사용자가 고른 광대 시안(#5, 머리 모양 지시 반영). 윤곽·색 배치·표정 그대로 | 없음(#42) | 원본 #5와 같음, 외부 이미지 없음 | 2026-11-18 |
 | 30 | 그림(640 격자, PPU 2) `Sprites/Play/candle-flash-up.png`·`candle-flash-down.png`(큰 캔들 테두리 16×36, 기준점 아래·위), `baseline-flash.png`(기준선 밝은 줄 142×2) | `tools/make_art_monitor.py flash` (Claude 작성, 무작위 없음) | cream2 테두리 / gold2 줄 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
 | 31 | 그림(640 격자, PPU 2) `Sprites/Clown/clown-idle-b·thinking-b·dim-b.png`(숨쉬기 둘째 장 192×192), `eyes-blink·eyes-glance(-dim).png`(눈 덮개 4장) + Animator 클립 7개(`Animations/`, 그림 순서·시간만) | `tools/make_art_clown_hd.py idle` (Claude 작성, 무작위 없음) — #29 그림에서 턱 아래 1도트 내림, 눈 안을 눈꺼풀 색·감은 줄로 / 눈동자 5도트 아래로 | 원본 = #29 광대 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
-| 32 | 그림(640 격자, PPU 2) `Sprites/Clown/clown-idle-c·thinking-c·dim-c.png`(숨쉬기 셋째 장 192×192) + Animator 클립 3개 갱신(그림 순서·눈 위치만) | `tools/make_art_clown_hd.py breath` (Claude 작성, 무작위 없음) — #29 그림 전체 1도트·턱 아래 1도트 더 내림 | 원본 = #29 광대 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
+| 32 | 그림(640 격자, PPU 2) `Sprites/Clown/clown-*-b·c·d.png`(숨쉬기 192×192, b는 #31을 덮어씀, 3상태 × 3장) + Animator 클립 3개 갱신(그림 순서·눈 위치만) | `tools/make_art_clown_hd.py breath` (Claude 작성, 무작위 없음) — #29 그림 전체를 1·2·3도트, 턱 아래를 그 두 배(2·4·6도트) 내림 | 원본 = #29 광대 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
 
 ## 3. 게임 내 크레딧 문구 (초안)
 
