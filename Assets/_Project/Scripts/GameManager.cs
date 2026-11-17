@@ -234,6 +234,7 @@ public class GameManager : MonoBehaviour
         if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
         if (slot < 0 || slot >= Player.Items.Count) return;
         ConfirmingSlot = slot;
+        IsMonitorOpen = true;       // monitor-trade 44: 1~4 키·테이블 위 아이콘으로 고르면 모니터가 그 아이템 상세로 바로 열린다
         audioManager.PlayClick();
         ui.Refresh(this);
     }
@@ -581,7 +582,7 @@ public class GameManager : MonoBehaviour
             Current.TakeDamage(damage);
             RecordDamage($"{Current.Name} 매수", damage);
             audioManager.PlayImpact();
-            ui.FlashDamage();
+            ui.FlashDamage(Current == Player);   // monitor-trade 44: 맞은 사람이 나인가(흔들림 대상이 다름)
             Leverage.Reset();
             LastResult = $"매수 → 하락! {Current.Name} -{damage}";
             PassTurn();
@@ -609,7 +610,7 @@ public class GameManager : MonoBehaviour
             Opponent.TakeDamage(damage);
             RecordDamage($"{Current.Name} 매도", damage);
             audioManager.PlayImpact();
-            ui.FlashDamage();
+            ui.FlashDamage(Opponent == Player);
             Leverage.Reset();
             LastResult = $"매도 → 하락! {Opponent.Name} -{damage}";
         }

@@ -25,6 +25,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] PausePanel pausePanel;            // Ticket 29
     [SerializeField] DeckRevealView deckReveal;        // ui-revamp 31
     [SerializeField] MonitorZoomPanel monitorZoom;     // monitor-trade 43
+    [SerializeField] TableItemsView tableItems;        // monitor-trade 44
     // 피해 때 화면 전체를 덮는 반투명 빨강
     [SerializeField] Image damageFlash;
 
@@ -33,7 +34,9 @@ public class UIManager : MonoBehaviour
 
     [Header("피해 흔들림 (ui-revamp 33, 제안 7)")]
     [SerializeField] bool screenShake = true;          // 끄면 흔들림 없음(멀미 대비)
-    [SerializeField] Transform[] shakeTargets;         // 흔들 월드 그림 묶음(PlayArt·Clown). 카메라는 건드리지 않는다
+    [SerializeField] Transform[] shakeTargets;         // 내가 맞을 때: 화면 전체(PlayArt·Clown·HUD 흔들림 묶음 ShakeRoot). 카메라는 건드리지 않는다
+    [SerializeField] Transform[] clownShakeTargets;    // 광대가 맞을 때: 광대 그림만 (monitor-trade 44)
+    Transform[] shaking;                               // 지금 흔들고 있는 대상(새로 흔들 때 먼저 제자리로)
     [SerializeField] float shakeSeconds = 0.15f;
     [SerializeField] int shakeDots = 2;
     Vector3[] shakeHomes;
@@ -68,15 +71,23 @@ public class UIManager : MonoBehaviour
     }
 
     // 피해: 글자를 잠깐 빨강으로. 이미 깜빡이는 중이면 처음부터 다시.
-    public void FlashDamage()
+    // monitor-trade 44: playerHit = 맞은 사람이 나인가 → 나면 화면 전체, 광대면 광대 그림만 흔든다.
+    public void FlashDamage(bool playerHit)
     {
         if (flashRoutine != null) StopCoroutine(flashRoutine);
         flashRoutine = StartCoroutine(FlashRoutine());
 
-        if (screenShake && shakeTargets != null && shakeTargets.Length > 0)
+        Transform[] targets = playerHit ? shakeTargets : clownShakeTargets;
+        if (screenShake && targets != null && targets.Length > 0)
         {
-            if (shakeRoutine != null) StopCoroutine(shakeRoutine);
-            else shakeHomes = HomesOf(shakeTargets);   // 흔드는 중이 아닐 때만 원래 자리를 새로 기억
+            // 흔드는 중이면 앞 대상을 먼저 제자리로 돌려놓고(대상이 바뀔 수 있으므로) 새 대상의 자리를 기억
+            if (shakeRoutine != null)
+            {
+                StopCoroutine(shakeRoutine);
+                for (int i = 0; i < shaking.Length; i++) shaking[i].localPosition = shakeHomes[i];
+            }
+            shaking = targets;
+            shakeHomes = HomesOf(shaking);
             shakeRoutine = StartCoroutine(ShakeRoutine());
         }
     }
@@ -88,11 +99,11 @@ public class UIManager : MonoBehaviour
         float step = shakeSeconds / pattern.Length;
         foreach (Vector2 offset in pattern)
         {
-            for (int i = 0; i < shakeTargets.Length; i++)
-                shakeTargets[i].localPosition = shakeHomes[i] + new Vector3(offset.x, offset.y, 0f);
+            for (int i = 0; i < shaking.Length; i++)
+                shaking[i].localPosition = shakeHomes[i] + new Vector3(offset.x, offset.y, 0f);
             yield return new WaitForSeconds(step);
         }
-        for (int i = 0; i < shakeTargets.Length; i++) shakeTargets[i].localPosition = shakeHomes[i];
+        for (int i = 0; i < shaking.Length; i++) shaking[i].localPosition = shakeHomes[i];
         shakeRoutine = null;
     }
 
@@ -130,6 +141,7 @@ public class UIManager : MonoBehaviour
         pausePanel.Refresh(game);
         deckReveal.Refresh(game);
         monitorZoom.Refresh(game);
+        tableItems.Refresh(game);
 
         string choice = game.Selected == PlayerAction.Buy ? "[매수]  매도" : " 매수  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;

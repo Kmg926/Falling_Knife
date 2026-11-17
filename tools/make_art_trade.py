@@ -3,6 +3,7 @@
 사용법 (C:\\Falling_Knife 에서):
     python tools/make_art_trade.py draft   # 확대 화면·매수/매도 버튼 3종·모니터 금색 테두리·늘린 테이블·광대 모니터 뒷면 + 팔레트 검사
     python tools/make_art_trade.py game    # 게임 파일 이름으로(테이블·버튼·슬롯은 옛 이름에 덮어씀)
+    python tools/make_art_trade.py items44 # Ticket 44: 상세 페이지 바탕·큰 아이콘 칸·분류 표(옛 closeup 그림 이름에 덮어씀)
 
 - 640 격자(지금 좌표 x2), 32색, 무작위 없음. 출력: .scratch/art/drafts/hd/trade/
 - 확대 화면(지금 좌표 240x140, 자리 x 40~280, y 20~160): 테두리 + 화면(주사선) + 위 종목 줄 구분선
@@ -211,10 +212,59 @@ def make_game(pal):
     return check32(files, pal)
 
 
+# ---------- Ticket 44: 확대 화면 안 아이템 상세 페이지 ----------
+def zoom_page(pal):
+    """상세 페이지 바탕: 확대 화면 안쪽(지금 좌표 x 44~276, y 39~135 = 232x96)을 덮는 화면색 + 주사선(메인 화면의 격자·버튼 자리를 가림)."""
+    w, h = 232 * 2, 96 * 2
+    cv = Canvas(pal, w, h)
+    cv.fill((slice(0, h), slice(0, w)), "bg0")
+    for y in range(1, h, 2):
+        cv.fill((slice(y, y + 1), slice(0, w)), "bg00")
+    cv.fill((slice(0, 2), slice(0, w)), "bg00")
+    cv.fill((slice(0, 1), slice(4, w - 4)), "navy0")             # 위 종목 줄 구분선 이어짐
+    cv.fill((slice(h - 1, h), slice(4, w - 4)), "navy0")         # 아래 구분선
+    return cv
+
+
+def icon_box(pal):
+    """큰 아이콘 칸 50x50(지금 좌표): 남색 테두리 + 나무 바탕(회전 그림이 돌아가는 받침)."""
+    n = 100
+    cv = Canvas(pal, n, n)
+    frame_box(cv, 0, 0, n, n, "navy", "wood", t=2, light="wood2", shade="wood0")
+    cv.fill((slice(0, 1), slice(1, n - 1)), "navy2")
+    cv.fill((slice(n - 14, n - 12), slice(14, n - 14)), "wood0")  # 받침 그늘 줄
+    return cv
+
+
+def category_tag(pal):
+    """분류 표 30x12(지금 좌표): 남색 판 + 위 빛(글자는 Canvas)."""
+    w, h = 60, 24
+    cv = Canvas(pal, w, h)
+    cv.fill((slice(0, h), slice(0, w)), "navy")
+    cv.fill((slice(0, 1), slice(0, w)), "navy2")
+    cv.fill((slice(h - 1, h), slice(0, w)), "navy0")
+    return cv
+
+
+def make_items44(pal):
+    dst = OUT / "game44"
+    dst.mkdir(parents=True, exist_ok=True)
+    parts = {"HUD__zoom-page": zoom_page(pal), "Closeup__closeup-iconbox": icon_box(pal), "Closeup__closeup-tag": category_tag(pal)}
+    files = []
+    for name, cv in parts.items():
+        p = dst / f"{name}.png"
+        write_png(p, cv.rgba())
+        files.append(p)
+    print("팔레트 검사 (32색):")
+    return check32(files, pal)
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "draft":
         sys.exit(0 if make_draft(load_pal()) else 1)
     if cmd == "game":
         sys.exit(0 if make_game(load_pal()) else 1)
+    if cmd == "items44":
+        sys.exit(0 if make_items44(load_pal()) else 1)
     print(__doc__)
