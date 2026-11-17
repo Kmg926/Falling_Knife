@@ -129,7 +129,7 @@ public class UIManager : MonoBehaviour
         pausePanel.Refresh(game);
         deckReveal.Refresh(game);
 
-        string choice = game.Selected == PlayerAction.Hold ? "[보유]  매도" : " 보유  [매도]";
+        string choice = game.Selected == PlayerAction.Buy ? "[매수]  매도" : " 매수  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;
 
         // 결과 줄을 덮지 않고 덧붙인다: 내 직전 결과를 읽을 수 있게.

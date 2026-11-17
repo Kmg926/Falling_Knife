@@ -5,7 +5,7 @@ public class LeverageCounter
 
     public int Value { get; private set; }
 
-    // 보유+상승. 3에서는 더 오르지 않는다.
+    // 매수+상승. 3에서는 더 오르지 않는다.
     public void Increase()
     {
         if (Value < Max) Value++;

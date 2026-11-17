@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-// 광대가 할 일 하나: 아이템을 쓰거나, 보유/매도를 한다.
+// 광대가 할 일 하나: 아이템을 쓰거나, 매수/매도를 한다.
 public struct ClownMove
 {
     public bool UsesItem;
@@ -25,10 +25,10 @@ public static class ClownAI
     public static ClownMove Decide(int remainingDown, int remainingUp, IReadOnlyList<ItemType> items,
                                    int balance, bool opponentHalted, Candle? knownNext, int lotteryThreshold)
     {
-        // ① 차트 분석으로 다음 캔들을 알면 그대로: 상승이면 보유, 하락이면 매도
+        // ① 차트 분석으로 다음 캔들을 알면 그대로: 상승이면 매수, 하락이면 매도
         if (knownNext.HasValue)
         {
-            return ClownMove.Act(knownNext.Value == Candle.Up ? PlayerAction.Hold : PlayerAction.Sell);
+            return ClownMove.Act(knownNext.Value == Candle.Up ? PlayerAction.Buy : PlayerAction.Sell);
         }
         if (Has(items, ItemType.ChartAnalysis)) return ClownMove.UseItem(ItemType.ChartAnalysis);
 
@@ -38,9 +38,9 @@ public static class ClownAI
         // ③ 잔고가 기준값 이하이고 복권이 있으면 사용 (GDD는 잔고 1, gdd-changes #32)
         if (balance <= lotteryThreshold && Has(items, ItemType.Lottery)) return ClownMove.UseItem(ItemType.Lottery);
 
-        // ④ 남은 덱의 하락 비율 50% 이상이면 찌라시(있으면) 또는 매도, 미만이면 보유
+        // ④ 남은 덱의 하락 비율 50% 이상이면 찌라시(있으면) 또는 매도, 미만이면 매수
         int total = remainingDown + remainingUp;
-        if (total == 0) return ClownMove.Act(PlayerAction.Hold);    // 안전장치
+        if (total == 0) return ClownMove.Act(PlayerAction.Buy);    // 안전장치
 
         float downRatio = (float)remainingDown / total;
         if (downRatio >= 0.5f)
@@ -48,7 +48,7 @@ public static class ClownAI
             if (Has(items, ItemType.Rumor)) return ClownMove.UseItem(ItemType.Rumor);
             return ClownMove.Act(PlayerAction.Sell);
         }
-        return ClownMove.Act(PlayerAction.Hold);
+        return ClownMove.Act(PlayerAction.Buy);
     }
 
     static bool Has(IReadOnlyList<ItemType> items, ItemType item)

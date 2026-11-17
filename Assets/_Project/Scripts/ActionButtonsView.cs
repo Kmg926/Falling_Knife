@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-// 보유(나에게)·매도(광대에게) 버튼: 선택 표시, 못 누를 때 회색, 클릭하면 그 행동을 고르고 바로 실행.
+// 매수(나에게)·매도(광대에게) 버튼: 선택 표시, 못 누를 때 회색, 클릭하면 그 행동을 고르고 바로 실행.
 public class ActionButtonsView : MonoBehaviour
 {
     [SerializeField] GameManager game;
@@ -25,7 +25,7 @@ public class ActionButtonsView : MonoBehaviour
     {
         holdHome = holdImage.rectTransform.anchoredPosition;
         sellHome = sellImage.rectTransform.anchoredPosition;
-        holdButton.onClick.AddListener(() => OnClick(PlayerAction.Hold));
+        holdButton.onClick.AddListener(() => OnClick(PlayerAction.Buy));
         sellButton.onClick.AddListener(() => OnClick(PlayerAction.Sell));
     }
 
@@ -42,13 +42,13 @@ public class ActionButtonsView : MonoBehaviour
         bool can = game.CanPlayerAct;
         holdButton.interactable = can;
         sellButton.interactable = can;
-        holdImage.sprite = SpriteFor(can, game.Selected == PlayerAction.Hold);
+        holdImage.sprite = SpriteFor(can, game.Selected == PlayerAction.Buy);
         sellImage.sprite = SpriteFor(can, game.Selected == PlayerAction.Sell);
 
         // 내 실행으로 공개가 막 시작된 순간(클릭이든 Space든) → 고른 버튼이 1도트 눌림
         if (game.IsRevealing && !wasRevealing && game.Current == game.Player)
         {
-            bool hold = game.Selected == PlayerAction.Hold;
+            bool hold = game.Selected == PlayerAction.Buy;
             StartCoroutine(Press(hold ? holdImage.rectTransform : sellImage.rectTransform, hold ? holdHome : sellHome));
         }
         wasRevealing = game.IsRevealing;

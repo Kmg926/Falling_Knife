@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
+
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,9 +9,8 @@ using UnityEngine.UI;
 public class DeckRevealView : MonoBehaviour
 {
     [SerializeField] GameManager game;
-    [SerializeField] GameObject root;              // 어둡게 + 캔들 줄 + 안내 글자
+    [SerializeField] GameObject root;              // 어둡게 + 캔들 줄 (monitor-trade 42: 안내 글자 없음)
     [SerializeField] RectTransform row;            // 캔들들이 놓이는 줄(가로 가운데)
-    [SerializeField] TMP_Text caption;             // "하락 2 · 상승 3" → "섞는 중…"
     [SerializeField] Image candlePrefab;           // 캔들 한 개(꺼 둔 견본). 복사해서 쓴다
     [SerializeField] Sprite upSprite;
     [SerializeField] Sprite downSprite;
@@ -53,7 +52,7 @@ public class DeckRevealView : MonoBehaviour
         float left = -(total - 1) * Spacing / 2f;  // 가운데 정렬
 
         // ① 하락 먼저, 상승 다음으로 한 장씩 놓기 (제안 3: 개수 세기 쉽게. 실제 순서 아님)
-        caption.text = $"하락 {down} · 상승 {up}";
+        // monitor-trade 42 (#59): 글자(하락 n · 상승 m) 없이 캔들 색만 보여 준다
         for (int i = 0; i < total; i++)
         {
             Image c = Instantiate(candlePrefab, row);
@@ -71,7 +70,7 @@ public class DeckRevealView : MonoBehaviour
         if (Skipped()) { Finish(); yield break; }
 
         // ③ 뒤집기 → 섞는 중
-        caption.text = "섞는 중…";
+        // (글자 없음 — 뒤집히는 모습만)
         foreach (Image c in candles) c.sprite = backSprite;
         yield return Wait(hold * 0.5f);
         if (Skipped()) { Finish(); yield break; }

@@ -2,11 +2,10 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
-// GE코인 주식 모니터(stock-screen 40, 전에는 단말기): 남은 개수(또는 방금 채운 덱 구성), 공개되는 캔들,
+// GE코인 주식 모니터(stock-screen 40, 전에는 단말기): 공개되는 캔들,
 // 차트 분석으로 아는 다음 캔들("다음" 창), 마지막 결과. GameManager 상태를 읽기만 한다(판정은 바꾸지 않음).
 public class TerminalView : MonoBehaviour
 {
-    [SerializeField] TMP_Text remainingText;      // "남은 5" 또는 "하락2 상승3"
     [SerializeField] TMP_Text resultText;         // 결과 글자(광대 왼쪽 벽)
     [SerializeField] SpriteRenderer shownCandle;  // 공개 중·공개 뒤 캔들(모니터 가운데 기준선 위에 놓임)
     [SerializeField] SpriteRenderer knownCandle;  // "다음" 창 안: 차트 분석으로 아는 다음 캔들(플레이어만)
@@ -22,10 +21,7 @@ public class TerminalView : MonoBehaviour
 
     public void Refresh(GameManager game)
     {
-        CandleDeck deck = game.Deck;
-        remainingText.text = deck.JustFilled
-            ? $"하락{deck.RemainingDown} 상승{deck.RemainingUp}"   // ui-revamp 30: 좁은 칸에 9 이상 크기로 들어가게 짧게
-            : $"남은 {deck.Remaining}";
+        // monitor-trade 42 (#59): 남은 개수·덱 구성은 숫자로 보여 주지 않는다(덱을 채울 때 캔들 색으로만).
 
         // 공개가 막 시작된 순간(전에는 아니었는데 지금은 공개 중) → 캔들 그리기 시작
         if (game.IsRevealing && !wasRevealing)

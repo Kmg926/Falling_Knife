@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // 차례인 사람이 고를 수 있는 행동
-public enum PlayerAction { Hold, Sell }
+public enum PlayerAction { Buy, Sell }   // monitor-trade 42: 보유(Hold) → 매수(Buy). 0번 값 그대로라 저장된 값도 같은 뜻
 
 // 복권 결과 4가지 (각 25%)
 public enum LotteryPrize { Heal, Leverage, Item, Nothing }
@@ -82,7 +82,7 @@ public class GameManager : MonoBehaviour
     // 라운드가 진행 중이고 광대 차례 → 광대가 스스로 행동, 플레이어 입력은 무시
     public bool IsClownTurn => Current == Clown && !IsRoundOver;
 
-    // 지금 플레이어가 보유·매도를 고를 수 있는가 (버튼을 밝게/회색으로 보일 때 쓴다)
+    // 지금 플레이어가 매수·매도를 고를 수 있는가 (버튼을 밝게/회색으로 보일 때 쓴다)
     public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused && !IsPresenting;
 
     // 일시정지 중인가 (Ticket 29). 멈춘 동안은 Time.timeScale = 0 → 공개·광대 생각의 WaitForSeconds도 멈춘다.
@@ -154,7 +154,7 @@ public class GameManager : MonoBehaviour
         Clown = new Participant("광대", config.startingBalance);
         Leverage = new LeverageCounter();
         Current = Player;
-        Selected = PlayerAction.Hold;
+        Selected = PlayerAction.Buy;
         IsRevealing = false;
         IsClownThinking = false;
         ConfirmingSlot = -1;
@@ -373,8 +373,14 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        LastResult = $"{user.Name}: 복권 → {result}";
+        // monitor-trade 42 (#60): 무엇이 당첨됐는지는 화면 글자로 알리지 않는다 — 잔고·레버리지·아이템 변화로만 보인다.
+        // 당첨 내용은 테스트·개발용으로만 남긴다(화면에 쓰지 않음).
+        LastLotteryDetail = result;
+        LastResult = $"{user.Name}: 복권 사용";
     }
+
+    // 마지막 복권의 당첨 내용(화면에 보이지 않음, 테스트용)
+    public string LastLotteryDetail { get; private set; } = "";
 
     // 맨 위 캔들을 꺼낸다. 알고 있던 다음 캔들은 이제 지나갔으므로 잊는다.
     Candle DrawTop()
@@ -461,7 +467,7 @@ public class GameManager : MonoBehaviour
         Participant actor = Current;
 
         // 처리 순서: ① 피해 적용 → ② 잔고 0 판정 → ③ 덱 소진 확인
-        if (action == PlayerAction.Hold) ResolveHold(candle);
+        if (action == PlayerAction.Buy) ResolveBuy(candle);
         else ResolveSell(candle);
 
         // 결과 문구 앞에 행동한 사람. 재장전 줄은 이 뒤에 붙는다.
@@ -479,7 +485,7 @@ public class GameManager : MonoBehaviour
         audioManager.SetRevealDuck(false);
         ui.Refresh(this);
 
-        // 결과 뒤에도 광대 차례면(내가 넘겼거나, 광대가 보유+상승) 광대가 행동한다.
+        // 결과 뒤에도 광대 차례면(내가 넘겼거나, 광대가 매수+상승) 광대가 행동한다.
         if (IsClownTurn)
         {
             StartCoroutine(ClownTurnRoutine());
@@ -487,7 +493,7 @@ public class GameManager : MonoBehaviour
     }
 
     // "광대 생각 중..." (clownThinkSeconds) → ClownAI에게 묻기
-    // → 아이템이면 쓰고 다시 생각(①부터), 보유·매도면 기존 공개 처리
+    // → 아이템이면 쓰고 다시 생각(①부터), 매수·매도면 기존 공개 처리
     IEnumerator ClownTurnRoutine()
     {
         // 덱 공개 연출이 끝난 뒤에 생각을 시작한다(연출 중에 광대가 움직이지 않게)
@@ -528,23 +534,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void ResolveHold(Candle candle)
+    void ResolveBuy(Candle candle)
     {
         if (candle == Candle.Up)
         {
             Leverage.Increase();
             RecordLeverage();
-            LastResult = $"보유 → 상승! 레버리지 {Leverage.Value}, 차례 유지";
+            LastResult = $"매수 → 상승! 레버리지 {Leverage.Value}, 차례 유지";
         }
         else
         {
             int damage = 1 + Leverage.Value;
             Current.TakeDamage(damage);
-            RecordDamage($"{Current.Name} 보유", damage);
+            RecordDamage($"{Current.Name} 매수", damage);
             audioManager.PlayImpact();
             ui.FlashDamage();
             Leverage.Reset();
-            LastResult = $"보유 → 하락! {Current.Name} -{damage}";
+            LastResult = $"매수 → 하락! {Current.Name} -{damage}";
             PassTurn();
         }
     }
@@ -591,12 +597,12 @@ public class GameManager : MonoBehaviour
         LastResult += $"\n덱 재장전 (하락{deck.RemainingDown} / 상승{deck.RemainingUp}), 아이템 +{itemsPerGrant}";
     }
 
-    // 상대에게 차례를 넘기고 선택은 보유로 되돌린다.
+    // 상대에게 차례를 넘기고 선택은 매수로 되돌린다.
     // 넘겨받은 사람이 거래 정지 상태면 그 차례를 건너뛰고 다시 넘긴다(모든 차례 넘김이 여기를 지난다).
     void PassTurn()
     {
         Current = Opponent;
-        Selected = PlayerAction.Hold;
+        Selected = PlayerAction.Buy;
 
         if (Current.IsHalted && !IsRoundOver)
         {

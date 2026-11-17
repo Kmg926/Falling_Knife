@@ -54,11 +54,11 @@ public class PlayerInputHandler : MonoBehaviour
         cancelAction.action.Disable();
     }
 
-    // A·← = -1 (보유), D·→ = +1 (매도)
+    // A·← = -1 (매수), D·→ = +1 (매도)
     void OnSelect(InputAction.CallbackContext context)
     {
         float direction = context.ReadValue<float>();
-        if (direction < 0) game.Select(PlayerAction.Hold);
+        if (direction < 0) game.Select(PlayerAction.Buy);
         else if (direction > 0) game.Select(PlayerAction.Sell);
     }
 
