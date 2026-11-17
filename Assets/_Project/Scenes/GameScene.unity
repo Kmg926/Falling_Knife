@@ -11048,11 +11048,11 @@ MonoBehaviour:
   downSprite: {fileID: 21300000, guid: 128492906917cfd4a9239044637ee8ae, type: 3}
   backSprite: {fileID: 21300000, guid: ac0af768b26a183459386575086cc64f, type: 3}
   gatherPoint: {x: 0, y: -30}
-  placeIntervalStart: 0.08
-  placeIntervalReload: 0.05
-  holdStart: 0.35
-  holdReload: 0.2
-  gatherSeconds: 0.25
+  placeIntervalStart: 0.18
+  placeIntervalReload: 0.12
+  holdStart: 0.9
+  holdReload: 0.6
+  gatherSeconds: 0.4
 --- !u!1 &1903183419
 GameObject:
   m_ObjectHideFlags: 0
@@ -11087,8 +11087,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 26, y: 59}
-  m_SizeDelta: {x: 86, y: 19}
+  m_AnchoredPosition: {x: 4, y: 156}
+  m_SizeDelta: {x: 106, y: 74}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1903183421
 MonoBehaviour:
@@ -11140,12 +11140,12 @@ MonoBehaviour:
   m_fontSize: 10
   m_fontSizeBase: 11
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 9
   m_fontSizeMax: 10
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 1024
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -11156,7 +11156,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 3
+  m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
@@ -12663,7 +12663,7 @@ MonoBehaviour:
     minCards: 7
     maxCards: 9
     fixedOrder: 
-  revealSeconds: 0.5
+  revealSeconds: 1
   clownThinkSeconds: 1
   tickDelaySeconds: 0.2
   itemDatas:
