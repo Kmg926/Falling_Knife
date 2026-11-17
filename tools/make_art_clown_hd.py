@@ -236,25 +236,36 @@ def make_idle(pal):
 def breathe2(idx, body, head):
     """숨쉬기 한 장: 그림 전체(머리)를 head도트, 턱 아래(몸)는 모두 합쳐 body도트 내림.
     위쪽에 생기는 빈 줄은 투명, 턱 아래 빈 줄은 턱 줄을 늘여 채움(46과 같음)."""
+    # 음수 = 위로(들이쉼 끝, 48 "위·아래 2픽셀 더"): 위쪽 여백 12줄이라 머리가 올라가도 안 잘림
     out = np.full_like(idx, -1)
     if head > 0:
         out[head:] = idx[:-head]
+    elif head < 0:
+        out[:head] = idx[-head:]
     else:
         out[:] = idx
     k = body - head
-    if k > 0:
-        out = breathe(out, k) if head == 0 else _breathe_at(out, CHIN_Y + head, k)
+    if k != 0:
+        out = _breathe_at(out, CHIN_Y + head, k)
     return out
 
 
 def _breathe_at(idx, chin, k):
+    """턱 줄(chin)부터 아래를 k도트 내림(k < 0이면 올림: 몸이 턱 아래 끝을 덮고, 맨 아래 빈 줄은 마지막 줄을 늘임 — 모니터 뒤)."""
     out = idx.copy()
-    out[chin + k:] = idx[chin:-k]
-    out[chin:chin + k] = idx[chin]
+    if k > 0:
+        out[chin + k:] = idx[chin:-k]
+        out[chin:chin + k] = idx[chin]
+    else:
+        k = -k
+        out[chin - k:-k] = idx[chin:]
+        out[-k:] = idx[-1]
     return out
 
 
-BREATH = [("a", 0, 0), ("b", 2, 1), ("c", 4, 2), ("d", 6, 3)]   # (이름, 몸 도트, 머리 도트) — 순서 a → b → c → d → c → b, 0.5초씩
+BREATH = [("u", -2, -1), ("a", 0, 0), ("b", 2, 1), ("c", 4, 2), ("d", 6, 3), ("e", 8, 4)]   # (이름, 몸 도트, 머리 도트, 아래가 +)
+# 순서 u(맨 위, 0.3초 쉼) → a → b → c → d → e(맨 아래, 0.3초 쉼) → d → c → b → a → u, 한 장 0.25초
+# (사용자 "위, 아래 2픽셀 더 가게, 피크 찍으면 0.3초 쉬었다가" — u·e 추가. 그 전: a~d, 0.5초씩 a → d → a)
 # (48 첫판: 몸 1·2, 머리 0·1, a → b → c → b — 사용자 "3배는 더 크게"로 3배)
 
 
@@ -289,11 +300,11 @@ def make_breath(pal):
         write_png(OUT / f"{key}-a.png", read_png(SPR / f"Clown/{key}.png"))
     html = """<!doctype html><meta charset="utf-8"><title>숨쉬기 미리보기</title>
 <body style="background:#111;color:#ddd;font-family:sans-serif">
-<p>a → b → c → d → c → b, 한 바퀴 3초 (3배 확대). 왼쪽부터 평소·생각 중·어둡게</p>
+<p>u(0.3초 쉼) → a → b → c → d → e(0.3초 쉼) → d → c → b → a, 한 장 0.25초 (3배 확대). 왼쪽부터 평소·생각 중·어둡게</p>
 <div id="w"></div><script>
-const keys=["clown-idle","clown-thinking","clown-dim"],seq=["a","b","c","d","c","b"];
+const keys=["clown-idle","clown-thinking","clown-dim"],seq=["u","a","b","c","d","e","d","c","b","a"],ms=[550,250,250,250,250,550,250,250,250,250];
 const imgs=keys.map(k=>{const i=document.createElement("img");i.style="width:576px;image-rendering:pixelated;margin:4px";document.getElementById("w").appendChild(i);return [k,i];});
-let n=0;function tick(){imgs.forEach(([k,i])=>i.src=k+"-"+seq[n%seq.length]+".png");n++;}tick();setInterval(tick,500);
+let n=0;function tick(){const j=n%seq.length;imgs.forEach(([k,i])=>i.src=k+"-"+seq[j]+".png");n++;setTimeout(tick,ms[j]);}tick();
 </script>"""
     (OUT / "breath-preview.html").write_text(html, encoding="utf-8")
     print("팔레트 검사 (32색):")
