@@ -43,6 +43,7 @@
 | 26 | 그림(640 격자, PPU 2) `Sprites/Play/table.png`(화면 아래까지 늘린 테이블 640×160 — #23 덮어씀), `monitor-outline.png`(금색 테두리 204×116), `clown-monitor.png`(광대 모니터 뒷면 160×80), `Sprites/HUD/zoom-panel.png`(확대 화면 480×280), `button-normal/selected/disabled.png`(140×72 — #24 덮어씀), `slot-normal/selected.png`(60×60 — #24 덮어씀) | `tools/make_art_trade.py game` (Claude 작성, 무작위 없음) | 32색, 확대 화면(테두리·주사선·차트 칸·점선 캔들 자리), 광대 모니터 뒷면(통풍구·가운데 판·새는 빛). 사용자 수정 지시(내 모니터 앞으로, 광대 모니터 추가) 반영 | 없음(#42) | 외부 이미지 없음 | 2026-11-17 |
 | 27 | 그림(640 격자, PPU 2) `Sprites/HUD/zoom-page.png`(상세 페이지 바탕 464×192), `Sprites/Closeup/closeup-iconbox.png`(100×100)·`closeup-tag.png`(60×24 — 옛 #13 계열 1배 그림을 덮어씀) | `tools/make_art_trade.py items44` (Claude 작성, 무작위 없음) | 32색, 화면색 + 주사선, 남색 테두리·나무 받침 | 없음(#42) | 외부 이미지 없음 | 2026-11-17 |
 | 28 | 그림(640 격자, PPU 2) `Sprites/Play/room.png`(방 배경 640×360 — 옛 #6 방 그림을 덮어씀, 스케치의 고정 빨간 선 없앰) + 실행 중 코드가 그리는 시세 선(`ChartLinesView`, 그림 파일 없음) | `tools/make_art_stock.py room` / `Assets/_Project/Scripts/ChartLinesView.cs` (Claude 작성, 무작위 없음 — 사인·해시) | 어두운 벽·옅은 판자 이음새·걸레받이 / 빨강(red1·red0)·파랑(navy2·navy) 2줄 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
+| 29 | 그림(640 격자, PPU 2) `Sprites/Clown/clown-idle·thinking·dim.png`, `Sprites/Result/clown-dark.png`(광대 192×192 — 옛 #5·#20 계열 1배 그림을 덮어씀) | `tools/make_art_clown_hd.py draft` (Claude 작성, 무작위 없음) — 1배 그림을 Scale2x로 늘린 뒤 넓은 색 구역에만 빛·그늘 한 단계 | 원본 = 사용자가 고른 광대 시안(#5, 머리 모양 지시 반영). 윤곽·색 배치·표정 그대로 | 없음(#42) | 원본 #5와 같음, 외부 이미지 없음 | 2026-11-18 |
 
 ## 3. 게임 내 크레딧 문구 (초안)
 

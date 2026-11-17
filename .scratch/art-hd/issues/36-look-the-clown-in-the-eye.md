@@ -4,7 +4,7 @@
 
 **Blocked by:** 35 (해상도·32색)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] 4종 모두 640 격자·32색 (C1·C2)
 - [ ] 화면 위치·크기 그대로, 테이블 선과 맞음
@@ -20,3 +20,4 @@ Spec: `../spec.md` (제안 7·8)
 
 ## Comments
 - 2026-11-18 사용자 "광대 idle 모션 생성" → clown-idle Grilling Q3(모두 채택): 이 Ticket(광대 2배 그림)을 **clown-idle 작업에 합침**. 진행은 `.scratch/clown-idle/`에서.
+- 2026-11-18 clown-idle Ticket 45로 대신함 → done.
