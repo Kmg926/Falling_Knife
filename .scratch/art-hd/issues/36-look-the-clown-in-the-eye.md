@@ -19,3 +19,4 @@ Spec: `../spec.md` (제안 7·8)
 2. 생존 결과 화면(꺼진 광대)
 
 ## Comments
+- 2026-11-18 사용자 "광대 idle 모션 생성" → clown-idle Grilling Q3(모두 채택): 이 Ticket(광대 2배 그림)을 **clown-idle 작업에 합침**. 진행은 `.scratch/clown-idle/`에서.
