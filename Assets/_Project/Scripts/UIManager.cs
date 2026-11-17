@@ -42,6 +42,12 @@ public class UIManager : MonoBehaviour
     Vector3[] shakeHomes;
     Coroutine shakeRoutine;
 
+    [Header("광대 맞음: 광대만 빨갛게 (clown-idle 48)")]
+    [SerializeField] SpriteRenderer[] clownTintTargets;   // 광대 몸·눈 그림
+    [SerializeField] Color clownHitColor = new Color(1f, 0.3f, 0.25f);   // 그림 색에 곱해짐 → 얼굴·옷이 빨갛게
+    [SerializeField] int clownHitBlinks = 2;               // flashSeconds 동안 빨강 ↔ 원래 몇 번
+    Coroutine clownTintRoutine;
+
     [Header("화면 반응")]
     [SerializeField] float flashSeconds = 0.2f;
     [SerializeField] Color flashColor = new Color(0.85f, 0.25f, 0.22f);
@@ -72,10 +78,19 @@ public class UIManager : MonoBehaviour
 
     // 피해: 글자를 잠깐 빨강으로. 이미 깜빡이는 중이면 처음부터 다시.
     // monitor-trade 44: playerHit = 맞은 사람이 나인가 → 나면 화면 전체, 광대면 광대 그림만 흔든다.
+    // clown-idle 48: 화면 전체 빨강은 내가 맞을 때만. 광대가 맞으면 광대 그림만 빨갛게 깜빡.
     public void FlashDamage(bool playerHit)
     {
-        if (flashRoutine != null) StopCoroutine(flashRoutine);
-        flashRoutine = StartCoroutine(FlashRoutine());
+        if (playerHit)
+        {
+            if (flashRoutine != null) StopCoroutine(flashRoutine);
+            flashRoutine = StartCoroutine(FlashRoutine());
+        }
+        else
+        {
+            if (clownTintRoutine != null) StopCoroutine(clownTintRoutine);
+            clownTintRoutine = StartCoroutine(ClownTintRoutine());
+        }
 
         Transform[] targets = playerHit ? shakeTargets : clownShakeTargets;
         if (screenShake && targets != null && targets.Length > 0)
@@ -112,6 +127,29 @@ public class UIManager : MonoBehaviour
         Vector3[] homes = new Vector3[targets.Length];
         for (int i = 0; i < targets.Length; i++) homes[i] = targets[i].localPosition;
         return homes;
+    }
+
+    // 광대 그림 색: 빨강 ↔ 흰색(= 원래 색)을 clownHitBlinks번, 모두 flashSeconds 안에. 끝나면 반드시 흰색.
+    // SpriteRenderer.color는 그림 색에 곱해지는 값이라 흰색이면 그림 그대로. Animator는 그림만 바꾸고 색은 안 건드림.
+    IEnumerator ClownTintRoutine()
+    {
+        float half = flashSeconds / (clownHitBlinks * 2);
+        for (int n = 0; n < clownHitBlinks; n++)
+        {
+            SetClownTint(clownHitColor);
+            yield return new WaitForSeconds(half);
+            SetClownTint(Color.white);
+            yield return new WaitForSeconds(half);
+        }
+        SetClownTint(Color.white);
+        clownTintRoutine = null;
+    }
+
+    void SetClownTint(Color c)
+    {
+        if (clownTintTargets == null) return;
+        foreach (SpriteRenderer r in clownTintTargets)
+            if (r != null) r.color = c;
     }
 
     IEnumerator FlashRoutine()

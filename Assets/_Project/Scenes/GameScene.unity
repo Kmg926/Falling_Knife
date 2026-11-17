@@ -5638,6 +5638,11 @@ MonoBehaviour:
   - {fileID: 587867401}
   shakeSeconds: 0.15
   shakeDots: 2
+  clownTintTargets:
+  - {fileID: 587867400}
+  - {fileID: 1927570887}
+  clownHitColor: {r: 1, g: 0.3, b: 0.25, a: 1}
+  clownHitBlinks: 2
   flashSeconds: 0.2
   flashColor: {r: 0.85, g: 0.25, b: 0.22, a: 1}
   dangerBalance: 3

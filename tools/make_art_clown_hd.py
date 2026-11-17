@@ -232,8 +232,77 @@ def make_idle(pal):
     return check32(files, pal)
 
 
+# ---------- Ticket 48: 눈에 보이는 숨쉬기 ----------
+def breathe2(idx, body, head):
+    """숨쉬기 한 장: 그림 전체(머리)를 head도트, 턱 아래(몸)는 모두 합쳐 body도트 내림.
+    위쪽에 생기는 빈 줄은 투명, 턱 아래 빈 줄은 턱 줄을 늘여 채움(46과 같음)."""
+    out = np.full_like(idx, -1)
+    if head > 0:
+        out[head:] = idx[:-head]
+    else:
+        out[:] = idx
+    k = body - head
+    if k > 0:
+        out = breathe(out, k) if head == 0 else _breathe_at(out, CHIN_Y + head, k)
+    return out
+
+
+def _breathe_at(idx, chin, k):
+    out = idx.copy()
+    out[chin + k:] = idx[chin:-k]
+    out[chin:chin + k] = idx[chin]
+    return out
+
+
+BREATH = [("a", 0, 0), ("b", 1, 0), ("c", 2, 1)]   # (이름, 몸 도트, 머리 도트) — 순서 a → b → c → b
+
+
+def make_breath(pal):
+    """2배 광대 3상태 × 숨 b·c장(a는 원래 그림) + 미리보기(비교 그림·움직이는 HTML)."""
+    OUT.mkdir(parents=True, exist_ok=True)
+    files, rows = [], []
+    for key, src in (("clown-idle", "Clown/clown-idle"), ("clown-thinking", "Clown/clown-thinking"), ("clown-dim", "Clown/clown-dim")):
+        idx = to_index(read_png(SPR / f"{src}.png"), pal)
+        row = []
+        for name, body, head in BREATH:
+            f = breathe2(idx, body, head)
+            row.append(f)
+            if name != "a":
+                p = OUT / f"{key}-{name}.png"
+                write_png(p, to_canvas(f, pal).rgba())
+                files.append(p)
+        rows.append(row)
+    crop = (slice(40, 192), slice(16, 176))
+    bg = pal["bg0"].astype(np.uint8)
+    ch, cw = 152, 160
+    sheet = np.tile(bg, (len(rows) * (ch + 4), 3 * (cw + 4), 1))
+    for r, row in enumerate(rows):
+        for c, img in enumerate(row):
+            rgba = to_canvas(img, pal).rgba()[crop]
+            m = rgba[..., 3] > 0
+            reg = sheet[r * (ch + 4):r * (ch + 4) + ch, c * (cw + 4):c * (cw + 4) + cw]
+            reg[m] = rgba[..., :3][m]
+    write_png(OUT / "clown-breath-sheet-x3.png", sheet.repeat(3, 0).repeat(3, 1))
+    # 움직이는 미리보기: 같은 폴더 그림을 a → b → c → b(각 0.75초, 한 바퀴 3초)로 넘김
+    for key, _ in (("clown-idle", 0), ("clown-thinking", 0), ("clown-dim", 0)):
+        write_png(OUT / f"{key}-a.png", read_png(SPR / f"Clown/{key}.png"))
+    html = """<!doctype html><meta charset="utf-8"><title>숨쉬기 미리보기</title>
+<body style="background:#111;color:#ddd;font-family:sans-serif">
+<p>a → b → c → b, 한 바퀴 3초 (3배 확대). 왼쪽부터 평소·생각 중·어둡게</p>
+<div id="w"></div><script>
+const keys=["clown-idle","clown-thinking","clown-dim"],seq=["a","b","c","b"];
+const imgs=keys.map(k=>{const i=document.createElement("img");i.style="width:576px;image-rendering:pixelated;margin:4px";document.getElementById("w").appendChild(i);return [k,i];});
+let n=0;function tick(){imgs.forEach(([k,i])=>i.src=k+"-"+seq[n%4]+".png");n++;}tick();setInterval(tick,750);
+</script>"""
+    (OUT / "breath-preview.html").write_text(html, encoding="utf-8")
+    print("팔레트 검사 (32색):")
+    return check32(files, pal)
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
+    if cmd == "breath":
+        sys.exit(0 if make_breath(load_pal()) else 1)
     if cmd == "draft":
         sys.exit(0 if make_draft(load_pal()) else 1)
     if cmd == "idle":
