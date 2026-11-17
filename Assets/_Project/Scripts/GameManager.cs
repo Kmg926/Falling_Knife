@@ -85,6 +85,11 @@ public class GameManager : MonoBehaviour
     // 지금 플레이어가 매수·매도를 고를 수 있는가 (버튼을 밝게/회색으로 보일 때 쓴다)
     public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused && !IsPresenting;
 
+    // monitor-trade 43: 모니터 확대 화면이 열려 있는가(매수·매도·아이템을 고르는 중)
+    public bool IsMonitorOpen { get; private set; }
+    // 지금 모니터를 열 수 있는가 = 내가 행동할 수 있고 아직 안 열려 있을 때(광대 차례·공개 중·연출 중·멈춤엔 못 엶)
+    public bool CanOpenMonitor => CanPlayerAct && !IsMonitorOpen;
+
     // 일시정지 중인가 (Ticket 29). 멈춘 동안은 Time.timeScale = 0 → 공개·광대 생각의 WaitForSeconds도 멈춘다.
     public bool IsPaused { get; private set; }
 
@@ -99,6 +104,7 @@ public class GameManager : MonoBehaviour
     {
         IsPresenting = true;
         SkipRequested = false;
+        IsMonitorOpen = false;      // monitor-trade 43: 덱 공개 연출이 시작되면 열린 화면을 닫는다(연출을 가리지 않게)
         ui.Refresh(this);
     }
 
@@ -158,6 +164,7 @@ public class GameManager : MonoBehaviour
         IsRevealing = false;
         IsClownThinking = false;
         ConfirmingSlot = -1;
+        IsMonitorOpen = false;      // monitor-trade 43
         PlayerKnownNext = null;
         clownKnownNext = null;
         LastResult = "";
@@ -210,6 +217,14 @@ public class GameManager : MonoBehaviour
         // 안전장치: 파산하지 않았다면 재장전되므로 여기까지 올 일이 없다.
         if (deck.IsEmpty) return;
 
+        // monitor-trade 43: 닫혀 있으면 먼저 모니터를 연다(들여다보기). 열려 있으면 고른 행동을 실행하며 닫는다 → 모니터에서 공개.
+        if (!IsMonitorOpen)
+        {
+            OpenMonitor();
+            return;
+        }
+        IsMonitorOpen = false;
+
         StartCoroutine(RevealRoutine(Selected));
     }
 
@@ -232,10 +247,28 @@ public class GameManager : MonoBehaviour
         ui.Refresh(this);
     }
 
+    // monitor-trade 43: 모니터 클릭·Space(닫혀 있을 때) → 확대 화면 열기. 판정은 바꾸지 않는다.
+    public void OpenMonitor()
+    {
+        if (!CanOpenMonitor) return;
+        IsMonitorOpen = true;
+        audioManager.PlayClick();
+        ui.Refresh(this);
+    }
+
+    // Esc·우클릭·화면 밖 클릭 → 닫기(아이템 확인 중이면 그 확인부터 닫는다 — 입력 쪽에서 순서를 정함)
+    public void CloseMonitor()
+    {
+        if (!IsMonitorOpen || IsConfirming) return;
+        IsMonitorOpen = false;
+        audioManager.PlayClick();
+        ui.Refresh(this);
+    }
+
     // Esc(아이템 확인 중이 아닐 때): 멈추기 ↔ 계속. 한 판이 끝난 결과 화면에서는 멈추지 않는다.
     public void TogglePause()
     {
-        if (IsGameOver || IsConfirming) return;
+        if (IsGameOver || IsConfirming || IsMonitorOpen) return;   // monitor-trade 43: 열린 화면은 Esc로 먼저 닫음
         IsPaused = !IsPaused;
         Time.timeScale = IsPaused ? 0f : 1f;
         ui.Refresh(this);
@@ -603,6 +636,7 @@ public class GameManager : MonoBehaviour
     {
         Current = Opponent;
         Selected = PlayerAction.Buy;
+        IsMonitorOpen = false;      // monitor-trade 43: 차례가 넘어가면 닫힌 상태로
 
         if (Current.IsHalted && !IsRoundOver)
         {

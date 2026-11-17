@@ -82,6 +82,12 @@ public class PlayerInputHandler : MonoBehaviour
             game.CancelItem();
             return;
         }
+        // monitor-trade 43: 모니터 확대 화면이 열려 있으면 Esc·우클릭 모두 "닫기"
+        if (game.IsMonitorOpen)
+        {
+            game.CloseMonitor();
+            return;
+        }
         if (context.control.device is Keyboard) game.TogglePause();
     }
 }

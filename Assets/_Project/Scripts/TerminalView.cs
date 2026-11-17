@@ -7,6 +7,7 @@ using UnityEngine;
 public class TerminalView : MonoBehaviour
 {
     [SerializeField] TMP_Text resultText;         // 결과 글자(광대 왼쪽 벽)
+    [SerializeField] TMP_Text titleText;          // 모니터 위 줄: 평소 "GE코인", 광대 공개 중 "광대 매수"/"광대 매도" (monitor-trade 43)
     [SerializeField] SpriteRenderer shownCandle;  // 공개 중·공개 뒤 캔들(모니터 가운데 기준선 위에 놓임)
     [SerializeField] SpriteRenderer knownCandle;  // "다음" 창 안: 차트 분석으로 아는 다음 캔들(플레이어만)
     [SerializeField] TMP_Text questionMark;       // "다음" 창의 "?" 글자
@@ -22,6 +23,11 @@ public class TerminalView : MonoBehaviour
     public void Refresh(GameManager game)
     {
         // monitor-trade 42 (#59): 남은 개수·덱 구성은 숫자로 보여 주지 않는다(덱을 채울 때 캔들 색으로만).
+
+        // monitor-trade 43 (Spec 제안 8): 광대는 모니터를 열지 않으므로, 광대가 고른 행동을 공개 동안 내 모니터 위 줄에 보여 준다.
+        // 광대가 무엇을 골랐는지는 결과 글자에도 나오므로 공개 전에 보여도 규칙 문제 없음(결과는 캔들이 정함).
+        bool clownTrading = game.IsRevealing && game.Current == game.Clown;
+        titleText.text = clownTrading ? (game.Selected == PlayerAction.Buy ? "광대 매수" : "광대 매도") : "GE코인";
 
         // 공개가 막 시작된 순간(전에는 아니었는데 지금은 공개 중) → 캔들 그리기 시작
         if (game.IsRevealing && !wasRevealing)

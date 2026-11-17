@@ -1318,7 +1318,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC88C\uC6B0\xB7A D  \uD589\uB3D9 \uC120\uD0DD\nSpace\xB7\uD074\uB9AD  \uC2E4\uD589\n1~4  \uC544\uC774\uD15C \uD655\uC778"
+  m_text: "Space\xB7\uD074\uB9AD  \uBAA8\uB2C8\uD130 \uC5F4\uAE30\n\uC88C\uC6B0\xB7A D  \uB9E4\uC218\xB7\uB9E4\uB3C4\n1~4  \uC544\uC774\uD15C"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ed43f1bd9d6a84146aa83388763284bc, type: 2}
   m_sharedMaterial: {fileID: -7250621659388597257, guid: ed43f1bd9d6a84146aa83388763284bc, type: 2}
