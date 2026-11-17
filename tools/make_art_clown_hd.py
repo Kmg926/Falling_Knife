@@ -131,8 +131,111 @@ def make_draft(pal):
     return check32(files, pal)
 
 
+# ---------- Ticket 46: 숨쉬기·눈 그림 ----------
+CHIN_Y = 136                 # 이 줄부터 아래(턱 아래 = 목·나비넥타이·몸)가 숨쉬기로 내려감(2배 그림 기준)
+EYES = [(73, 63, 90, 87), (105, 63, 122, 87)]   # 왼쪽·오른쪽 눈 마름모 상자(x0, y0, x1, y1), 눈동자 2x6이 가운데
+PUPIL_DROP = 5               # 힐끗: 눈동자를 아래(플레이어 쪽)로 5도트
+
+
+def breathe(idx, k):
+    """턱 아래를 k도트 내림: 위쪽 빈 줄은 CHIN_Y 줄을 늘여 채움(맨 아래는 모니터 뒤라 잘려도 안 보임)."""
+    out = idx.copy()
+    if k > 0:
+        out[CHIN_Y + k:] = idx[CHIN_Y:-k]
+        out[CHIN_Y:CHIN_Y + k] = idx[CHIN_Y]
+    return out
+
+
+def eye_interior(idx, names, box):
+    """눈 상자 안에서 남색 테두리로 둘러싸인 안쪽(눈동자 포함) — 가운데에서 남색이 아닌 칸으로 번짐."""
+    x0, y0, x1, y1 = box
+    sub = idx[y0:y1, x0:x1]
+    wall = np.isin(sub, [names.index(n) for n in ("navy", "navy0", "navy2", "gray0", "bg00")]) | (sub < 0)
+    seen = np.zeros_like(wall)
+    stack = [((y1 - y0) // 2, (x1 - x0) // 2)]
+    while stack:
+        y, x = stack.pop()
+        if not (0 <= y < sub.shape[0] and 0 <= x < sub.shape[1]) or seen[y, x] or wall[y, x]:
+            continue
+        seen[y, x] = True
+        stack += [(y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)]
+    full = np.zeros(idx.shape, bool)
+    full[y0:y1, x0:x1] = seen
+    return full
+
+
+FOREHEAD = (96, 52)          # 이마 가운데(x, y): 얼굴 바탕색을 여기서 읽음(밝은 = cream, 어두운 = gray1)
+
+
+def eye_overlays(idx, names, inners):
+    """눈 덮개 2장(깜빡임·힐끗): 눈 안쪽만 칠한 투명 그림. 색은 그 그림(밝은·어두운)에서 가져옴.
+    inners = 밝은 그림에서 찾은 눈 안쪽 모양(어두운 그림은 색만 다르고 모양이 같아 그대로 씀 —
+    어두운 그림의 테두리 색으로 다시 찾으면 테두리를 넘어 번졌음, 시안 1차)."""
+    blink = np.full(idx.shape, -1)
+    glance = np.full(idx.shape, -1)
+    pupil = names.index("bg0")
+    face = int(idx[FOREHEAD[1], FOREHEAD[0]])
+    for inner in inners:
+        lid = names.index(DARK.get(names[face], names[face]))
+        line = names.index(DARK.get(names[lid], names[lid]))
+        ys, xs = np.nonzero(inner)
+        mid = (ys.min() + ys.max()) // 2
+        blink[inner] = lid                                      # 감은 눈꺼풀
+        blink[inner & (np.arange(idx.shape[0])[:, None] == mid)] = line   # 가운데 감은 줄
+        glance[inner] = face                                    # 눈동자 지우고
+        pys, pxs = np.nonzero(inner & (idx == pupil))
+        for y, x in zip(pys, pxs):                              # 같은 모양 눈동자를 아래로
+            if inner[min(y + PUPIL_DROP, idx.shape[0] - 1), x]:
+                glance[y + PUPIL_DROP, x] = pupil
+    return blink, glance
+
+
+def make_idle(pal):
+    """사용자가 고른 2배 광대(Assets에 있는 것)로 숨쉬기 둘째 장(1도트 내림)과 눈 덮개(밝은·어두운) + 비교 그림."""
+    OUT.mkdir(parents=True, exist_ok=True)
+    names = list(pal)
+    files = []
+    rows = []
+    lit = to_index(read_png(SPR / "Clown/clown-idle.png"), pal)
+    inners = [eye_interior(lit, names, box) for box in EYES]   # 눈 안쪽 모양은 밝은 그림에서 한 번
+    for key, src in (("clown-idle", "Clown/clown-idle"), ("clown-thinking", "Clown/clown-thinking"), ("clown-dim", "Clown/clown-dim")):
+        idx = to_index(read_png(SPR / f"{src}.png"), pal)
+        b = breathe(idx, 1)
+        p = OUT / f"{key}-b.png"
+        write_png(p, to_canvas(b, pal).rgba())
+        files.append(p)
+        row = [idx, b]
+        if key != "clown-thinking":
+            blink, glance = eye_overlays(idx, names, inners)
+            tag = "" if key == "clown-idle" else "-dim"
+            for nm, ov in (("eyes-blink", blink), ("eyes-glance", glance)):
+                q = OUT / f"{nm}{tag}.png"
+                write_png(q, to_canvas(ov, pal).rgba())
+                files.append(q)
+                comp = idx.copy()
+                comp[ov >= 0] = ov[ov >= 0]
+                row.append(comp)
+        rows.append(row)
+    # 비교 그림(얼굴·어깨 부분만 잘라 3배): 줄 = 평소·생각 중·어둡게, 칸 = 숨 0·숨 1·깜빡임·힐끗
+    crop = (slice(40, 180), slice(16, 176))
+    bg = pal["bg0"].astype(np.uint8)
+    ch, cw = 140, 160
+    sheet = np.tile(bg, (len(rows) * (ch + 4), 4 * (cw + 4), 1))
+    for r, row in enumerate(rows):
+        for c, img in enumerate(row):
+            rgba = to_canvas(img, pal).rgba()[crop]
+            m = rgba[..., 3] > 0
+            reg = sheet[r * (ch + 4):r * (ch + 4) + ch, c * (cw + 4):c * (cw + 4) + cw]
+            reg[m] = rgba[..., :3][m]
+    write_png(OUT / "clown-idle-sheet-x3.png", sheet.repeat(3, 0).repeat(3, 1))
+    print("팔레트 검사 (32색):")
+    return check32(files, pal)
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "draft":
         sys.exit(0 if make_draft(load_pal()) else 1)
+    if cmd == "idle":
+        sys.exit(0 if make_idle(load_pal()) else 1)
     print(__doc__)
