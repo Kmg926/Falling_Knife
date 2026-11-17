@@ -3,6 +3,7 @@
 사용법 (C:\\Falling_Knife 에서):
     python tools/make_art_monitor.py draft   # 시안 A(100x62, 캔들 18)·B(100x54, 캔들 14) 그림 + 팔레트 검사
     python tools/make_art_monitor.py game    # 사용자가 고른 A를 게임 파일 이름(terminal·candle-up-big·candle-down-big)으로
+    python tools/make_art_monitor.py flash   # Ticket 47: 굳는 순간 캔들 테두리(위·아래 기준점 2장)·기준선 번쩍임
 
 - 640 격자(지금 좌표 x2), 팔레트 32색. 무작위 없음. 출력: .scratch/art/drafts/hd/monitor/
 - 모니터 그림 = 테두리 + 화면(주사선·가장자리 어둡게) + 위 줄 구분선 + 차트 칸(옅은 격자·가격 눈금·가운데 기준선 점선)
@@ -143,10 +144,45 @@ def make_game(pal):
     return check32(files, pal)
 
 
+# ---------- stock-screen 47: 굳는 순간 번쩍임 ----------
+def candle_flash(pal, length):
+    """큰 캔들(8 x length)과 같은 모양의 **테두리만** cream2 — 굳는 순간 캔들 위에 0.1초."""
+    from make_art_hd import edge
+    base = big_candle(pal, "up", length)
+    m = base.mask
+    ring = edge(m, -1, 0) | edge(m, 1, 0) | edge(m, 0, -1) | edge(m, 0, 1)
+    cv = Canvas(pal, base.w, base.h)
+    cv.fill(ring, "cream2")
+    return cv
+
+
+def baseline_flash(pal):
+    """모니터 차트 칸 기준선(지금 좌표 x 117~188, 새 도트 142 x 2)을 잠깐 덮는 밝은 줄 gold2."""
+    cv = Canvas(pal, 142, 2)
+    cv.fill((slice(0, 2), slice(0, 142)), "gold2")
+    return cv
+
+
+def make_flash(pal):
+    dst = OUT / "game47"
+    dst.mkdir(parents=True, exist_ok=True)
+    v = VARIANTS["a"]
+    files = []
+    for name, cv in (("candle-flash-up", candle_flash(pal, v["candle"])), ("candle-flash-down", candle_flash(pal, v["candle"])),
+                     ("baseline-flash", baseline_flash(pal))):
+        p = dst / f"{name}.png"
+        write_png(p, cv.rgba())
+        files.append(p)
+    print("팔레트 검사 (32색):")
+    return check32(files, pal)
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "draft":
         sys.exit(0 if make_draft(load_pal()) else 1)
     if cmd == "game":
         sys.exit(0 if make_game(load_pal()) else 1)
+    if cmd == "flash":
+        sys.exit(0 if make_flash(load_pal()) else 1)
     print(__doc__)
