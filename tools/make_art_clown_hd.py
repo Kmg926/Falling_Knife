@@ -311,8 +311,61 @@ let n=0;function tick(){const j=n%seq.length;imgs.forEach(([k,i])=>i.src=k+"-"+s
     return check32(files, pal)
 
 
+# ---------- 타이틀 광대 눈 발작(사용자 2026-11-19 "발작형, 2도트") ----------
+def twitch_overlays(idx, names, inners):
+    """눈 덮개 3장(힐끗과 같은 방식: 눈 안쪽을 얼굴색으로 지우고 눈동자를 다시 그림).
+    pin = 눈동자가 바늘처럼 작아짐(가운데 2×2), cross = 두 눈이 바깥으로 갈라짐(왼눈 왼쪽·오른눈 오른쪽 3도트),
+    up = 눈동자가 위로 쏠림(5도트)."""
+    pupil = names.index("bg0")
+    face = int(idx[FOREHEAD[1], FOREHEAD[0]])
+    out = {k: np.full(idx.shape, -1) for k in ("pin", "cross", "up")}
+    for side, inner in enumerate(inners):
+        pys, pxs = np.nonzero(inner & (idx == pupil))
+        cy, cx = int(round(pys.mean())), int(round(pxs.mean()))
+        for k in out:
+            out[k][inner] = face
+        # 바늘 눈동자: 가운데 2×2
+        for y in (cy - 1, cy):
+            for x in (cx - 1, cx):
+                if inner[y, x]:
+                    out["pin"][y, x] = pupil
+        # 갈라진 눈·위로 쏠린 눈: 같은 모양 눈동자를 옮김(눈 안쪽을 벗어나는 칸은 버림)
+        dx = -3 if side == 0 else 3
+        for y, x in zip(pys, pxs):
+            if 0 <= x + dx < idx.shape[1] and inner[y, x + dx]:
+                out["cross"][y, x + dx] = pupil
+            if inner[max(y - PUPIL_DROP, 0), x]:
+                out["up"][y - PUPIL_DROP, x] = pupil
+    return out
+
+
+def make_twitch(pal):
+    OUT.mkdir(parents=True, exist_ok=True)
+    names = list(pal)
+    lit = to_index(read_png(SPR / "Clown/clown-idle.png"), pal)
+    inners = [eye_interior(lit, names, box) for box in EYES]
+    ovs = twitch_overlays(lit, names, inners)
+    files = []
+    comps = [lit]
+    for k, ov in ovs.items():
+        p = OUT / f"eyes-twitch-{k}.png"
+        write_png(p, to_canvas(ov, pal).rgba())
+        files.append(p)
+        comp = lit.copy()
+        comp[ov >= 0] = ov[ov >= 0]
+        comps.append(comp)
+    # 비교 그림(얼굴만 4배): 평소 · 바늘 · 갈라짐 · 위로
+    crop = (slice(40, 110), slice(56, 140))
+    sheet = np.concatenate([to_canvas(c, pal).rgba()[crop] for c in comps], 1)
+    write_png(OUT / "eyes-twitch-sheet-x4.png", sheet.repeat(4, 0).repeat(4, 1))
+    print("팔레트 검사 (32색):")
+    return check32(files, pal)
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
+    if cmd == "twitch":   # 타이틀 광대 눈 발작 덮개 3장
+        sys.exit(0 if make_twitch(load_pal()) else 1)
     if cmd == "breath":
         sys.exit(0 if make_breath(load_pal()) else 1)
     if cmd == "draft":
