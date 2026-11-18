@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // 내 아이템 슬롯 4칸(아이콘·선택 테두리·클릭)과 광대 아이템 아이콘 4개. 클릭은 1~4 키와 같다.
+// item-phone 63: 4칸은 모니터에서 폰 화면(2×2)으로 옮겨 감. 광대 아이콘은 64에서 광대 폰으로.
 public class ItemSlotsView : MonoBehaviour
 {
     [SerializeField] GameManager game;
@@ -37,17 +38,26 @@ public class ItemSlotsView : MonoBehaviour
         ShowItems(slotIcons, game.Player.Items);
         ShowItems(clownIcons, game.Clown.Items);
 
+        // item-phone 63: 칸이 폰 목록 안으로 옮겨 감 → 금색 틀 = Space를 누르면 열릴 칸(PhoneCursor)
         for (int i = 0; i < slotFrames.Length; i++)
         {
-            slotFrames[i].sprite = game.ConfirmingSlot == i ? slotSelected : slotNormal;
+            slotFrames[i].sprite = game.PhoneCursor == i ? slotSelected : slotNormal;
         }
 
         // 다른 칸을 확인하기 시작한 순간(1~4 키든 클릭이든) → 그 칸이 1도트 눌림
-        if (game.ConfirmingSlot >= 0 && game.ConfirmingSlot != lastConfirming)
+        // item-phone 63: 칸이 폰 안(꺼져 있을 수 있음)으로 옮겨 감 → 보이지 않을 때는 눌림을 건너뜀(꺼진 오브젝트는 코루틴을 못 돌림)
+        if (game.ConfirmingSlot >= 0 && game.ConfirmingSlot != lastConfirming && gameObject.activeInHierarchy)
         {
             StartCoroutine(Press(game.ConfirmingSlot));
         }
         lastConfirming = game.ConfirmingSlot;
+    }
+
+    // item-phone 63: 칸을 누르면 상세가 열리며 목록이 꺼진다 → 눌림 도중 멈춘 칸이 1도트 내려간 채 남지 않게 제자리로
+    void OnDisable()
+    {
+        if (slotHomes == null) return;
+        for (int i = 0; i < slotFrames.Length; i++) slotFrames[i].rectTransform.anchoredPosition = slotHomes[i];
     }
 
     IEnumerator Press(int slot)

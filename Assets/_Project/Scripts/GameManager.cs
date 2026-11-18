@@ -83,12 +83,20 @@ public class GameManager : MonoBehaviour
     public bool IsClownTurn => Current == Clown && !IsRoundOver;
 
     // 지금 플레이어가 매수·매도를 고를 수 있는가 (버튼을 밝게/회색으로 보일 때 쓴다)
-    public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused && !IsPresenting;
+    // item-phone 63: 폰이 열려 있어도 매수·매도는 못 고른다(A/D 무시)
+    public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused && !IsPresenting && !IsPhoneOpen;
 
-    // monitor-trade 43: 모니터 확대 화면이 열려 있는가(매수·매도·아이템을 고르는 중)
+    // monitor-trade 43: 모니터 확대 화면이 열려 있는가(매수·매도를 고르는 중)
     public bool IsMonitorOpen { get; private set; }
-    // 지금 모니터를 열 수 있는가 = 내가 행동할 수 있고 아직 안 열려 있을 때(광대 차례·공개 중·연출 중·멈춤엔 못 엶)
+    // 지금 모니터를 열 수 있는가 = 내가 행동할 수 있고 아직 안 열려 있을 때(광대 차례·공개 중·연출 중·멈춤·폰 열림엔 못 엶)
     public bool CanOpenMonitor => CanPlayerAct && !IsMonitorOpen;
+
+    // item-phone 63: 내 폰(아이템)이 열려 있는가. 모니터와 동시에 열리지 않는다.
+    public bool IsPhoneOpen { get; private set; }
+    // 지금 폰을 열 수 있는가 = 모니터와 같은 조건(내 차례·공개 중 아님, Q12) + 둘 다 닫혀 있을 때
+    public bool CanOpenPhone => CanPlayerAct && !IsMonitorOpen;
+    // 폰 목록에서 Space를 누르면 열릴 칸(금색 틀). 상세에서 Esc로 돌아오면 그 칸에 남는다.
+    public int PhoneCursor { get; private set; }
 
     // 일시정지 중인가 (Ticket 29). 멈춘 동안은 Time.timeScale = 0 → 공개·광대 생각의 WaitForSeconds도 멈춘다.
     public bool IsPaused { get; private set; }
@@ -105,6 +113,7 @@ public class GameManager : MonoBehaviour
         IsPresenting = true;
         SkipRequested = false;
         IsMonitorOpen = false;      // monitor-trade 43: 덱 공개 연출이 시작되면 열린 화면을 닫는다(연출을 가리지 않게)
+        IsPhoneOpen = false;        // item-phone 63: 폰도 같이 닫는다
         ui.Refresh(this);
     }
 
@@ -165,6 +174,8 @@ public class GameManager : MonoBehaviour
         IsClownThinking = false;
         ConfirmingSlot = -1;
         IsMonitorOpen = false;      // monitor-trade 43
+        IsPhoneOpen = false;        // item-phone 63
+        PhoneCursor = 0;
         PlayerKnownNext = null;
         clownKnownNext = null;
         LastResult = "";
@@ -179,7 +190,7 @@ public class GameManager : MonoBehaviour
     // A/D·←/→. 공개 중, 라운드 끝, 광대 차례, 아이템 확인 중이면 무시한다.
     public void Select(PlayerAction action)
     {
-        if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn || IsConfirming) return;
+        if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn || IsConfirming || IsPhoneOpen) return;
         if (Selected != action) audioManager.PlayClick();   // 실제로 바뀔 때만
         Selected = action;
         ui.Refresh(this);
@@ -201,6 +212,13 @@ public class GameManager : MonoBehaviour
         if (IsConfirming)
         {
             UseConfirmedItem();
+            return;
+        }
+
+        // item-phone 63: 폰 목록에서 Space = 금색 틀 칸의 상세 열기(빈칸이면 아무 일 없음)
+        if (IsPhoneOpen)
+        {
+            SelectItem(PhoneCursor);
             return;
         }
 
@@ -234,18 +252,47 @@ public class GameManager : MonoBehaviour
         if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
         if (slot < 0 || slot >= Player.Items.Count) return;
         ConfirmingSlot = slot;
-        IsMonitorOpen = true;       // monitor-trade 44: 1~4 키·테이블 위 아이콘으로 고르면 모니터가 그 아이템 상세로 바로 열린다
+        PhoneCursor = slot;
+        // item-phone 63: 1~4 키·폰 칸으로 고르면 폰이 그 아이템 상세로 바로 열린다(모니터가 열려 있었으면 닫음 — 둘은 동시에 안 열림)
+        IsPhoneOpen = true;
+        IsMonitorOpen = false;
         audioManager.PlayClick();
         ui.Refresh(this);
     }
 
-    // Esc. 확인을 닫는다. 아이템은 그대로 남는다.
+    // Esc. 확인을 닫는다(폰 목록으로 돌아감). 아이템은 그대로 남는다.
     public void CancelItem()
     {
         if (IsPaused || !IsConfirming) return;
         ConfirmingSlot = -1;
         audioManager.PlayClick();
         ui.Refresh(this);
+    }
+
+    // item-phone 63: 테이블 위 접힌 폰 클릭 → 확대된 폰의 아이템 목록. 판정은 바꾸지 않는다.
+    public void OpenPhone()
+    {
+        if (!CanOpenPhone) return;
+        IsPhoneOpen = true;
+        PhoneCursor = 0;
+        audioManager.PlayClick();
+        ui.Refresh(this);
+    }
+
+    // item-phone 63: 폰 목록에서 Esc·빨간 키·바깥 클릭 → 폰 닫기(상세 화면이면 상세부터 닫는다 — PhoneBack)
+    public void ClosePhone()
+    {
+        if (!IsPhoneOpen || IsConfirming) return;
+        IsPhoneOpen = false;
+        audioManager.PlayClick();
+        ui.Refresh(this);
+    }
+
+    // item-phone 63: 한 단계 뒤로 — 상세면 목록으로, 목록이면 폰 닫기
+    public void PhoneBack()
+    {
+        if (IsConfirming) CancelItem();
+        else ClosePhone();
     }
 
     // monitor-trade 43: 모니터 클릭·Space(닫혀 있을 때) → 확대 화면 열기. 판정은 바꾸지 않는다.
@@ -269,7 +316,7 @@ public class GameManager : MonoBehaviour
     // Esc(아이템 확인 중이 아닐 때): 멈추기 ↔ 계속. 한 판이 끝난 결과 화면에서는 멈추지 않는다.
     public void TogglePause()
     {
-        if (IsGameOver || IsConfirming || IsMonitorOpen) return;   // monitor-trade 43: 열린 화면은 Esc로 먼저 닫음
+        if (IsGameOver || IsConfirming || IsMonitorOpen || IsPhoneOpen) return;   // monitor-trade 43·item-phone 63: 열린 화면은 Esc로 먼저 닫음
         IsPaused = !IsPaused;
         Time.timeScale = IsPaused ? 0f : 1f;
         ui.Refresh(this);
@@ -344,6 +391,8 @@ public class GameManager : MonoBehaviour
 
         if (used) ItemUses++;
         ConfirmingSlot = -1;
+        // item-phone 63: 썼으면 폰을 닫아 결과(모니터 글·차트 칸 캔들)가 보이게. 못 썼으면(거래 정지 불가) 목록에 남는다.
+        if (used) IsPhoneOpen = false;
         ui.Refresh(this);
     }
 
@@ -638,6 +687,7 @@ public class GameManager : MonoBehaviour
         Current = Opponent;
         Selected = PlayerAction.Buy;
         IsMonitorOpen = false;      // monitor-trade 43: 차례가 넘어가면 닫힌 상태로
+        IsPhoneOpen = false;        // item-phone 63
 
         if (Current.IsHalted && !IsRoundOver)
         {

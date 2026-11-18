@@ -79,7 +79,13 @@ public class PlayerInputHandler : MonoBehaviour
     {
         if (game.IsConfirming)
         {
-            game.CancelItem();
+            game.CancelItem();      // item-phone 63: 상세 → 폰 목록
+            return;
+        }
+        // item-phone 63: 폰 목록이 열려 있으면 Esc·우클릭 모두 "폰 닫기"
+        if (game.IsPhoneOpen)
+        {
+            game.ClosePhone();
             return;
         }
         // monitor-trade 43: 모니터 확대 화면이 열려 있으면 Esc·우클릭 모두 "닫기"

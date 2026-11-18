@@ -25,7 +25,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] PausePanel pausePanel;            // Ticket 29
     [SerializeField] DeckRevealView deckReveal;        // ui-revamp 31
     [SerializeField] MonitorZoomPanel monitorZoom;     // monitor-trade 43
-    [SerializeField] TableItemsView tableItems;        // monitor-trade 44
+    [SerializeField] PhoneView phoneView;              // item-phone 63: 테이블 위 접힌 폰 + 확대된 폰(옛 TableItemsView 자리)
     // 피해 때 화면 전체를 덮는 반투명 빨강
     [SerializeField] Image damageFlash;
 
@@ -180,7 +180,7 @@ public class UIManager : MonoBehaviour
         pausePanel.Refresh(game);
         deckReveal.Refresh(game);
         monitorZoom.Refresh(game);
-        tableItems.Refresh(game);
+        phoneView.Refresh(game);
 
         string choice = game.Selected == PlayerAction.Buy ? "[매수]  매도" : " 매수  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;

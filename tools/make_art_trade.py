@@ -5,6 +5,7 @@
     python tools/make_art_trade.py game    # 게임 파일 이름으로(테이블·버튼·슬롯은 옛 이름에 덮어씀)
     python tools/make_art_trade.py items44 # Ticket 44: 상세 페이지 바탕·큰 아이콘 칸·분류 표(옛 closeup 그림 이름에 덮어씀)
     python tools/make_art_trade.py zoom61  # item-phone 61: 키 안내 줄 없는 확대 화면(차트 칸 아래로 늘림)만
+    python tools/make_art_trade.py zoom63  # item-phone 63: 아이템 칸도 없앤 확대 화면(차트 칸 전체 폭)만
 
 - 640 격자(지금 좌표 x2), 32색, 무작위 없음. 출력: .scratch/art/drafts/hd/trade/
 - 확대 화면(지금 좌표 240x140, 자리 x 40~280, y 20~160): 테두리 + 화면(주사선) + 위 종목 줄 구분선
@@ -27,8 +28,11 @@ PANEL = (40, 20, 240, 140)            # 지금 좌표 x, y, w, h
 BUTTON = (70, 36)
 
 
-def zoom_panel(pal, frames=True, keys=True):
+def zoom_panel(pal, frames=True, keys=True, items=True):
     """keys=False (item-phone 61): 아래 키 안내 줄(y 135 구분선)을 없애고 차트 칸을 아래로 늘림(y 42~90 → 42~96)."""
+    """items=False (item-phone 63): 오른쪽 아이템 칸·세로 구분선을 없애고 차트 칸을 오른쪽 끝까지(x 48~272), 점선 캔들 자리를 가운데(x 152~160)로."""
+    cright = 195 if items else 272          # 차트 칸 오른쪽 끝
+    gleft = 117 if items else 152           # 점선 캔들 자리 왼쪽
     px, py, pw, ph = PANEL
     cbot = 90 if keys else 96               # 차트 칸 아래 끝
     cmid = 66 if keys else 69               # 금색 기준선·점선 캔들 가운데
@@ -58,9 +62,10 @@ def zoom_panel(pal, frames=True, keys=True):
     cv.fill((slice((38 - py) * 2, (38 - py) * 2 + 1), slice(scr[1].start + 4, scr[1].stop - 4)), "navy0")
     if keys:
         cv.fill((slice((135 - py) * 2, (135 - py) * 2 + 1), slice(scr[1].start + 4, scr[1].stop - 4)), "navy0")
-    cv.fill((slice((40 - py) * 2, (dbot - py) * 2), slice((199 - px) * 2, (199 - px) * 2 + 1)), "navy0")
+    if items:
+        cv.fill((slice((40 - py) * 2, (dbot - py) * 2), slice((199 - px) * 2, (199 - px) * 2 + 1)), "navy0")
     # 왼쪽 차트 칸(x 48~195, y 42~cbot): 옅은 격자 + 금색 기준선(y cmid) + 가운데 점선 캔들 자리(?)
-    cx0, cx1, cy0, cy1 = (48 - px) * 2, (195 - px) * 2, (42 - py) * 2, (cbot - py) * 2
+    cx0, cx1, cy0, cy1 = (48 - px) * 2, (cright - px) * 2, (42 - py) * 2, (cbot - py) * 2
     for gx in range(cx0 + 8, cx1, 24):
         for y in range(cy0, cy1, 4):
             cv.fill((y, gx), "navy0")
@@ -70,7 +75,7 @@ def zoom_panel(pal, frames=True, keys=True):
     by = (cmid - py) * 2
     for x in range(cx0, cx1, 3):
         cv.fill((slice(by, by + 1), slice(x, x + 2)), "gold0")
-    gx0, gy0 = (117 - px) * 2, (cmid - 18 - py) * 2       # 점선 캔들 자리 8x36(지금 좌표 x 117~125, 가운데 y cmid)
+    gx0, gy0 = (gleft - px) * 2, (cmid - 18 - py) * 2      # 점선 캔들 자리 8x36(지금 좌표 x gleft~+8, 가운데 y cmid)
     ghost = np.zeros((h, w), bool)
     ghost[gy0:gy0 + 72, gx0:gx0 + 16] = True
     ring = edge(ghost, -1, 0) | edge(ghost, 1, 0) | edge(ghost, 0, -1) | edge(ghost, 0, 1)
@@ -78,7 +83,7 @@ def zoom_panel(pal, frames=True, keys=True):
     cv.fill(ring & ((xx + yy) % 4 < 2), "gray0")
     # 오른쪽 아이템 칸 2x2(칸 30x30, 사이 4): x 205~269, y 56~120
     # (게임 판은 칸 틀을 슬롯 그림 `slot-normal/selected`이 그리므로 여기서는 시안에서만 그림)
-    for i in range(2 if frames else 0):
+    for i in range(2 if frames and items else 0):
         for j in range(2):
             x0, y0 = 205 + 34 * j, 56 + 34 * i
             s = r(x0, y0, x0 + 30, y0 + 30)
@@ -273,12 +278,12 @@ if __name__ == "__main__":
         sys.exit(0 if make_game(load_pal()) else 1)
     if cmd == "items44":
         sys.exit(0 if make_items44(load_pal()) else 1)
-    if cmd == "zoom61":   # item-phone 61: 키 안내 줄 없는 확대 화면만 → .scratch/art/drafts/hd/trade/game/HUD__zoom-panel.png
+    if cmd in ("zoom61", "zoom63"):   # item-phone 61: 키 안내 줄 없음 / 63: + 아이템 칸 없음 → .scratch/art/drafts/hd/trade/game/HUD__zoom-panel.png
         pal = load_pal()
         dst = OUT / "game"
         dst.mkdir(parents=True, exist_ok=True)
         p = dst / "HUD__zoom-panel.png"
-        write_png(p, zoom_panel(pal, frames=False, keys=False).rgba())
+        write_png(p, zoom_panel(pal, frames=False, keys=False, items=(cmd == "zoom61")).rgba())
         print("팔레트 검사 (32색):")
         sys.exit(0 if check32([p], pal) else 1)
     print(__doc__)
