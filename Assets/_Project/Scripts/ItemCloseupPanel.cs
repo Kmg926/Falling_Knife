@@ -20,6 +20,8 @@ public class ItemCloseupPanel : MonoBehaviour
     [Header("유사 3D 회전 (ui-revamp 32, 제안 6)")]
     // ItemType 순서 × 8장(45° 간격). 0~7 = 차트 분석, 8~15 = 찌라시, …
     [SerializeField] Sprite[] spinFrames;
+    // item-phone 68: 폰 화면 안에서는 돌아가는 그림이 어색하다(사용자) → 꺼 두고 평면 큰 아이콘 + 위아래 뜸만. 켜면 예전처럼 회전
+    [SerializeField] bool spin = false;
     [SerializeField] float frameSeconds = 0.15f;   // 8장 × 0.15초 = 1.2초에 한 바퀴
     [SerializeField] float bobSeconds = 1f;        // 위아래 1도트, 1초 주기
     [SerializeField] float dropSeconds = 0.2f;     // 열릴 때 위에서 툭 떨어지듯 등장
@@ -52,7 +54,7 @@ public class ItemCloseupPanel : MonoBehaviour
     // 지난 시간 → 그 순간의 각도 그림. 회전 그림이 없으면(연결 전) 평면 큰 아이콘
     Sprite SpinFrame(float t)
     {
-        if (spinFrames == null || spinFrames.Length < (int)shownItem * FramesPerItem + FramesPerItem) return bigIcons[(int)shownItem];
+        if (!spin || spinFrames == null || spinFrames.Length < (int)shownItem * FramesPerItem + FramesPerItem) return bigIcons[(int)shownItem];
         int frame = Mathf.FloorToInt(t / frameSeconds) % FramesPerItem;
         return spinFrames[(int)shownItem * FramesPerItem + frame];
     }
