@@ -32,6 +32,12 @@ public class ClownView : MonoBehaviour
         glanceTimer = Random.Range(glanceMin, glanceMax);
     }
 
+    // 타이틀 광대(title-menu 58): 게임이 없으면 Refresh가 불리지 않으므로, 처음부터 밝은 평소 상태로 숨쉬고 깜빡임
+    void Start()
+    {
+        if (game == null) animator.SetBool(IsLit, true);
+    }
+
     public void Refresh(GameManager game)
     {
         // 광대 차례이거나 라운드가 끝났으면 광대에게 조명(전과 같은 규칙) — 어떤 그림을 쓸지는 Animator가 정함
