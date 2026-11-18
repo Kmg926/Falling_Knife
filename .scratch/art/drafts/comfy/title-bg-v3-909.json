@@ -1,0 +1,22 @@
+{
+  "workflow": "tools/comfy/title-bg-v3.json",
+  "seed": 909,
+  "prompt": "pixel art, dark empty room interior at night, a single hanging lamp casting a warm yellow cone of light onto a small wooden card table, bare dark wall, deep navy and black shadows, minimalist, flat colors, limited palette, moody, ominous",
+  "negative": "text, letters, numbers, watermark, logo, signature, people, person, face, hands, clown, chart, graph, bright, daylight, window, door, picture frames, posters, shelves, sofa, many lamps, cluttered",
+  "checkpoint": "sd_xl_base_1.0.safetensors",
+  "lora": "pixel-art-xl.safetensors",
+  "lora_strength": 1.0,
+  "vae": "sdxl_vae.safetensors",
+  "size": [
+    1344,
+    768
+  ],
+  "steps": 25,
+  "cfg": 6.0,
+  "sampler": "dpmpp_2m",
+  "scheduler": "karras",
+  "denoise": 0.6,
+  "input_image": "tools/comfy/title-bg-sketch.png",
+  "seconds": 8.0,
+  "tool": "ComfyUI (로컬, Comfy Desktop) — 이 파일은 tools/comfy_generate.py가 씀"
+}

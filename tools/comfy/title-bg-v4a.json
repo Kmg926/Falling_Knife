@@ -1,0 +1,129 @@
+{
+  "_comment": "comfy-local Ticket 51 4차: 사용자 '우리가 만든 아트워크랑 너무 다름, 가장 정확하고 효율적인 방식' → 밑그림을 우리 게임 스프라이트(방·테이블·전등·빛줄기 + lighting 49 조명 흉내)로 640 격자 정확히 2배(1280×720) 합성 (tools/comfy_sketch.py ours). 모델은 질감·빛만 조금 더함: denoise 0.35, 도트 LoRA 0.5(우리 그림은 8배 도트가 아니라서 약하게). 후처리에서 정확히 1/2로 줄여 도트 자리 유지.",
+  "input_image": "tools/comfy/title-bg-ours.png",
+  "size": [
+    1280,
+    720
+  ],
+  "prompt": "pixel art, dark gambling den, a single hanging lamp casting warm yellow light onto a wooden table, worn wood planks, dark brick wall texture in the shadows, deep navy shadows, flat colors, limited palette, crisp pixels",
+  "negative": "text, letters, numbers, watermark, logo, signature, people, person, face, hands, clown, chart, graph, bright, daylight, window, door, picture frames, posters, shelves, sofa, many lamps, cluttered",
+  "graph": {
+    "1": {
+      "class_type": "CheckpointLoaderSimple",
+      "inputs": {
+        "ckpt_name": "sd_xl_base_1.0.safetensors"
+      }
+    },
+    "2": {
+      "class_type": "LoraLoader",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "clip": [
+          "1",
+          1
+        ],
+        "lora_name": "pixel-art-xl.safetensors",
+        "strength_model": 0.5,
+        "strength_clip": 0.5
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "sdxl_vae.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          1
+        ],
+        "text": "{{PROMPT}}"
+      }
+    },
+    "5": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          1
+        ],
+        "text": "{{NEGATIVE}}"
+      }
+    },
+    "10": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "{{INPUT_IMAGE}}"
+      }
+    },
+    "11": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "10",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "7": {
+      "class_type": "KSampler",
+      "inputs": {
+        "model": [
+          "2",
+          0
+        ],
+        "positive": [
+          "4",
+          0
+        ],
+        "negative": [
+          "5",
+          0
+        ],
+        "latent_image": [
+          "11",
+          0
+        ],
+        "seed": "{{SEED}}",
+        "steps": 25,
+        "cfg": 6.0,
+        "sampler_name": "dpmpp_2m",
+        "scheduler": "karras",
+        "denoise": 0.35
+      }
+    },
+    "8": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "7",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "9": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "8",
+          0
+        ],
+        "filename_prefix": "fk_title_bg_v4a"
+      }
+    }
+  }
+}

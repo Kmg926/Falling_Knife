@@ -1,0 +1,22 @@
+{
+  "workflow": "tools/comfy/title-bg-v4b.json",
+  "seed": 1414,
+  "prompt": "pixel art, dark gambling den, a single hanging lamp casting warm yellow light onto a wooden table, worn wood planks, dark brick wall texture in the shadows, deep navy shadows, flat colors, limited palette, crisp pixels",
+  "negative": "text, letters, numbers, watermark, logo, signature, people, person, face, hands, clown, chart, graph, bright, daylight, window, door, picture frames, posters, shelves, sofa, many lamps, cluttered",
+  "checkpoint": "sd_xl_base_1.0.safetensors",
+  "lora": "pixel-art-xl.safetensors",
+  "lora_strength": 0.5,
+  "vae": "sdxl_vae.safetensors",
+  "size": [
+    1280,
+    720
+  ],
+  "steps": 25,
+  "cfg": 6.0,
+  "sampler": "dpmpp_2m",
+  "scheduler": "karras",
+  "denoise": 0.5,
+  "input_image": "tools/comfy/title-bg-ours.png",
+  "seconds": 7.0,
+  "tool": "ComfyUI (로컬, Comfy Desktop) — 이 파일은 tools/comfy_generate.py가 씀"
+}

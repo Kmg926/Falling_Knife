@@ -1,0 +1,20 @@
+{
+  "workflow": "tools/comfy/title-bg-v2.json",
+  "seed": 707,
+  "prompt": "pixel art, a huge glowing red stock market chart line crashing downward across a black wall, very dark room, mostly pitch black, low key lighting, a single hanging lamp on the right side casting a small cone of warm yellow light onto an empty card table below it, the left half of the image is completely dark empty black space, minimalist, few objects, deep navy shadows, flat colors, limited palette, moody, ominous",
+  "negative": "text, letters, numbers, watermark, logo, signature, people, person, face, hands, clown, bright, daylight, window, door, picture frames, posters, shelves, sofa, many lamps, multiple lights, cluttered, busy, detailed background",
+  "checkpoint": "sd_xl_base_1.0.safetensors",
+  "lora": "pixel-art-xl.safetensors",
+  "lora_strength": 1.0,
+  "vae": "sdxl_vae.safetensors",
+  "size": [
+    1344,
+    768
+  ],
+  "steps": 25,
+  "cfg": 6.0,
+  "sampler": "dpmpp_2m",
+  "scheduler": "karras",
+  "seconds": 7.1,
+  "tool": "ComfyUI (로컬, Comfy Desktop) — 이 파일은 tools/comfy_generate.py가 씀"
+}

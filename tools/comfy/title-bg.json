@@ -1,0 +1,17 @@
+{
+  "_comment": "comfy-local Ticket 51: 타이틀 배경 워크플로(ComfyUI API 형식). tools/comfy_generate.py가 {{SEED}}·{{PROMPT}}·{{NEGATIVE}}를 채워 로컬 ComfyUI(127.0.0.1:8188)에 보낸다. 모델 파일은 저장소 밖(ComfyUI models 폴더).",
+  "prompt": "pixel art, interior of a dark underground gambling den, a single hanging lamp casting warm yellow light down onto a card table in the center, deep navy shadows, a red stock market chart line falling sharply down the back wall like a knife, the left third of the image is dark and empty, moody, cinematic, flat colors, limited palette",
+  "negative": "text, letters, numbers, watermark, logo, signature, people, person, face, hands, clown, bright, daylight, window",
+  "graph": {
+    "1": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "sd_xl_base_1.0.safetensors"}},
+    "2": {"class_type": "LoraLoader", "inputs": {"model": ["1", 0], "clip": ["1", 1], "lora_name": "pixel-art-xl.safetensors", "strength_model": 1.0, "strength_clip": 1.0}},
+    "3": {"class_type": "VAELoader", "inputs": {"vae_name": "sdxl_vae.safetensors"}},
+    "4": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 1], "text": "{{PROMPT}}"}},
+    "5": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 1], "text": "{{NEGATIVE}}"}},
+    "6": {"class_type": "EmptyLatentImage", "inputs": {"width": 1344, "height": 768, "batch_size": 1}},
+    "7": {"class_type": "KSampler", "inputs": {"model": ["2", 0], "positive": ["4", 0], "negative": ["5", 0], "latent_image": ["6", 0],
+          "seed": "{{SEED}}", "steps": 25, "cfg": 6.0, "sampler_name": "dpmpp_2m", "scheduler": "karras", "denoise": 1.0}},
+    "8": {"class_type": "VAEDecode", "inputs": {"samples": ["7", 0], "vae": ["3", 0]}},
+    "9": {"class_type": "SaveImage", "inputs": {"images": ["8", 0], "filename_prefix": "fk_title_bg"}}
+  }
+}
