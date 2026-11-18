@@ -1503,6 +1503,13 @@ MonoBehaviour:
   stepMax: 0.08
   jitterDots: 2
   pixelsPerUnit: 2
+  lookSprites:
+  - {fileID: 21300000, guid: d1388b1fe26095b4abc783a499b8a11d, type: 3}
+  - {fileID: 21300000, guid: ecdf8ab2138fb124cbd8b7891878cbb6, type: 3}
+  - {fileID: 21300000, guid: f3154eb79f19bbb499cf58bcf1dea619, type: 3}
+  lookChance: 0.5
+  lookMin: 0.8
+  lookMax: 1.6
 --- !u!1 &762849276
 GameObject:
   m_ObjectHideFlags: 0

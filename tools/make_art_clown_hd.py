@@ -369,6 +369,20 @@ def make_twitch(pal):
         write_png(p, to_canvas(arr, pal).rgba())
         files.append(p)
     pupil = names.index("bg0")
+    # 조용히 한쪽 보기(사용자 "발작만 말고 그냥 아래나 위, 오른쪽만 보는 것도"): 눈동자만 아래 5·오른쪽 3도트(두 눈 같은 쪽).
+    # 위는 발작의 "up"과 같은 그림을 씀
+    looks = {"down": (PUPIL_DROP, 0), "right": (0, 3)}
+    for k, (dy, dx) in looks.items():
+        arr = np.full(lit.shape, -1)
+        for inner in inners:
+            pys, pxs = np.nonzero(inner & (lit == pupil))
+            for y, x in zip(pys, pxs):
+                ny, nx = y + dy, x + dx
+                if 0 <= ny < lit.shape[0] and 0 <= nx < lit.shape[1] and inner[ny, nx]:
+                    arr[ny, nx] = pupil
+        p = OUT / f"eyes-look-{k}-pupil.png"
+        write_png(p, to_canvas(arr, pal).rgba())
+        files.append(p)
     for k, ov in ovs.items():
         only = np.where(ov == pupil, pupil, -1)
         p = OUT / f"eyes-twitch-{k}-pupil.png"

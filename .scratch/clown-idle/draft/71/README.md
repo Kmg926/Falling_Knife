@@ -27,3 +27,9 @@
 - `ClownEyeTwitch.cs`: `fill`(SpriteRenderer)·`mask`(SpriteMask)는 숨쉬기 눈 자리에 그대로, `pupil`만 + 흔들림. 눈동자는 `VisibleInsideMask`라 가리개 밖(테두리 밖)으로 나간 부분은 안 보임. 전 코드 `ClownEyeTwitch.before-pupil.cs`.
 - TitleScene: `TwitchEyes` → `TwitchFill`(흰 바탕), 새 `TwitchMask`·`TwitchPupil`(정렬 Eyes+2).
 - 확인: 발작 + 흔들림 (+2, +2도트)을 강제로: Eyes·Fill·Mask 자리 같음(y −1.5), Pupil만 (1, −0.5). 캡처 `twitch-pupil-crop.png` — 파란 테두리 그대로, 넘친 눈동자는 가려짐.
+
+## 고침2: 조용히 한쪽 보기 추가 (사용자 "발작만 말고 그냥 아래나 위, 오른쪽만 보는 것도 추가해줘. 기존에 있었던 것 같은데")
+- 기존: 게임·타이틀 공통 Animator의 "힐끗"(아래로, 15~25초에 한 번 0.6초) — 드물어서 잘 안 보였음. 그대로 둠.
+- 그림: `eyes-look-down-pupil`(아래 5도트)·`eyes-look-right-pupil`(오른쪽 3도트, 두 눈 같은 쪽). 위는 `eyes-twitch-up-pupil` 재사용.
+- `ClownEyeTwitch.cs`: `lookSprites`·`lookChance`(0.5)·`lookMin~Max`(0.8~1.6초). 조용한 시간이 끝날 때 절반 확률로 발작 대신 한쪽을 골라 흔들림 없이 가만히 봄(흰 바탕·가리개는 발작과 같이 씀). 전 코드 `ClownEyeTwitch.before-look.cs`.
+- 확인: 한쪽 보기를 강제로: `looking` 참, 그림 아래 보기, 눈동자 자리 = 눈 자리(흔들림 0). 캡처 `look-down-crop.png`.
