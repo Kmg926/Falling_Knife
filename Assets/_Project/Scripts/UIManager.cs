@@ -64,6 +64,7 @@ public class UIManager : MonoBehaviour
         normalColor = statusText.color;
         statusText.enabled = showDevText;
         damageFlash.enabled = false;
+        screenShake = GameSettings.Shake;   // title-menu 54: 설정 창의 "화면 흔들림"(끄면 맞아도 안 흔들림)
     }
 
     // F1: 개발용 글자 켜고 끄기. 판정과 상관없는 개발 도구라 PlayerInputHandler를 거치지 않고 키보드를 직접 읽는다.

@@ -23,6 +23,13 @@ public class AudioManager : MonoBehaviour
 
     bool ducking;
 
+    // title-menu 54: 타이틀 설정 창에서 저장한 소리 크기를 시작할 때 읽음(Inspector 값 대신)
+    void Awake()
+    {
+        masterVolume = GameSettings.MasterVolume;
+        musicVolume = GameSettings.MusicVolume;
+    }
+
     void Start()
     {
         ApplyMusicVolume();

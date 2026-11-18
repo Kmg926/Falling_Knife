@@ -10,7 +10,7 @@ using UnityEngine.UI;
 // 게임 판정과 상관없는 화면 이동이라 Input Actions를 거치지 않고 키보드·마우스를 직접 읽는다(전과 같음).
 public class TitleMenu : MonoBehaviour
 {
-    public enum Panel { None, Rules, Placeholder }
+    public enum Panel { None, Rules, Settings, Placeholder }
 
     [Header("메뉴 (위에서부터 시작·규칙·설정·크레딧·종료)")]
     [SerializeField] TMP_Text[] items;
@@ -47,6 +47,12 @@ public class TitleMenu : MonoBehaviour
         "1~4          아이템 확인\n" +
         "Esc          뒤로·일시정지";
 
+    [Header("설정 (title-menu 54) — 소리를 바꾸면 클릭음으로 바로 들려 줌")]
+    [SerializeField] AudioSource sfx;
+    [SerializeField] AudioClip clickClip;
+    const int SettingRows = 4;   // 전체 소리 · 음악 · 화면 흔들림 · 전체화면
+    public int SettingRow { get; private set; }
+
     static readonly string[] PageTitles = { "규칙 1/3 · 목표와 턴", "규칙 2/3 · 레버리지와 아이템", "규칙 3/3 · 조작" };
     const int PageCount = 3;
 
@@ -75,6 +81,7 @@ public class TitleMenu : MonoBehaviour
         if (Open != Panel.None)
         {
             if (kb != null && kb.escapeKey.wasPressedThisFrame) { Back(); return; }
+            if (Open == Panel.Settings) { UpdateSettings(kb, mouse); return; }
             if (Open == Panel.Rules)
             {
                 if (kb != null && (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame)) Turn(-1);
@@ -123,7 +130,7 @@ public class TitleMenu : MonoBehaviour
         {
             case 0: SceneManager.LoadScene(gameSceneName); break;
             case 1: OpenRules(); break;
-            case 2: OpenPlaceholder("설정"); break;      // title-menu 54에서 설정 창으로
+            case 2: OpenSettings(); break;
             case 3: OpenPlaceholder("크레딧"); break;    // title-menu 55에서 크레딧 창으로
             default: Quit(); break;
         }
@@ -152,6 +159,81 @@ public class TitleMenu : MonoBehaviour
         panelRoot.SetActive(true);
         ShowPage();
     }
+
+    // ---------- 설정 창 (title-menu 54) ----------
+    void UpdateSettings(Keyboard kb, Mouse mouse)
+    {
+        // 마우스를 올린 줄을 고름(움직였을 때만), 클릭하면 그 줄을 한 단계(오른쪽) 바꿈
+        if (mouse != null)
+        {
+            int line = TMP_TextUtilities.FindIntersectingLine(panelBody, mouse.position.ReadValue(), uiCamera);
+            if (line >= 0 && line < SettingRows && mouse.delta.ReadValue().sqrMagnitude > 0f && line != SettingRow) { SettingRow = line; ShowSettings(); }
+            if (mouse.leftButton.wasPressedThisFrame && line >= 0 && line < SettingRows) { SettingRow = line; ChangeSetting(1); return; }
+        }
+        if (kb == null) return;
+        if (kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame) MoveSetting(-1);
+        else if (kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame) MoveSetting(1);
+        else if (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame) ChangeSetting(-1);
+        else if (kb.rightArrowKey.wasPressedThisFrame || kb.dKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame) ChangeSetting(1);
+    }
+
+    // 설정 줄 위·아래(돎)
+    public void MoveSetting(int dir)
+    {
+        if (Open != Panel.Settings) return;
+        SettingRow = (SettingRow + dir + SettingRows) % SettingRows;
+        ShowSettings();
+    }
+
+    // 고른 줄의 값을 바꿈: 소리는 10% 단위(0~100%에서 멈춤), 켬/끔은 방향과 상관없이 바뀜. 바꿀 때마다 저장
+    public void ChangeSetting(int dir)
+    {
+        if (Open != Panel.Settings) return;
+        switch (SettingRow)
+        {
+            case 0: GameSettings.Master += dir; break;
+            case 1: GameSettings.Music += dir; break;
+            case 2: GameSettings.Shake = !GameSettings.Shake; break;
+            default: GameSettings.Fullscreen = !GameSettings.Fullscreen; break;
+        }
+        // 소리 크기를 바로 들려 줌(전체 소리 크기로)
+        if (sfx != null && clickClip != null && GameSettings.MasterVolume > 0f) sfx.PlayOneShot(clickClip, GameSettings.MasterVolume);
+        ShowSettings();
+    }
+
+    void OpenSettings()
+    {
+        Open = Panel.Settings;
+        SettingRow = 0;
+        panelRoot.SetActive(true);
+        itemRows.SetActive(false);
+        panelTitle.text = "설정";
+        panelFooter.text = "↑↓ 고르기   ←→ 바꾸기   Esc 닫기";
+        ShowSettings();
+    }
+
+    void ShowSettings()
+    {
+        string[] names = { "전체 소리", "음악", "화면 흔들림", "전체화면" };
+        string[] values =
+        {
+            Bar(GameSettings.Master), Bar(GameSettings.Music),
+            GameSettings.Shake ? "켬" : "끔", GameSettings.Fullscreen ? "켬" : "끔",
+        };
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < SettingRows; i++)
+        {
+            bool on = i == SettingRow;
+            // <pos=40%>: 이름 길이와 상관없이 값이 같은 자리에서 시작(TMP 태그)
+            string line = $"{(on ? "▶ " : "   ")}{names[i]}<pos=40%>{values[i]}";
+            sb.Append(on ? $"<color=#{ColorUtility.ToHtmlStringRGB(selectedColor)}>{line}</color>" : line);
+            if (i < SettingRows - 1) sb.Append('\n');
+        }
+        panelBody.text = sb.ToString();
+    }
+
+    // 소리 막대: ■ = 켜진 칸, □ = 꺼진 칸, 뒤에 %
+    static string Bar(int step) => new string('■', step) + new string('□', GameSettings.Steps - step) + $" {step * 10}%";
 
     void OpenPlaceholder(string title)
     {
