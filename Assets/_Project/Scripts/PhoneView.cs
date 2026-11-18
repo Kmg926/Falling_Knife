@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;   // item-phone 70: 마우스 위치(소프트키 올림 표시)
 using UnityEngine.UI;
 
 // item-phone 63: 내 폴더폰. 읽기만 한다(판정 없음) — 클릭은 GameManager 함수를 부를 뿐.
@@ -36,7 +37,14 @@ public class PhoneView : MonoBehaviour
     [Header("받을 때 울림 (item-phone 65)")]
     [SerializeField] PhoneBuzz buzz;           // 진동·"+N" 깜빡임(깜빡이는 동안은 폰 그림을 buzz가 맡음)
 
+    [Header("소프트키 마우스 올림 (item-phone 70)")]
+    [SerializeField] Color softNormal = new Color32(0xCD, 0xC4, 0xB6, 255);   // cream
+    [SerializeField] Color softHover = new Color32(0xD9, 0xB4, 0x5A, 255);    // gold2 (일시정지·타이틀 메뉴와 같음)
+
     const int MaxItems = 4;
+    string leftLabel = "", rightLabel = "";    // 지금 소프트키 글(올림 표시 "▶ "를 붙이기 전)
+    bool hoverLeft, hoverRight;
+    Camera uiCamera;                           // HUD Canvas가 Screen Space Camera라 마우스 위치를 이 카메라로 계산
     bool wasOpenMine;                          // 지난번에 내 폰이 열려 있었나(닫히는 순간 새 칸 "N"을 지움)
 
     void Awake()
@@ -46,6 +54,8 @@ public class PhoneView : MonoBehaviour
         backdrop.onClick.AddListener(() => game.PhoneBack());
         greenKey.onClick.AddListener(() => game.Execute());   // 목록: 금색 틀 칸 상세 / 상세: 사용
         redKey.onClick.AddListener(() => game.PhoneBack());
+        Canvas canvas = GetComponentInParent<Canvas>();
+        uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
         if (softLeftButton != null) softLeftButton.onClick.AddListener(() => game.Execute());
         if (softRightButton != null) softRightButton.onClick.AddListener(() => game.PhoneBack());
         for (int i = 0; i < keypad.Length; i++)
@@ -84,9 +94,35 @@ public class PhoneView : MonoBehaviour
         bool detail = game.IsConfirming;
         listGroup.SetActive(!detail);
         titleText.text = (clown ? "광대 아이템 " : "아이템 ") + $"{shown}/{MaxItems}";
-        softLeft.text = detail ? (clown ? "" : "사용") : "확인";
-        softRight.text = detail ? "뒤로" : "닫기";
+        leftLabel = detail ? (clown ? "" : "사용") : "확인";
+        rightLabel = detail ? "뒤로" : "닫기";
+        ShowSoftKeys();
         for (int i = 0; i < keyLit.Length; i++) keyLit[i].enabled = i < shown;
         for (int i = 0; i < keypad.Length; i++) keypad[i].interactable = !clown;
     }
+
+    // item-phone 70: 매 프레임 마우스가 소프트키 위에 있는지 직접 확인(일시정지 버튼과 같은 방식) → 금색 + "▶ "
+    void Update()
+    {
+        if (game == null || !game.IsPhoneOpen || Mouse.current == null) return;
+        Vector2 pos = Mouse.current.position.ReadValue();
+        bool l = leftLabel != "" && IsOver(softLeftButton, pos);
+        bool r = rightLabel != "" && IsOver(softRightButton, pos);
+        if (l == hoverLeft && r == hoverRight) return;   // 바뀔 때만 다시 그림
+        hoverLeft = l;
+        hoverRight = r;
+        ShowSoftKeys();
+    }
+
+    void ShowSoftKeys()
+    {
+        softLeft.text = (hoverLeft && leftLabel != "" ? "▶ " : "") + leftLabel;
+        softLeft.color = hoverLeft ? softHover : softNormal;
+        softRight.text = (hoverRight ? "▶ " : "") + rightLabel;
+        softRight.color = hoverRight ? softHover : softNormal;
+    }
+
+    bool IsOver(Button button, Vector2 screenPos) =>
+        button != null && button.isActiveAndEnabled &&
+        RectTransformUtility.RectangleContainsScreenPoint((RectTransform)button.transform, screenPos, uiCamera);
 }
