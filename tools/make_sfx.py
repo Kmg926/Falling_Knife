@@ -7,6 +7,7 @@
 사용법:
     python tools/make_sfx.py <출력 폴더>
     예) python tools/make_sfx.py .scratch/art-sound/candidates
+    python tools/make_sfx.py buzz <출력 폴더>   # item-phone 62: 진동음 후보 A·B·C만
 """
 import os
 import sys
@@ -147,6 +148,27 @@ def shuffle(rng, variant):
     return normalize(fade_out(x, 8), -6.0)
 
 
+# ---------- 진동음 (0.45~0.6초): 아이템을 받아 폰이 울릴 때 (item-phone 62) ----------
+def buzz(rng, variant):
+    def motor(t, hz, rough):
+        # 진동 모터: 낮은 톱니파(배음이 많아 "지잉") + 약간의 거친 잡음, 시작·끝을 부드럽게
+        saw = 2 * ((t * hz) % 1.0) - 1
+        x = saw * 0.6 + np.sin(2 * np.pi * hz * t) * 0.4
+        x += smooth_noise(rng, len(t), 6) * rough
+        env = np.minimum(1, t / 0.02) * np.minimum(1, (t[-1] - t) / 0.03 + 1e-9)
+        return np.convolve(x, np.ones(4) / 4, mode="same") * env
+    if variant == "A":   # 한 번 길게 "지이잉" 0.5초, 150Hz
+        x = motor(t_axis(0.5), 150, 0.15)
+    elif variant == "B":  # 두 번 "지잉 지잉": 0.2초 + 쉼 0.08초 + 0.2초, 170Hz
+        on = motor(t_axis(0.2), 170, 0.12)
+        x = np.concatenate([on, np.zeros(int(SR * 0.08)), on])
+    else:                 # C: 테이블 위에서 떠는 소리(130Hz + 나무 덜컥임 잡음 강하게) 0.55초
+        t = t_axis(0.55)
+        x = motor(t, 130, 0.35) * (0.75 + 0.25 * np.sign(np.sin(2 * np.pi * 12 * t)))
+    # 사용자 고름(2026-11-18): B, "볼륨 반토막" → 처음 -6 dBFS에서 진폭 절반 = -12 dBFS
+    return normalize(fade_out(x), -12.0)
+
+
 SOUNDS = [
     ("impact", impact, (0.3, 0.4)),
     ("tick", tick, (0.05, 0.08)),
@@ -156,11 +178,15 @@ SOUNDS = [
 
 
 def main():
-    out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(".scratch", "art-sound", "candidates")
+    # item-phone 62: "buzz <출력 폴더>"면 진동음 후보만(기존 4종 후보 파일은 건드리지 않음)
+    only_buzz = len(sys.argv) > 1 and sys.argv[1] == "buzz"
+    args = sys.argv[2:] if only_buzz else sys.argv[1:]
+    out = args[0] if args else os.path.join(".scratch", "art-sound", "candidates")
     os.makedirs(out, exist_ok=True)
     rng = np.random.default_rng(SEED)
     rows = []
-    for name, make, (lo, hi) in SOUNDS:
+    sounds = [("buzz", buzz, (0.45, 0.6))] if only_buzz else SOUNDS
+    for name, make, (lo, hi) in sounds:
         for v in "ABC":
             x = make(rng, v)
             path = os.path.join(out, f"{name}-{v}.wav")

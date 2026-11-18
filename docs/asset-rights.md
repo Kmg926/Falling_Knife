@@ -49,6 +49,8 @@
 | 32 | 그림(640 격자, PPU 2) `Sprites/Clown/clown-*-u·b·c·d·e.png`(숨쉬기 192×192, b는 #31을 덮어씀, 3상태 × 5장) + Animator 클립 3개 갱신(그림 순서·눈 위치만) | `tools/make_art_clown_hd.py breath` (Claude 작성, 무작위 없음) — #29 그림 전체를 1·2·3도트, 턱 아래를 그 두 배(2·4·6도트) 내림 | 원본 = #29 광대 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
 | 33 | 그림(640 격자, PPU 2) `Sprites/Play/lamp.png`(매달린 전등 80×24: 줄·갓·안쪽 빛·전구), `lamp-beam.png`(빛줄기 440×236, gold2 점 바둑판 무늬, 밀도 0.22→0.05로 낮춤), `lamp-beam-title.png`(타이틀용 440×274, 테이블 모서리까지) | `tools/make_art_lamp.py draft`·`pool` (Claude 작성, 무작위 없음) | 없음(새로 그림) | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
 | 34 | 그림(640 격자, PPU 2) `Sprites/Play/lamp-pool.png`(테이블 위 빛 웅덩이 600×110, gold2 점 바둑판 무늬 반타원, 밀도 0.22) | `tools/make_art_lamp.py pool` (Claude 작성, 무작위 없음) | 없음(새로 그림) — 시안 2(테이블 정중앙 온전한 타원)도 만들었으나 사용자가 시안 1로 되돌림 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
+| 35 | 그림(640 격자, PPU 2) `Sprites/Phone/`: `phone-closed.png`(접힌 내 폰 80×48)·`phone-closed-outline.png`(금색 테두리 84×52)·`phone-open.png`(펼친 내 폰 200×330, 화면 2×2 칸 자리 + 키패드 3×4)·`phone-key-lit-1~4.png`(금색 키 44×20)·`phone-clown.png`(펼쳐 세운 광대 폰 64×88)·`phone-clown-flash.png`(반짝임 테두리 26×20)·`mini-chart/rumor/halt/lottery.png`(작은 아이템 아이콘 24×18) | `tools/make_art_phone.py draft` (Claude 작성, 무작위 없음) | 없음(새로 그림) — 사용자 고침 지시 1번: 펼친 폰 폭 좁게(300→200)·화면 2×2 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
+| 36 | 효과음 `Audio/Sounds/buzz.wav` (진동음 "지잉 지잉", 0.48초) | Claude(Anthropic)가 작성한 코드 `tools/make_sfx.py buzz` (numpy 합성, 시드 20261115), 후보 `buzz-B` | `buzz()` 변형 B: 170Hz 톱니파+사인 0.2초 ×2, 쉼 0.08초. 사용자 지시로 최대 −6 → −12 dBFS(볼륨 절반) | 없음 | 외부 소리 없음 | 2026-11-18 |
 
 ## 3. 게임 내 크레딧 문구
 

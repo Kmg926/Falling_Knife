@@ -4,12 +4,12 @@
 
 **Blocked by:** 없음
 
-**Status:** ready-for-human
+**Status:** done
 
-- [ ] 그림 3개 + 작은 아이콘 4종 시안, 32색 검사 통과
-- [ ] 게임 화면 합성 미리보기(접힌 폰·광대 폰 자리, 확대된 폰)
-- [ ] 진동음 후보 2~3개
-- [ ] 사용자가 그림·진동음 선택 → `Sprites`·`Audio`에 넣기, `asset-rights.md` 기록
+- [x] 그림 3개 + 작은 아이콘 4종 시안, 32색 검사 통과
+- [x] 게임 화면 합성 미리보기(접힌 폰·광대 폰 자리, 확대된 폰)
+- [x] 진동음 후보 2~3개
+- [x] 사용자가 그림·진동음 선택 → `Sprites`·`Audio`에 넣기, `asset-rights.md` 기록
 
 Spec: `../spec.md` (제안 2·3·4·5의 그림·소리) · Grilling: `../grilling.md` (Q3·Q6·Q7)
 
@@ -19,3 +19,8 @@ Spec: `../spec.md` (제안 2·3·4·5의 그림·소리) · Grilling: `../grilli
 3. 진동음 후보 재생
 
 ## Comments
+- 2026-11-18 AI 시안(사용자 "커밋 후 62"): 새 `tools/make_art_phone.py draft` → `.scratch/art/drafts/hd/phone/`(접힌 폰 80×48·금색 테두리, 펼친 폰 300×344·키 1~4 금색 조각, 광대 폰 64×88·반짝임 테두리, 작은 아이콘 4종 24×18, 모두 32색 OK). `tools/make_sfx.py buzz` → `../draft/62/buzz/buzz-A~C.wav`(측정표 `measurements.md`). 미리보기는 Play 중 임시 오브젝트로 합성해 캡처(Scene 저장 안 함): `../draft/62/preview-table.png`·`preview-open.png`.
+  - 시안에서 정한 것(Spec과 다른 점): 펼친 폰 목록을 2×2 대신 **한 줄 4칸**(28×28) — 키패드 1~4와 왼쪽부터 같은 순서. 화면은 130×66(Spec 130×78보다 낮음).
+  - **남은 것(사용자):** 그림 고르기·고칠 곳, 진동음 A/B/C 중 고르기.
+- 2026-11-18 사용자 고침 1: "아이템은 2×2, 가로 폭 좁게(폴더폰이니까), 진동은 B, 단 볼륨 반토막" → 펼친 폰 300×344 → **200×330**(지금 100×165), 화면 86×71에 제목 + 칸 2×2(28×28, 사이 4, 칸 y −21·−51), 키 44×20. 진동음 최대 −6 → **−12 dBFS**(진폭 절반), B 사용 예정. 미리보기 `../draft/62/preview-open-2x2.png`.
+- 2026-11-18 사용자 "확정, 넣기": 그림 13장 → `Assets/_Project/Sprites/Phone/`(PPU 2, Point, 압축 없음 — `HUD/slot-normal`과 같은 가져오기 설정), 진동음 B → `Assets/_Project/Audio/Sounds/buzz.wav`(0.48초). `asset-rights.md` #35·#36. 아직 Scene·코드에는 연결 안 함(63~65).
