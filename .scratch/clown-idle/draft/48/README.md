@@ -8,7 +8,7 @@
 |---|---|
 | `UIManager.cs` | `FlashDamage`: 화면 전체 빨강은 **내가 맞을 때만**. 광대가 맞으면 `ClownTintRoutine`으로 광대 몸·눈 그림만 빨강 ↔ 원래 2번(0.2초). 칸 3개(`clownTintTargets`·`clownHitColor`·`clownHitBlinks`) |
 | 그림 (`tools/make_art_clown_hd.py breath`) | 숨 c장 3장 `clown-idle-c`·`clown-thinking-c`·`clown-dim-c`(몸 2도트·머리 1도트 아래). b장은 46과 같음 |
-| Animator 클립 (AI가 MCP로) | `Clown_Idle`·`Clown_Thinking`·`Clown_Dim`: u → a → b → c → d → e → d → c → b → a → u, 한 장 0.25초·u와 e에서 0.3초 더(한 바퀴 3.1초). 처음 0.5초씩 3초 → "더 빠르게" 0.25초 → "위·아래 2픽셀 더, 피크 0.3초 쉼" + `Eyes` 위치 y: 머리 도트만큼 +0.5 ~ −2(새 도트 1칸 = 0.5). (첫판 a·b·c·b·몸 2도트 → 사용자 "3배 더 크게") |
+| Animator 클립 (AI가 MCP로) | `Clown_Idle`·`Clown_Thinking`·`Clown_Dim`: u → a → b → c → d → e → d → c → b → a → u, 한 장 0.25초·u와 e에서 0.5초 더(한 바퀴 3.5초, 처음엔 0.3초 → 사용자 "피크 후 0.5초"). 처음 0.5초씩 3초 → "더 빠르게" 0.25초 → "위·아래 2픽셀 더, 피크 0.3초 쉼" + `Eyes` 위치 y: 머리 도트만큼 +0.5 ~ −2(새 도트 1칸 = 0.5). (첫판 a·b·c·b·몸 2도트 → 사용자 "3배 더 크게") |
 | Scene (AI가 MCP로) | UIManager `clownTintTargets` = `Clown`·`Clown/Eyes` |
 
 ## 줄별 핵심
