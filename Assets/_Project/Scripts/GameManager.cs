@@ -98,6 +98,10 @@ public class GameManager : MonoBehaviour
     public bool CanOpenPhone => CanPlayerAct && !IsMonitorOpen;
     // 폰 목록에서 Space를 누르면 열릴 칸(금색 틀). 상세에서 Esc로 돌아오면 그 칸에 남는다.
     public int PhoneCursor { get; private set; }
+    // item-phone 66: 열린 폰이 광대 폰인가(보기 전용 — 상세는 볼 수 있지만 쓸 수 없다)
+    public bool IsViewingClownPhone { get; private set; }
+    // 지금 열린 폰의 아이템 목록(화면이 읽는 곳 하나로 모음): 광대 폰이면 광대 것, 아니면 내 것
+    public IReadOnlyList<ItemType> PhoneItems => IsViewingClownPhone ? Clown.Items : Player.Items;
 
     // 일시정지 중인가 (Ticket 29). 멈춘 동안은 Time.timeScale = 0 → 공개·광대 생각의 WaitForSeconds도 멈춘다.
     public bool IsPaused { get; private set; }
@@ -216,14 +220,15 @@ public class GameManager : MonoBehaviour
 
         if (IsConfirming)
         {
-            UseConfirmedItem();
+            // item-phone 66: 광대 폰 상세는 보기만 — Space를 눌러도 아무 일 없음
+            if (!IsViewingClownPhone) UseConfirmedItem();
             return;
         }
 
         // item-phone 63: 폰 목록에서 Space = 금색 틀 칸의 상세 열기(빈칸이면 아무 일 없음)
         if (IsPhoneOpen)
         {
-            SelectItem(PhoneCursor);
+            ViewSlot(PhoneCursor);
             return;
         }
 
@@ -260,7 +265,24 @@ public class GameManager : MonoBehaviour
         PhoneCursor = slot;
         // item-phone 63: 1~4 키·폰 칸으로 고르면 폰이 그 아이템 상세로 바로 열린다(모니터가 열려 있었으면 닫음 — 둘은 동시에 안 열림)
         IsPhoneOpen = true;
+        IsViewingClownPhone = false;   // item-phone 66: 1~4는 늘 내 폰(광대 폰을 보고 있었어도 내 폰으로 바뀜)
         IsMonitorOpen = false;
+        audioManager.PlayClick();
+        ui.Refresh(this);
+    }
+
+    // item-phone 66: 폰 목록의 칸 클릭·Space — 내 폰이면 1~4와 같고, 광대 폰이면 그 칸 상세를 "보기만"
+    public void ViewSlot(int slot)
+    {
+        if (!IsViewingClownPhone)
+        {
+            SelectItem(slot);
+            return;
+        }
+        if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (slot < 0 || slot >= Clown.Items.Count) return;
+        ConfirmingSlot = slot;
+        PhoneCursor = slot;
         audioManager.PlayClick();
         ui.Refresh(this);
     }
@@ -279,6 +301,18 @@ public class GameManager : MonoBehaviour
     {
         if (!CanOpenPhone) return;
         IsPhoneOpen = true;
+        IsViewingClownPhone = false;
+        PhoneCursor = 0;
+        audioManager.PlayClick();
+        ui.Refresh(this);
+    }
+
+    // item-phone 66: 테이블 위 접힌 광대 폰 클릭 → 같은 확대 화면에 광대 아이템 목록(보기 전용). 열 수 있는 때는 내 폰과 같다.
+    public void OpenClownPhone()
+    {
+        if (!CanOpenPhone) return;
+        IsPhoneOpen = true;
+        IsViewingClownPhone = true;
         PhoneCursor = 0;
         audioManager.PlayClick();
         ui.Refresh(this);

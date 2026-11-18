@@ -56,11 +56,15 @@ public class PhoneView : MonoBehaviour
         zoomRoot.SetActive(game.IsPhoneOpen);
         if (!game.IsPhoneOpen) return;
 
+        // item-phone 66: 광대 폰을 보고 있으면 광대 아이템·"광대" 제목, 사용 칸(왼쪽 소프트키)은 비우고 키패드는 못 누름
+        bool clown = game.IsViewingClownPhone;
+        int shown = game.PhoneItems.Count;
         bool detail = game.IsConfirming;
         listGroup.SetActive(!detail);
-        titleText.text = $"아이템 {count}/{MaxItems}";
-        softLeft.text = detail ? "사용" : "확인";
+        titleText.text = (clown ? "광대 아이템 " : "아이템 ") + $"{shown}/{MaxItems}";
+        softLeft.text = detail ? (clown ? "" : "사용") : "확인";
         softRight.text = detail ? "뒤로" : "닫기";
-        for (int i = 0; i < keyLit.Length; i++) keyLit[i].enabled = i < count;
+        for (int i = 0; i < keyLit.Length; i++) keyLit[i].enabled = i < shown;
+        for (int i = 0; i < keypad.Length; i++) keypad[i].interactable = !clown;
     }
 }

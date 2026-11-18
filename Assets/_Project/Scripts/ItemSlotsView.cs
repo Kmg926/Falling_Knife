@@ -29,13 +29,13 @@ public class ItemSlotsView : MonoBehaviour
         for (int i = 0; i < slotButtons.Length; i++)
         {
             int slot = i;   // 반복 변수 i를 그대로 쓰면 모든 버튼이 마지막 값(4)을 보게 된다 → 칸마다 따로 복사
-            slotButtons[i].onClick.AddListener(() => game.SelectItem(slot));
+            slotButtons[i].onClick.AddListener(() => game.ViewSlot(slot));   // item-phone 66: 광대 폰이면 보기만
         }
     }
 
     public void Refresh(GameManager game)
     {
-        ShowItems(slotIcons, game.Player.Items);
+        ShowItems(slotIcons, game.PhoneItems);   // item-phone 66: 열린 폰(내 것 또는 광대 것)의 아이템
         // item-phone 64: 광대 아이템은 ClownPhoneView가 보여 준다
 
         // item-phone 63: 칸이 폰 목록 안으로 옮겨 감 → 금색 틀 = Space를 누르면 열릴 칸(PhoneCursor)

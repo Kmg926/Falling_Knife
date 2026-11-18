@@ -66,7 +66,7 @@ public class ItemCloseupPanel : MonoBehaviour
             return;
         }
 
-        ItemType item = game.Player.Items[game.ConfirmingSlot];
+        ItemType item = game.PhoneItems[game.ConfirmingSlot];   // item-phone 66: 광대 폰을 보고 있으면 광대 아이템
         // 새로 열렸거나 다른 아이템으로 바뀌면 처음 각도·등장부터
         if (!wasOpen || item != shownItem) openedAt = Time.time;
         wasOpen = true;
@@ -77,7 +77,7 @@ public class ItemCloseupPanel : MonoBehaviour
 
         string description = game.ItemDescription(item);
         // 거래 정지는 상대가 이미 정지면 쓸 수 없다고 미리 알려 준다(개발용 글자와 같은 정보).
-        if (item == ItemType.TradingHalt && game.Clown.IsHalted)
+        if (item == ItemType.TradingHalt && game.Clown.IsHalted && !game.IsViewingClownPhone)   // 광대 폰은 보기만이라 안내 없음
         {
             description += "\n(상대가 이미 정지 상태라 못 쓴다)";
         }
