@@ -31,6 +31,10 @@ public class ItemCloseupPanel : MonoBehaviour
 
     const int FramesPerItem = 8;
     Vector2 iconHome;          // 큰 아이콘의 원래 자리
+    // item-phone 73: 아이템마다 아이콘 자리를 조금씩 옮김(그림마다 빈 공간이 달라서 — 사용자 "복권과 찌라시는 오른쪽으로"). ItemType 순서
+    [SerializeField] Vector2[] iconOffsets = new Vector2[4];
+    [SerializeField] RectTransform shadow;     // 아이콘 아래 그림자(아이템별 자리만 따라감, 뜸은 안 따라감)
+    Vector2 shadowHome;
     ItemType shownItem;
     bool wasOpen;
     float openedAt;
@@ -38,6 +42,7 @@ public class ItemCloseupPanel : MonoBehaviour
     void Awake()
     {
         iconHome = bigIcon.rectTransform.anchoredPosition;
+        if (shadow != null) shadowHome = shadow.anchoredPosition;
         useButton.onClick.AddListener(() => game.Execute());       // 확인 중 Execute = 그 아이템 사용
         cancelButton.onClick.AddListener(() => game.CancelItem());
     }
@@ -52,11 +57,20 @@ public class ItemCloseupPanel : MonoBehaviour
         // item-phone 70: 처음 순간 제자리(0)에서 시작하도록 올라가는 중간부터(Bob(0)은 맨 아래 −1이라 열자마자 1도트 툭 내려갔음)
         float bob = Bob(t + bobSeconds / 4f);                                          // -1, 0, 1 도트
         float drop = dropIn && t < dropSeconds ? Mathf.Round(Mathf.Lerp(6f, 0f, Tween.EaseOutBack(t / dropSeconds))) : 0f;
-        bigIcon.rectTransform.anchoredPosition = iconHome + new Vector2(0f, bob + drop);
+        Vector2 shift = ItemOffset();
+        bigIcon.rectTransform.anchoredPosition = iconHome + shift + new Vector2(0f, bob + drop);
+        if (shadow != null) shadow.anchoredPosition = shadowHome + shift;
     }
 
     // item-phone 69: 위아래 뜸 = 올라감 → 맨 위 멈춤 → 내려감 → 맨 아래 멈춤(한 바퀴 = bobSeconds + 멈춤 2번)
     // 올라가고 내려가는 동안은 부드럽게(SmoothStep), 도트에 맞게 반올림 → -1, 0, 1
+    // 지금 보이는 아이템의 아이콘 자리 보정(칸이 모자라면 0)
+    Vector2 ItemOffset()
+    {
+        int i = (int)shownItem;
+        return iconOffsets != null && i < iconOffsets.Length ? iconOffsets[i] : Vector2.zero;
+    }
+
     float Bob(float t)
     {
         float move = bobSeconds / 2f;
