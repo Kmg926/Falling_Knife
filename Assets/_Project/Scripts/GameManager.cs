@@ -156,7 +156,7 @@ public class GameManager : MonoBehaviour
     {
         RoundConfig config = rounds[RoundNumber - 1];
 
-        Player = new Participant("플레이어", config.startingBalance);
+        Player = new Participant("나", config.startingBalance);
         Clown = new Participant("광대", config.startingBalance);
         Leverage = new LeverageCounter();
         Current = Player;
@@ -372,7 +372,7 @@ public class GameManager : MonoBehaviour
     void UseTradingHalt(Participant user)
     {
         Opponent.Halt();
-        LastResult = $"{user.Name}: 거래 정지 사용 → {Opponent.Name} 다음 턴 건너뜀";
+        LastResult = $"{user.Name}: 거래 정지 사용 → {Opponent.Name}의 다음 턴 건너뜀";
     }
 
     // 복권: 25%씩 잔고 +1 / 레버리지 +1 / 아이템 +1 / 꽝. 적용할 수 없으면 꽝.
@@ -391,7 +391,7 @@ public class GameManager : MonoBehaviour
                 {
                     Leverage.Increase();
                     RecordLeverage();
-                    result = $"레버리지 +1 (레버리지 {Leverage.Value})";
+                    result = $"레버리지 +1 (현재 {Leverage.Value})";
                 }
                 else
                 {
@@ -628,7 +628,7 @@ public class GameManager : MonoBehaviour
         deck.Fill();
         GiveItems();
         audioManager.PlayShuffle();
-        LastResult += $"\n덱 재장전 (하락{deck.RemainingDown} / 상승{deck.RemainingUp}), 아이템 +{itemsPerGrant}";
+        LastResult += $"\n덱 재장전 (하락 {deck.RemainingDown} / 상승 {deck.RemainingUp}), 아이템 +{itemsPerGrant}";
     }
 
     // 상대에게 차례를 넘기고 선택은 매수로 되돌린다.

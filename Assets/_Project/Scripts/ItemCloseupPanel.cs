@@ -79,7 +79,7 @@ public class ItemCloseupPanel : MonoBehaviour
         // 거래 정지는 상대가 이미 정지면 쓸 수 없다고 미리 알려 준다(개발용 글자와 같은 정보).
         if (item == ItemType.TradingHalt && game.Clown.IsHalted)
         {
-            description += "\n(사용 불가: 상대가 이미 정지 상태)";
+            description += "\n(상대가 이미 정지 상태라 못 쓴다)";
         }
         descriptionText.text = description;
     }

@@ -53,7 +53,7 @@ public class ResultPanel : MonoBehaviour
 
         titleText.text = survived ? "생존" : "파산";
         titleText.color = survived ? surviveColor : bankruptColor;
-        reasonText.text = survived ? "광대의 잔고가 0이 되었다" : "잔고가 0이 되었다";
+        reasonText.text = survived ? "광대의 잔고가 0이 되었다" : "내 잔고가 0이 되었다";
         causeLabel.text = survived ? "결정타" : "원인";
         causeText.text = game.LastDamage;
         causeText.color = survived ? surviveColor : causeBankruptColor;

@@ -34,26 +34,26 @@ public class TitleMenu : MonoBehaviour
         // 위 3줄은 문장으로, 핵심 단어(목표·패배·내 차례)만 금색 강조(사용자 요청). 한 줄에 들어가는 길이로 맞춤(폭 240)
         // 문체는 '-다' 격식체(사용자 요청)
         "<color=#D9B45A>목표</color>는 매 라운드 상대 잔고를 먼저 0으로 만드는 것이다.\n" +
-        "어느 라운드든 내 잔고가 먼저 0이 되면 <color=#D9B45A>패배</color>다.\n" +
-        "<color=#D9B45A>내 차례</color>에는 숨겨진 캔들 한 장에 매수 또는 매도를 한다.\n" +
+        "어느 라운드든 내 잔고가 먼저 0이 되면 <color=#D9B45A>패배</color>한다.\n" +
+        "<color=#D9B45A>내 차례</color>에는 숨겨진 캔들을 두고 매수나 매도를 고른다.\n" +
         "<color=#A39A8C>행동<pos=22%>캔들<pos=44%>결과</color>\n" +
         "매수<pos=22%><color=#6CC27F>▲ 상승</color><pos=44%>레버리지 +1, <color=#D9B45A>한 번 더</color>\n" +
         "매수<pos=22%><color=#E46A58>▼ 하락</color><pos=44%><color=#E46A58>내 잔고 −(1+레버리지)</color>\n" +
         "매도<pos=22%><color=#E46A58>▼ 하락</color><pos=44%><color=#E46A58>상대 잔고 −(1+레버리지)</color>\n" +
-        "매도<pos=22%><color=#6CC27F>▲ 상승</color><pos=44%>아무 일도 일어나지 않는다";
+        "매도<pos=22%><color=#6CC27F>▲ 상승</color><pos=44%>변화 없음";
     [SerializeField, TextArea(2, 4)] string rulesPage1Footer =
-        "\"한 번 더\"일 때만 같은 사람이 다시 고른다.";
+        "\"한 번 더\"가 아니면 차례가 상대에게 넘어간다.";
 
     // title-menu 57(상세 설명): 레버리지를 따로 한 쪽으로. 화살표 같은 기호는 쓰지 않음(1쪽 ▲▼·조작 키 제외, 사용자 요청)
     [SerializeField, TextArea(8, 12)] string rulesLeverage =
         "<color=#D9B45A>레버리지</color>는 다음 피해를 키우는 숫자다.\n" +
         "두 사람이 함께 쓰고, 0에서 시작한다.\n" +
         "매수한 캔들이 상승할 때마다 1씩 오른다(최대 3).\n" +
-        "하락으로 누군가 피해를 입으면 피해는 1 + 레버리지다.\n" +
-        "피해가 난 뒤와 새 라운드에서는 <color=#D9B45A>0으로 초기화</color>된다.\n" +
+        "하락으로 받는 피해는 1 + 레버리지다.\n" +
+        "피해가 나거나 새 라운드가 시작되면 <color=#D9B45A>0으로 초기화</color>된다.\n" +
         "매도한 캔들이 상승하면 레버리지는 그대로다.\n" +
         "<color=#A39A8C>예)</color> 레버리지 2에서 매도한 캔들이 하락하면\n" +
-        "     상대 잔고 −3, 레버리지는 0으로 초기화.";
+        "     상대 잔고가 3 줄고, 레버리지는 0으로 초기화된다.";
     [SerializeField, TextArea(2, 4)] string rulesItems =
         "라운드 시작·덱 재장전 때 각자 2개씩 받는다(최대 4개).\n" +
         "내 차례에 1~4 키나 아이콘으로 고르고 Space로 쓴다.";
@@ -61,7 +61,7 @@ public class TitleMenu : MonoBehaviour
         "<color=#D9B45A>Space · 클릭</color><pos=30%>모니터를 열고, 고른 행동을 실행한다\n" +
         "<color=#D9B45A>← → · A D</color><pos=30%>모니터에서 매수·매도를 고른다\n" +
         "<color=#D9B45A>1 ~ 4</color><pos=30%>아이템을 확인한다(Space로 사용)\n" +
-        "<color=#D9B45A>Esc</color><pos=30%>창 닫기 · 아이템 취소 · 일시정지";
+        "<color=#D9B45A>Esc</color><pos=30%>창·아이템을 닫거나 일시정지한다";
 
     [Header("설정 (title-menu 54) — 소리를 바꾸면 클릭음으로 바로 들려 줌")]
     [SerializeField] AudioSource sfx;
@@ -77,8 +77,8 @@ public class TitleMenu : MonoBehaviour
         "글꼴   Galmuri11 — Lee Minseo (quiple)\n" +
         "        SIL Open Font License 1.1\n" +
         "        github.com/quiple/galmuri\n" +
-        "그림·효과음   Claude(Anthropic)가 작성한 코드로 생성,\n" +
-        "        고르기·고칠 곳 지시는 만든 사람\n" +
+        "그림·효과음   Claude(Anthropic)가 작성한 코드로 생성\n" +
+        "        선택·수정 지시: 만든 사람\n" +
         "코드 도움   Claude(Anthropic)\n" +
         "배경음악   (정해지면 추가)\n" +
         "비영리 학교 과제";
