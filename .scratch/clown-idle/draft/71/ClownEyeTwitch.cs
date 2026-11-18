@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // 타이틀 광대 눈 발작(사용자 2026-11-19 "발작형, 2도트"). 타이틀 광대에만 붙인다(게임 광대는 그대로).
-// 조용히 0.5~3초 → 0.3~1초 동안 0.03~0.08초마다 떨림 눈동자(바늘·갈라짐·위로) 중 하나 + 눈동자만 ±2도트 → 평소 눈으로.
+// 조용히 4초(처음 0.5~3초, 사용자 "4초의 여백") → 0.3~1초 동안 0.03~0.08초마다 떨림 눈동자(바늘·갈라짐·위로) 중 하나 + 눈동자만 ±2도트 → 평소 눈으로.
 // 고침2: 조용한 시간이 끝날 때 lookChance 확률로 발작 대신 아래·위·오른쪽 중 한쪽을 0.8~1.6초 가만히 봄.
 // Animator(숨쉬기·깜빡임)는 건드리지 않는다: 원래 눈 덮개(Eyes)와 같은 자리에 따로 둔 덮개들을 LateUpdate에서
 // Animator가 이번 프레임에 정한 Eyes 자리로 옮겨 그 위에 그린다.
@@ -18,8 +18,8 @@ public class ClownEyeTwitch : MonoBehaviour
     [SerializeField] Sprite[] pupilSprites;        // 바늘·갈라짐·위로(눈동자만)
 
     [Header("발작형 (조용 0.5~3초, 발작 0.3~1초, 0.03~0.08초마다 바뀜)")]
-    [SerializeField] float quietMin = 0.5f;
-    [SerializeField] float quietMax = 3f;
+    [SerializeField] float quietMin = 4f;    // 사용자 "너무 자주 일어나, 4초의 여백" → 처음 0.5~3초에서 4초
+    [SerializeField] float quietMax = 4f;
     [SerializeField] float burstMin = 0.3f;
     [SerializeField] float burstMax = 1f;
     [SerializeField] float stepMin = 0.03f;

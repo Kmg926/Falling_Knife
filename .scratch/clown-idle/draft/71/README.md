@@ -33,3 +33,6 @@
 - 그림: `eyes-look-down-pupil`(아래 5도트)·`eyes-look-right-pupil`(오른쪽 3도트, 두 눈 같은 쪽). 위는 `eyes-twitch-up-pupil` 재사용.
 - `ClownEyeTwitch.cs`: `lookSprites`·`lookChance`(0.5)·`lookMin~Max`(0.8~1.6초). 조용한 시간이 끝날 때 절반 확률로 발작 대신 한쪽을 골라 흔들림 없이 가만히 봄(흰 바탕·가리개는 발작과 같이 씀). 전 코드 `ClownEyeTwitch.before-look.cs`.
 - 확인: 한쪽 보기를 강제로: `looking` 참, 그림 아래 보기, 눈동자 자리 = 눈 자리(흔들림 0). 캡처 `look-down-crop.png`.
+
+## 고침3: 여백 4초 (사용자 "타이틀 광대의 눈 효과가 너무 자주 일어나. 4초의 여백을 줘")
+- `quietMin`·`quietMax` 0.5~3초 → 4초(TitleScene 저장값과 코드 기본값 모두). 발작·한쪽 보기가 끝난 뒤 4초 동안은 평소 눈.
