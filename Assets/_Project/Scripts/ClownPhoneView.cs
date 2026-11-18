@@ -22,19 +22,24 @@ public class ClownPhoneView : MonoBehaviour
     [SerializeField] int blinks = 3;
     [SerializeField] float blinkSeconds = 0.1f;   // 켜짐 0.05 + 꺼짐 0.05 → 3번 = 0.3초
 
+    [Header("받을 때 울림 (item-phone 65)")]
+    [SerializeField] PhoneBuzz buzz;           // 진동·"+N" 깜빡임(깜빡이는 동안은 폰 그림을 buzz가 맡음)
+
     int lastUseCount = -1;      // 처음 Refresh 때 지금 값으로 맞춤(시작부터 반짝이지 않게)
     bool flashing;              // 반짝이는 동안은 테두리를 코루틴이 맡는다
 
     void Awake()
     {
         closedButton.onClick.AddListener(() => game.OpenClownPhone());
+        if (buzz != null) buzz.OnDone = () => Refresh(game);   // 깜빡임이 끝나면 개수 그림으로 되돌림
     }
 
     public void Refresh(GameManager game)
     {
         int count = game.Clown.Items.Count;
+        if (buzz != null) buzz.Refresh(game);
         bool useSprites = phoneImage != null && countSprites != null && count < countSprites.Length;
-        if (useSprites) phoneImage.sprite = countSprites[count];
+        if (useSprites && !(buzz != null && buzz.Busy)) phoneImage.sprite = countSprites[count];
         countText.enabled = !useSprites;
         countText.text = count.ToString();
         bool can = game.CanOpenPhone && !game.IsPhoneOpen;

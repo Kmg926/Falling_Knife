@@ -30,10 +30,15 @@ public class PhoneView : MonoBehaviour
     [SerializeField] Button[] keypad;          // 키패드 1~4 (4개)
     [SerializeField] Image[] keyLit;           // 1~4 금색 조각(아이템이 있을 때만 켬)
 
+    [Header("받을 때 울림 (item-phone 65)")]
+    [SerializeField] PhoneBuzz buzz;           // 진동·"+N" 깜빡임(깜빡이는 동안은 폰 그림을 buzz가 맡음)
+
     const int MaxItems = 4;
+    bool wasOpenMine;                          // 지난번에 내 폰이 열려 있었나(닫히는 순간 새 칸 "N"을 지움)
 
     void Awake()
     {
+        if (buzz != null) buzz.OnDone = () => Refresh(game);   // 깜빡임이 끝나면 개수 그림으로 되돌림
         closedButton.onClick.AddListener(() => game.OpenPhone());
         backdrop.onClick.AddListener(() => game.PhoneBack());
         greenKey.onClick.AddListener(() => game.Execute());   // 목록: 금색 틀 칸 상세 / 상세: 사용
@@ -50,8 +55,14 @@ public class PhoneView : MonoBehaviour
         int count = game.Player.Items.Count;
 
         // 접힌 폰: 개수는 늘 보이고(광대 차례에도), 열 수 있을 때만 테두리·클릭
+        if (buzz != null) buzz.Refresh(game);
         bool useSprites = phoneImage != null && countSprites != null && count < countSprites.Length;
-        if (useSprites) phoneImage.sprite = countSprites[count];
+        if (useSprites && !(buzz != null && buzz.Busy)) phoneImage.sprite = countSprites[count];
+
+        // item-phone 65: 내 폰을 한 번 열었다 닫으면 새 칸 "N"을 지움
+        bool openMine = game.IsPhoneOpen && !game.IsViewingClownPhone;
+        if (wasOpenMine && !openMine) game.ClearNewItems();
+        wasOpenMine = openMine;
         countText.enabled = !useSprites;
         countText.text = count.ToString();
         bool can = game.CanOpenPhone && !game.IsPhoneOpen;

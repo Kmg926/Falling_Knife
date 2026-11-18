@@ -8,6 +8,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] AudioClip tickClip;
     [SerializeField] AudioClip clickClip;
     [SerializeField] AudioClip shuffleClip;
+    [SerializeField] AudioClip buzzClip;          // item-phone 65: 아이템을 받아 폰이 울릴 때(진동음 B, 볼륨 절반)
 
     [Header("재생기")]
     [SerializeField] AudioSource sfxSource;
@@ -61,6 +62,15 @@ public class AudioManager : MonoBehaviour
     public void PlayTick() { Play(tickClip); }
     public void PlayClick() { Play(clickClip); }
     public void PlayShuffle() { Play(shuffleClip); }
+
+    // item-phone 65: 두 폰이 같은 순간에 울려도 진동음은 한 번만(0.1초 안의 두 번째 요청은 무시)
+    float lastBuzzTime = -1f;
+    public void PlayBuzz()
+    {
+        if (Time.unscaledTime - lastBuzzTime < 0.1f) return;
+        lastBuzzTime = Time.unscaledTime;
+        Play(buzzClip);
+    }
 
     // 클립이나 재생기가 비어 있거나 크기가 0이면 아무것도 하지 않는다.
     void Play(AudioClip clip)

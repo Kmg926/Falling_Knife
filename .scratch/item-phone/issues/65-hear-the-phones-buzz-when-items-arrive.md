@@ -4,13 +4,13 @@
 
 **Blocked by:** 63, 64
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] 라운드 시작·재장전·복권 +1 때 두 폰 진동 + 진동음 1번 (C5)
-- [ ] 광대 폰 새 칸 톡톡, 내 폰 "+N" 깜빡임 → 개수 (C5)
-- [ ] 내 폰을 열면 새 칸에 "N", 한 번 열면 사라짐 (C5)
-- [ ] 라운드 안내와 겹치지 않음, 일시정지 중엔 멈춤
-- [ ] 퇴행 T65~T68·T143, Console 오류 0 (C7)
+- [x] 라운드 시작·재장전·복권 +1 때 폰 진동 + 진동음 1번 (C5) — 소리는 귀로 확인 못 함, 재장전·복권은 신호를 직접 올려 확인
+- [x] 두 폰 "+N" 깜빡임 → 개수 (C5, 광대 폰 톡톡은 66으로 바뀜)
+- [x] 내 폰을 열면 새 칸에 "N", 한 번 열면 사라짐 (C5)
+- [x] 라운드 안내와 겹치지 않음(연출 뒤 시작 확인), 일시정지 중엔 멈춤(WaitForSeconds — 직접 확인은 안 함)
+- [ ] 퇴행 T65~T68·T143 (하네스 안 돌림), Console 오류 0 확인 (C7)
 
 Spec: `../spec.md` (제안 5) · Grilling: `../grilling.md` (Q8)
 
@@ -20,3 +20,6 @@ Spec: `../spec.md` (제안 5) · Grilling: `../grilling.md` (Q8)
 3. 덱을 다 써서 재장전 → 다시 진동
 
 ## Comments
+- 2026-11-19 AI 구현(사용자 "65 진행"): `GameManager`(받았다 신호·새 칸 수), 새 `PhoneBuzz`, `AudioManager`(진동음), `PhoneView`·`ClownPhoneView`·`ItemSlotsView`(Scripts 직접, 전 코드 `../draft/65/*.before.cs`). 그림 `-blank`·`-p1~p4`(tools). GameScene(MCP, 저장 전 dirty 아님 확인). 설명 `../draft/65/README.md`.
+  - Ticket과 다른 점(66 때문): 광대 폰도 접혀 있어 "톡톡 나타남" 대신 내 폰과 같은 진동 + "+N" 깜빡임. 복권 +1은 받은 사람 폰만.
+  - 확인: 연출 뒤 시작, "+1" 깜빡임·흔들림 캡처, "N" 표시 → 닫으면 사라짐, Console 오류 0. 하네스 안 돌림. **남은 것(사용자):** 진동음을 귀로 확인, 재장전 때 실제 플레이로 확인.

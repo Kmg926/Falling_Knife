@@ -142,6 +142,41 @@ public class GameManager : MonoBehaviour
     // ── item-phone 64: 광대 아이템 사용 신호(광대 폰이 그 칸을 반짝이는 데 씀). 판정에는 쓰지 않는다. ──
     public int ClownItemUseCount { get; private set; }  // 광대가 아이템을 쓸 때마다 +1 → 화면은 "바뀌었나"만 본다
     public int ClownLastUsedSlot { get; private set; }  // 방금 쓴 아이템이 쓰기 직전 몇 번째 칸이었나(0~3)
+
+    // ── item-phone 65: 아이템을 받은 신호(폰이 울리고 "+N"을 깜빡이는 데 씀). 판정에는 쓰지 않는다. ──
+    public int PlayerGrantCount { get; private set; }   // 내가 아이템을 받을 때마다 +1
+    public int PlayerLastGrant { get; private set; }    // 방금 실제로 받은 개수(가득 차서 못 받은 것은 빼고)
+    public int ClownGrantCount { get; private set; }
+    public int ClownLastGrant { get; private set; }
+    // 내 폰 목록에서 "N"을 붙일 칸 수 = 맨 뒤 몇 칸이 새것인가(받으면 뒤에 붙으므로). 폰을 한 번 열었다 닫으면 0
+    public int PlayerNewItems { get; private set; }
+
+    // 받은 개수를 기록하고 신호를 올린다(0개면 신호 없음 — 가득 차서 못 받으면 울리지 않음)
+    void RecordGrant(Participant who, int added)
+    {
+        if (added <= 0) return;
+        if (who == Player)
+        {
+            PlayerLastGrant = added;
+            PlayerGrantCount++;
+            PlayerNewItems = Mathf.Min(Player.Items.Count, PlayerNewItems + added);
+        }
+        else
+        {
+            ClownLastGrant = added;
+            ClownGrantCount++;
+        }
+    }
+
+    // 내 폰을 열었다 닫으면(PhoneView가 부름) 새 칸 표시를 지운다
+    public void ClearNewItems() { PlayerNewItems = 0; }
+
+    // 내 아이템을 쓰며 뺄 때: 뺀 칸이 "새것"(맨 뒤 PlayerNewItems칸) 중 하나였으면 새것 수도 하나 줄임
+    void RemovePlayerItemAt(int slot)
+    {
+        if (slot >= Player.Items.Count - PlayerNewItems) PlayerNewItems = Mathf.Max(0, PlayerNewItems - 1);
+        Player.RemoveItemAt(slot);
+    }
     public string LastDamage { get; private set; }     // 마지막 피해 한 줄 (파산 = 원인, 생존 = 결정타)
     float gameStartTime;
     float gameEndTime = -1f;                           // 끝나기 전에는 -1
@@ -184,6 +219,7 @@ public class GameManager : MonoBehaviour
         ConfirmingSlot = -1;
         IsMonitorOpen = false;      // monitor-trade 43
         IsPhoneOpen = false;        // item-phone 63
+        PlayerNewItems = 0;         // item-phone 65: 새 라운드 = 새 아이템(아래 GiveItems에서 다시 셈)
         PhoneCursor = 0;
         PlayerKnownNext = null;
         clownKnownNext = null;
@@ -399,11 +435,11 @@ public class GameManager : MonoBehaviour
         switch (item)
         {
             case ItemType.Rumor:
-                Player.RemoveItemAt(ConfirmingSlot);
+                RemovePlayerItemAt(ConfirmingSlot);
                 UseRumor(Player);
                 break;
             case ItemType.ChartAnalysis:
-                Player.RemoveItemAt(ConfirmingSlot);
+                RemovePlayerItemAt(ConfirmingSlot);
                 UseChartAnalysis(Player);
                 break;
             case ItemType.TradingHalt:
@@ -414,11 +450,11 @@ public class GameManager : MonoBehaviour
                     used = false;
                     break;
                 }
-                Player.RemoveItemAt(ConfirmingSlot);
+                RemovePlayerItemAt(ConfirmingSlot);
                 UseTradingHalt(Player);
                 break;
             case ItemType.Lottery:
-                Player.RemoveItemAt(ConfirmingSlot);
+                RemovePlayerItemAt(ConfirmingSlot);
                 UseLottery(Player);
                 break;
             default:
@@ -488,7 +524,9 @@ public class GameManager : MonoBehaviour
                 break;
             case LotteryPrize.Item:
                 ItemType bonus = NextItem();
-                result = user.AddItem(bonus) ? $"아이템 +1 ({ItemName(bonus)})" : "꽝 (아이템이 이미 가득)";
+                bool got = user.AddItem(bonus);
+                if (got) RecordGrant(user, 1);   // item-phone 65: 복권으로 받은 아이템도 폰이 울림
+                result = got ? $"아이템 +1 ({ItemName(bonus)})" : "꽝 (아이템이 이미 가득)";
                 break;
             default:
                 result = "꽝";
@@ -515,8 +553,12 @@ public class GameManager : MonoBehaviour
     // 두 사람에게 itemsPerGrant개씩 준다. 4개를 넘는 것은 버려진다.
     void GiveItems()
     {
-        for (int i = 0; i < itemsPerGrant; i++) Player.AddItem(NextItem());
-        for (int i = 0; i < itemsPerGrant; i++) Clown.AddItem(NextItem());
+        // item-phone 65: 실제로 받은 개수를 세서 "받았다" 신호(가득 차면 덜 받음)
+        int mine = 0, clowns = 0;
+        for (int i = 0; i < itemsPerGrant; i++) if (Player.AddItem(NextItem())) mine++;
+        for (int i = 0; i < itemsPerGrant; i++) if (Clown.AddItem(NextItem())) clowns++;
+        RecordGrant(Player, mine);
+        RecordGrant(Clown, clowns);
     }
 
     // 다음에 줄 아이템. 고정 지급이 켜져 있으면 문자열에서 순서대로, 다 쓰면 무작위.

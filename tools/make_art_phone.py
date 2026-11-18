@@ -45,6 +45,7 @@ DIGITS57 = {
     "2": [".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####"],
     "3": ["####.", "....#", "....#", ".###.", "....#", "....#", "####."],
     "4": ["...#.", "..##.", ".#.#.", "#..#.", "#####", "...#.", "...#."],
+    "+": [".....", "..#..", "..#..", "#####", "..#..", "..#..", "....."],   # item-phone 65: 받을 때 "+N"
 }
 
 
@@ -223,7 +224,12 @@ def top_view_src(pal, digit=None):
         cv.fill((slice(12, 32), slice(25, 55)), "goldD")
         cv.fill((slice(13, 31), slice(26, 54)), "bg00")
         cv.fill((slice(13, 14), slice(26, 54)), "navy0")
-        glyph57(cv, str(digit), 35, 15, "green2", 2)   # 5×7 둥근 숫자 ×2 = 10×14 — 3×5는 "2"가 "ㄹ"처럼 보임
+        label = str(digit)
+        if label.startswith("+"):          # item-phone 65: "+N" = 더하기 + 숫자(가운데 맞춤, 폭 5+1+5 칸 ×2 = 22)
+            glyph57(cv, "+", 29, 15, "green2", 2)
+            glyph57(cv, label[1:], 41, 15, "green2", 2)
+        elif label:                         # "" = 빈 화면(깜빡임 꺼진 순간)
+            glyph57(cv, label, 35, 15, "green2", 2)   # 5×7 둥근 숫자 ×2 = 10×14 — 3×5는 "2"가 "ㄹ"처럼 보임
     top, _ = closed_mask()
     ys, xs = np.nonzero(top)
     y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
@@ -420,6 +426,13 @@ def make_table(pal):
                 pn = OUT / f"phone-table-{name}-{n}.png"
                 write_png(pn, cn.rgba())
                 files.append(pn)
+            # item-phone 65: 받을 때 깜빡임용 — 빈 화면(blank)과 "+1"~"+4"
+            for lab, suf in [("", "blank")] + [(f"+{k}", f"p{k}") for k in range(1, 5)]:
+                cn, _, _ = phone_on_table_rot(pal, g, lab)
+                pn = OUT / f"phone-table-{name}-{suf}.png"
+                write_png(pn, cn.rgba())
+                files.append(pn)
+            write_png(OUT / f"phone-table-{name}-p2-x4.png", phone_on_table_rot(pal, g, "+2")[0].rgba().repeat(4, 0).repeat(4, 1))
             write_png(OUT / f"phone-table-{name}-2-x4.png", phone_on_table_rot(pal, g, 2)[0].rgba().repeat(4, 0).repeat(4, 1))
     print("팔레트 검사 (32색):")
     return check32(files, pal)

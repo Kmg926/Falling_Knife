@@ -17,6 +17,9 @@ public class ItemSlotsView : MonoBehaviour
     // ItemType 순서대로: 차트 분석, 찌라시, 거래 정지, 복권
     [SerializeField] Sprite[] itemIcons;
 
+    [Header("새 칸 표시 (item-phone 65)")]
+    [SerializeField] Graphic[] newMarks;      // 4칸 오른쪽 위 작은 "N"(내 폰에서 새로 받은 칸만, 한 번 열었다 닫으면 사라짐)
+
     [Header("눌림 (ui-revamp 33)")]
     [SerializeField] float pressSeconds = 0.1f;
     Vector2[] slotHomes;
@@ -37,6 +40,15 @@ public class ItemSlotsView : MonoBehaviour
     {
         ShowItems(slotIcons, game.PhoneItems);   // item-phone 66: 열린 폰(내 것 또는 광대 것)의 아이템
         // item-phone 64: 광대 아이템은 ClownPhoneView가 보여 준다
+
+        // item-phone 65: 새로 받은 칸(맨 뒤 PlayerNewItems칸)에 "N" — 내 폰을 볼 때만
+        if (newMarks != null)
+        {
+            int count = game.Player.Items.Count;
+            int firstNew = count - game.PlayerNewItems;
+            for (int i = 0; i < newMarks.Length; i++)
+                if (newMarks[i] != null) newMarks[i].enabled = !game.IsViewingClownPhone && i >= firstNew && i < count;
+        }
 
         // item-phone 63: 칸이 폰 목록 안으로 옮겨 감 → 금색 틀 = Space를 누르면 열릴 칸(PhoneCursor)
         for (int i = 0; i < slotFrames.Length; i++)
