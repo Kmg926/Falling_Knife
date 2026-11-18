@@ -28,6 +28,11 @@ public class ChartLinesView : MonoBehaviour
     [SerializeField] float recoverSeconds = 1f;     // 1초에 절반 회복
     [SerializeField] float settleSeconds = 2f;      // 그 뒤 2초에 걸쳐 0으로(선이 영역 밖으로 밀려나지 않게)
 
+    [Header("가끔 급락 (title-bg 52, 타이틀 전용 — 0이면 끔)")]
+    [SerializeField] float idleSpikeMin = 0f;       // 타이틀: 8 — 이 범위의 임의 간격(초)마다 급락
+    [SerializeField] float idleSpikeMax = 0f;       // 타이틀: 12. GameScene은 0(끔) → 공개 결과에만 반응
+    float idleSpikeTimer = -1f;
+
     [Header("색 (팔레트, 어두운 단계 — Spec 제안 6)")]
     [SerializeField] Color32 redLine = new Color32(0x6E, 0x26, 0x24, 255);     // red1
     [SerializeField] Color32 redShadow = new Color32(0x4E, 0x1A, 0x19, 255);   // red0
@@ -78,6 +83,17 @@ public class ChartLinesView : MonoBehaviour
             if (wasRevealing && !game.IsRevealing && game.ShownCandle.HasValue)
                 StartSpike(game.ShownCandle.Value == Candle.Down ? downDots : upDots);
             wasRevealing = game.IsRevealing;
+        }
+        // title-bg 52: 게임 상태가 없는 타이틀에서 가끔 급락 → "떨어지는 칼"(간격이 0이면 아무 일 없음)
+        if (idleSpikeMax > 0f)
+        {
+            if (idleSpikeTimer < 0f) idleSpikeTimer = UnityEngine.Random.Range(idleSpikeMin, idleSpikeMax);
+            idleSpikeTimer -= Time.deltaTime;
+            if (idleSpikeTimer <= 0f)
+            {
+                StartSpike(downDots);
+                idleSpikeTimer = UnityEngine.Random.Range(idleSpikeMin, idleSpikeMax);
+            }
         }
         UpdateSpike(Time.deltaTime);
 
