@@ -27,6 +27,9 @@ public class PhoneView : MonoBehaviour
     [SerializeField] TMP_Text softRight;       // 화면 오른쪽 아래: 목록 "닫기" / 상세 "뒤로"
     [SerializeField] Button greenKey;          // 초록 키 = Space
     [SerializeField] Button redKey;            // 빨간 키 = Esc
+    // 화면 아래 소프트키 글자("확인·사용" / "닫기·뒤로")도 누를 수 있게(사용자: "자세히 보기 때 사용, 뒤로가 안 눌려" — 글자만 있고 버튼이 아니었음)
+    [SerializeField] Button softLeftButton;    // = 초록 키·Space
+    [SerializeField] Button softRightButton;   // = 빨간 키·Esc
     [SerializeField] Button[] keypad;          // 키패드 1~4 (4개)
     [SerializeField] Image[] keyLit;           // 1~4 금색 조각(아이템이 있을 때만 켬)
 
@@ -43,6 +46,8 @@ public class PhoneView : MonoBehaviour
         backdrop.onClick.AddListener(() => game.PhoneBack());
         greenKey.onClick.AddListener(() => game.Execute());   // 목록: 금색 틀 칸 상세 / 상세: 사용
         redKey.onClick.AddListener(() => game.PhoneBack());
+        if (softLeftButton != null) softLeftButton.onClick.AddListener(() => game.Execute());
+        if (softRightButton != null) softRightButton.onClick.AddListener(() => game.PhoneBack());
         for (int i = 0; i < keypad.Length; i++)
         {
             int slot = i;   // 람다가 반복 변수 대신 이 칸 번호를 기억하게 복사
