@@ -166,7 +166,8 @@ def buzz(rng, variant):
         t = t_axis(0.55)
         x = motor(t, 130, 0.35) * (0.75 + 0.25 * np.sign(np.sin(2 * np.pi * 12 * t)))
     # 사용자 고름(2026-11-18): B, "볼륨 반토막" → 처음 -6 dBFS에서 진폭 절반 = -12 dBFS
-    return normalize(fade_out(x), -12.0)
+    # 사용자(2026-11-19): "진동 소리 현재의 75%로" → 진폭 ×0.75 = −12 + 20·log10(0.75) ≈ −14.5 dBFS
+    return normalize(fade_out(x), -14.5)
 
 
 SOUNDS = [

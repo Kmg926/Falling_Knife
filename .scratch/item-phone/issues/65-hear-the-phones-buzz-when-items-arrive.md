@@ -23,3 +23,4 @@ Spec: `../spec.md` (제안 5) · Grilling: `../grilling.md` (Q8)
 - 2026-11-19 AI 구현(사용자 "65 진행"): `GameManager`(받았다 신호·새 칸 수), 새 `PhoneBuzz`, `AudioManager`(진동음), `PhoneView`·`ClownPhoneView`·`ItemSlotsView`(Scripts 직접, 전 코드 `../draft/65/*.before.cs`). 그림 `-blank`·`-p1~p4`(tools). GameScene(MCP, 저장 전 dirty 아님 확인). 설명 `../draft/65/README.md`.
   - Ticket과 다른 점(66 때문): 광대 폰도 접혀 있어 "톡톡 나타남" 대신 내 폰과 같은 진동 + "+N" 깜빡임. 복권 +1은 받은 사람 폰만.
   - 확인: 연출 뒤 시작, "+1" 깜빡임·흔들림 캡처, "N" 표시 → 닫으면 사라짐, Console 오류 0. 하네스 안 돌림. **남은 것(사용자):** 진동음을 귀로 확인, 재장전 때 실제 플레이로 확인.
+- 2026-11-19 사용자 "진동 소리 현재의 75%로": `tools/make_sfx.py buzz` 최대 −12 → −14.5 dBFS(진폭 ×0.75)로 다시 만들어 `Audio/Sounds/buzz.wav` 교체. 귀로는 확인 못 함.

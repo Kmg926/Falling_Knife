@@ -25,3 +25,5 @@ Spec: `../spec.md` (제안 1·2·3·6·8) · Grilling: `../grilling.md` (Q1~Q4·
   - 저장 전 비교: Play 뒤 남은 차이는 TMP가 내가 바꾼 메뉴 글 색을 내부 칸에 반영한 5줄뿐(사용자 변경 아님).
   - 테스트 C1~C3·C6 통과(`../draft/53/README.md`), Console 오류 0. 캡처 `.scratch/art/drafts/title-menu/menu0.png`·`rules1~3.png`.
   - **남은 것(사용자):** 실제 키보드·마우스(올리기·클릭)로 직접 확인.
+- 2026-11-19 사용자 "타이틀의 시작 규칙 설정 크레딧 텍스트 줄 사이의 여백 좀 줘": TitleScene(MCP, 저장 전 dirty 아님 확인) 메뉴 줄 간격 12 → 15, 메뉴 위치 y −108 → −104(아래 끝 −176, 화면 안). 14는 차이가 작아 15로. 캡처 `../draft/66-spacing/menu-spacing.png`.
+- 2026-11-19 사용자 "제목 부제목도"(줄 사이 여백): TitleScene(MCP, 저장 전 dirty 아님 확인) 로고 차트 선 y −18 → −12, 제목 −56 → −48, 부제 −92 → −87 → 사이 여백 차트 선–제목 6·제목–부제 5·부제–메뉴 5(전 8·2·0). 캡처 `../draft/66-spacing/title-spacing.png`.
