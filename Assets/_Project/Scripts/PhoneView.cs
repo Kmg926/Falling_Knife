@@ -13,7 +13,10 @@ public class PhoneView : MonoBehaviour
     [Header("테이블 위 접힌 폰")]
     [SerializeField] Button closedButton;      // 접힌 폰 그림(클릭 = 열기)
     [SerializeField] Image outline;            // 열 수 있을 때 금색 테두리(모니터와 같은 방식, 깜빡임 없음)
-    [SerializeField] TMP_Text countText;       // 바깥 작은 화면의 개수
+    [SerializeField] TMP_Text countText;       // 바깥 작은 화면의 개수(아래 그림 5장이 있으면 끄고 그림으로)
+    // item-phone 66: 숫자를 키우려고 폰을 크게 그리면서, 개수(0~4)를 화면 칸에 그려 넣은 폰 그림 5장으로 바꿔 끼운다(광대 폰과 같은 방식)
+    [SerializeField] Image phoneImage;
+    [SerializeField] Sprite[] countSprites;    // [0] = 0개 … [4] = 4개
 
     [Header("확대된 폰")]
     [SerializeField] GameObject zoomRoot;      // 어둡게 + 펼친 폰 전체
@@ -47,6 +50,9 @@ public class PhoneView : MonoBehaviour
         int count = game.Player.Items.Count;
 
         // 접힌 폰: 개수는 늘 보이고(광대 차례에도), 열 수 있을 때만 테두리·클릭
+        bool useSprites = phoneImage != null && countSprites != null && count < countSprites.Length;
+        if (useSprites) phoneImage.sprite = countSprites[count];
+        countText.enabled = !useSprites;
         countText.text = count.ToString();
         bool can = game.CanOpenPhone && !game.IsPhoneOpen;
         outline.enabled = can;

@@ -12,7 +12,11 @@ public class ClownPhoneView : MonoBehaviour
     [SerializeField] GameManager game;
     [SerializeField] Button closedButton;      // 접힌 광대 폰 그림(클릭 = 열기)
     [SerializeField] Image outline;            // 금색 테두리(열 수 있을 때 + 광대 사용 반짝임)
-    [SerializeField] TMP_Text countText;       // 바깥 작은 화면의 개수
+    [SerializeField] TMP_Text countText;       // 바깥 작은 화면의 개수(아래 그림 5장이 있으면 끄고 그림으로)
+    // item-phone 66: 광대 폰은 비스듬히 놓여 있어 글자를 따로 쓰면 각도가 안 맞고 칸 밖으로 넘친다 →
+    // 개수(0~4)를 화면 칸에 그려 넣은 폰 그림 5장 중 하나로 바꿔 끼운다(숫자도 폰과 같은 원근·각도)
+    [SerializeField] Image phoneImage;
+    [SerializeField] Sprite[] countSprites;    // [0] = 0개 … [4] = 4개
 
     [Header("사용 반짝임 (Grilling Q16)")]
     [SerializeField] int blinks = 3;
@@ -28,7 +32,11 @@ public class ClownPhoneView : MonoBehaviour
 
     public void Refresh(GameManager game)
     {
-        countText.text = game.Clown.Items.Count.ToString();
+        int count = game.Clown.Items.Count;
+        bool useSprites = phoneImage != null && countSprites != null && count < countSprites.Length;
+        if (useSprites) phoneImage.sprite = countSprites[count];
+        countText.enabled = !useSprites;
+        countText.text = count.ToString();
         bool can = game.CanOpenPhone && !game.IsPhoneOpen;
         closedButton.interactable = can;
 
