@@ -51,16 +51,49 @@ def draw_lamp(pal):
     return cv
 
 
-def draw_beam(pal):
+BEAM_TOP, BEAM_BOTTOM = 0.22, 0.05   # 점 밀도(위 → 아래). 처음 0.45 → 0.12는 너무 빽빽해 눈이 아프다는 사용자 의견으로 절반쯤
+BH_TITLE = 274                       # 타이틀용: 전등 아래(y 79)에서 테이블 모서리(y −58)까지 = 137칸 = 274 새 도트(빛이 중간에 끊기지 않게)
+
+
+def draw_beam(pal, BH=BH):
     cv = Canvas(pal, BW, BH)
     yy, xx = np.mgrid[0:BH, 0:BW] + 0.5
     t = yy / BH                                   # 0 = 위, 1 = 아래
     half = (BTOP + (BW - BTOP) * t) / 2           # 그 줄의 반 너비
     side = np.clip(1 - np.abs(xx - BW / 2) / half, 0, 1)
-    level = (0.45 - 0.33 * t) * np.clip(side * 2.5, 0, 1)   # 위 45% → 아래 12%, 양옆 가장자리에서 0으로
+    level = (BEAM_TOP - (BEAM_TOP - BEAM_BOTTOM) * t) * np.clip(side * 2.5, 0, 1)   # 위 → 아래로 옅게, 양옆 가장자리에서 0으로
     thr = BAYER4[(yy - 0.5).astype(int) % 4, (xx - 0.5).astype(int) % 4]
     cv.fill((level > thr) & (side > 0), "gold2")
     return cv
+
+
+PW, PH = 600, 110   # 테이블 위 빛 웅덩이(lighting 이어서, 사용자 "조명 빛이 테이블 위에까지 쬐는 이펙트")
+
+
+def draw_pool(pal):
+    """테이블 윗면에 떨어진 빛: 위 가운데(빛줄기가 닿는 테이블 뒤 모서리)를 중심으로 한 반타원, 가운데 촘촘(약 42%) → 가장자리 0.
+    빛줄기와 같은 gold2 바둑판 무늬. 게임에서 기준점 = 위 가운데, 테이블 뒤 모서리에 붙임.
+    (시안 2 "테이블 정중앙에서 퍼지는 온전한 타원"도 만들어 봤으나 사용자가 이 시안 1로 되돌림)"""
+    cv = Canvas(pal, PW, PH)
+    yy, xx = np.mgrid[0:PH, 0:PW] + 0.5
+    d = np.sqrt(((xx - PW / 2) / (PW / 2)) ** 2 + (yy / PH) ** 2)   # 0 = 위 가운데, 1 = 타원 가장자리
+    level = 0.22 * np.clip(1 - d, 0, 1) ** 1.2   # 처음 0.42는 빽빽해 눈이 아픔(사용자) → 0.22
+    thr = BAYER4[(yy - 0.5).astype(int) % 4, (xx - 0.5).astype(int) % 4]
+    cv.fill((level > thr) & (d < 1), "gold2")
+    return cv
+
+
+def make_pool(pal):
+    OUT.mkdir(parents=True, exist_ok=True)
+    p = OUT / "pool.png"
+    write_png(p, draw_pool(pal).rgba())
+    # 빛줄기도 같은 밀도로 다시: 게임용(236줄)·타이틀용(274줄, 테이블 모서리까지)
+    b = OUT / "beam.png"
+    write_png(b, draw_beam(pal).rgba())
+    bt = OUT / "beam-title.png"
+    write_png(bt, draw_beam(pal, BH_TITLE).rgba())
+    print("팔레트 검사 (32색):")
+    return check32([p, b, bt], pal)
 
 
 def make_draft(pal):
@@ -80,4 +113,6 @@ if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "draft":
         sys.exit(0 if make_draft(load_pal()) else 1)
+    if cmd == "pool":
+        sys.exit(0 if make_pool(load_pal()) else 1)
     print(__doc__)

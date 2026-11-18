@@ -28,3 +28,5 @@ Spec: `../spec.md` (제안 1~8) · Grilling: `../grilling.md` (Q1~Q8)
   - 테스트 C1~C6 모두 통과(값은 `../draft/49/README.md`). Console 오류 0. 캡처 `.scratch/art/drafts/hd/lamp/capture-49.png`.
   - 참고: 내 차례엔 광대가 원래 어둡게(그림 바꾸기)라 전등 아래서도 얼굴이 조금 어두움 — 그대로(Q7).
   - **남은 것(사용자):** 직접 보고 어둠 정도(0.35)·노란빛 세기(1.3)·빛줄기 진하기(알파 0.2) 확인.
+- 2026-11-18 보충(사용자 "조명 빛이 테이블 위에까지 쬐는 이펙트 필요. 테이블 빛이 모서리에서 끝나는게 어색함"): 빛줄기가 테이블 뒤(정렬 −1)라 테이블 모서리에서 끊김 → `tools/make_art_lamp.py pool`로 빛 웅덩이 `lamp-pool.png`(600×110, 반타원, 위 가운데 촘촘 → 가장자리 0), 테이블 위(정렬 11)·알파 0.2·조명 안 받음. GameScene `PlayArt/LampPool`(0, −10), TitleScene `TitleArt/LampPool`(93, −58). 시안 2(테이블 정중앙에서 퍼지는 온전한 타원, 타이틀은 납작한 타원)는 사용자가 "이전으로 되돌리기" → 시안 1로. 캡처 `.scratch/art/drafts/hd/lamp/pool-game.png`·`pool-title.png`. Console 오류 0.
+- 2026-11-18 다듬기(사용자 "광대의 머리가 조명 스프라이트와 닿아… 타이틀 빛 중간이 비어 어색… 점이 너무 빽빽해 눈이 아픔"): GameScene `Lamp` y 90→96·`LampBeam` y 79→85(전등 아래 끝 y 84, 광대 머리 꼭대기 약 80). 빛줄기 점 밀도 0.45→0.12를 0.22→0.05로, 웅덩이 0.42→0.22. 타이틀은 새 `lamp-beam-title.png`(274줄, y 79에서 테이블 모서리 y −58까지)로 바꿔 중간 끊김 없앰. 캡처 `.scratch/art/drafts/hd/lamp/fix-game.png`·`fix-title.png`.

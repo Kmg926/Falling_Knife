@@ -47,7 +47,8 @@
 | 30 | 그림(640 격자, PPU 2) `Sprites/Play/candle-flash-up.png`·`candle-flash-down.png`(큰 캔들 테두리 16×36, 기준점 아래·위), `baseline-flash.png`(기준선 밝은 줄 142×2) | `tools/make_art_monitor.py flash` (Claude 작성, 무작위 없음) | cream2 테두리 / gold2 줄 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
 | 31 | 그림(640 격자, PPU 2) `Sprites/Clown/clown-idle-b·thinking-b·dim-b.png`(숨쉬기 둘째 장 192×192), `eyes-blink·eyes-glance(-dim).png`(눈 덮개 4장) + Animator 클립 7개(`Animations/`, 그림 순서·시간만) | `tools/make_art_clown_hd.py idle` (Claude 작성, 무작위 없음) — #29 그림에서 턱 아래 1도트 내림, 눈 안을 눈꺼풀 색·감은 줄로 / 눈동자 5도트 아래로 | 원본 = #29 광대 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
 | 32 | 그림(640 격자, PPU 2) `Sprites/Clown/clown-*-u·b·c·d·e.png`(숨쉬기 192×192, b는 #31을 덮어씀, 3상태 × 5장) + Animator 클립 3개 갱신(그림 순서·눈 위치만) | `tools/make_art_clown_hd.py breath` (Claude 작성, 무작위 없음) — #29 그림 전체를 1·2·3도트, 턱 아래를 그 두 배(2·4·6도트) 내림 | 원본 = #29 광대 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
-| 33 | 그림(640 격자, PPU 2) `Sprites/Play/lamp.png`(매달린 전등 80×24: 줄·갓·안쪽 빛·전구), `lamp-beam.png`(빛줄기 440×236, gold2 점 바둑판 무늬) | `tools/make_art_lamp.py draft` (Claude 작성, 무작위 없음) | 없음(새로 그림) | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
+| 33 | 그림(640 격자, PPU 2) `Sprites/Play/lamp.png`(매달린 전등 80×24: 줄·갓·안쪽 빛·전구), `lamp-beam.png`(빛줄기 440×236, gold2 점 바둑판 무늬, 밀도 0.22→0.05로 낮춤), `lamp-beam-title.png`(타이틀용 440×274, 테이블 모서리까지) | `tools/make_art_lamp.py draft`·`pool` (Claude 작성, 무작위 없음) | 없음(새로 그림) | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
+| 34 | 그림(640 격자, PPU 2) `Sprites/Play/lamp-pool.png`(테이블 위 빛 웅덩이 600×110, gold2 점 바둑판 무늬 반타원, 밀도 0.22) | `tools/make_art_lamp.py pool` (Claude 작성, 무작위 없음) | 없음(새로 그림) — 시안 2(테이블 정중앙 온전한 타원)도 만들었으나 사용자가 시안 1로 되돌림 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
 
 ## 3. 게임 내 크레딧 문구
 
