@@ -4,12 +4,12 @@
 
 **Blocked by:** 62
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] 광대 폰 4칸 = 광대 아이템과 늘 같음, 아이콘을 알아볼 수 있음 (C4)
-- [ ] 광대 사용 칸 반짝임 → 빈칸, 광대 생각 시간 그대로 (C4)
-- [ ] 왼쪽 위 광대 아이템 아이콘 없음
-- [ ] 퇴행 T65~T68·T143, Console 오류 0 (C7)
+- [x] 광대 폰 4칸 = 광대 아이템과 늘 같음, 아이콘을 알아볼 수 있음 (C4)
+- [x] 광대 사용 칸 반짝임 → 빈칸, 광대 생각 시간 그대로 (C4)
+- [x] 왼쪽 위 광대 아이템 아이콘 없음
+- [ ] 퇴행 T65~T68·T143 (하네스 안 돌림), Console 오류 0 확인 (C7)
 
 Spec: `../spec.md` (제안 4·6) · Grilling: `../grilling.md` (Q1·Q7·Q9)
 
@@ -19,3 +19,7 @@ Spec: `../spec.md` (제안 4·6) · Grilling: `../grilling.md` (Q1·Q7·Q9)
 3. 왼쪽 위에는 아이콘 없음
 
 ## Comments
+- 2026-11-18 AI 구현(사용자 "커밋 후 64"): `GameManager`(광대 아이템 사용 신호 `ClownItemUseCount`·`ClownLastUsedSlot`), 새 `ClownPhoneView`, `ItemSlotsView`·`UIManager` 고침(Scripts 직접, 전 코드 `../draft/64/*.before.cs`). GameScene(MCP, 저장 전 dirty 아님 확인): `ClownItems` 지움, `ClownPhone`(90, −60) + 아이콘·반짝임 2×2. 설명 `../draft/64/README.md`.
+  - 구현 중 발견: 광대 폰이 왼쪽 결과 글(`ResultText`, 폭 106)의 오른쪽 끝을 가림 → 폭 84로 줄임. 대신 3줄짜리 결과(재장전·정지 건너뜀이 겹칠 때)는 아래로 넘쳐 광대 잔고 판에 걸칠 수 있음(측정: 최대 92 > 칸 74, 전에도 78로 조금 넘침).
+  - 확인: 광대 아이템 표시, 실제 광대 사용 뒤 목록 갱신, 반짝임(시간 느리게 + 신호 직접), Console 오류 0. 캡처 `../draft/64/c0~c2`. T65~T68·T143 하네스는 돌리지 않음.
+  - **남은 것(사용자):** 실제 플레이에서 반짝임이 눈에 띄는지, 결과 글 위치 괜찮은지.

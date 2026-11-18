@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;   // item-phone 64: IReadOnlyList
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -133,6 +134,10 @@ public class GameManager : MonoBehaviour
     // ── 한 판 기록 (Ticket 28 결과 화면). 보여 주기만 하고 판정에는 쓰지 않는다. ──
     public int MaxLeverage { get; private set; }
     public int ItemUses { get; private set; }          // 플레이어가 실제로 쓴 아이템 수
+
+    // ── item-phone 64: 광대 아이템 사용 신호(광대 폰이 그 칸을 반짝이는 데 씀). 판정에는 쓰지 않는다. ──
+    public int ClownItemUseCount { get; private set; }  // 광대가 아이템을 쓸 때마다 +1 → 화면은 "바뀌었나"만 본다
+    public int ClownLastUsedSlot { get; private set; }  // 방금 쓴 아이템이 쓰기 직전 몇 번째 칸이었나(0~3)
     public string LastDamage { get; private set; }     // 마지막 피해 한 줄 (파산 = 원인, 생존 = 결정타)
     float gameStartTime;
     float gameEndTime = -1f;                           // 끝나기 전에는 -1
@@ -603,9 +608,19 @@ public class GameManager : MonoBehaviour
         StartCoroutine(RevealRoutine(Selected));
     }
 
+    // item-phone 64: 목록에서 그 아이템이 처음 나오는 칸 번호(없으면 -1). RemoveItem도 처음 나오는 것을 지운다.
+    static int IndexOf(IReadOnlyList<ItemType> items, ItemType item)
+    {
+        for (int i = 0; i < items.Count; i++) if (items[i] == item) return i;
+        return -1;
+    }
+
     // 광대가 아이템 하나를 쓴다. 효과 함수는 플레이어와 같은 것을 쓴다.
     void UseClownItem(ItemType item)
     {
+        // item-phone 64: 지우기 전에 칸 번호를 기억해 두고 신호를 올린다(지우면 뒤 칸이 앞으로 당겨져서)
+        ClownLastUsedSlot = IndexOf(Clown.Items, item);
+        ClownItemUseCount++;
         Clown.RemoveItem(item);
 
         switch (item)

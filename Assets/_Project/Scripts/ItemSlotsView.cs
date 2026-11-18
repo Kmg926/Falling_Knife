@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-// 내 아이템 슬롯 4칸(아이콘·선택 테두리·클릭)과 광대 아이템 아이콘 4개. 클릭은 1~4 키와 같다.
-// item-phone 63: 4칸은 모니터에서 폰 화면(2×2)으로 옮겨 감. 광대 아이콘은 64에서 광대 폰으로.
+// 내 아이템 슬롯 4칸(아이콘·선택 테두리·클릭). 클릭은 1~4 키와 같다.
+// item-phone 63: 4칸은 모니터에서 폰 화면(2×2)으로 옮겨 감. item-phone 64: 광대 아이콘은 광대 폰으로.
 public class ItemSlotsView : MonoBehaviour
 {
     [SerializeField] GameManager game;
     [SerializeField] Button[] slotButtons;   // 4개
     [SerializeField] Image[] slotFrames;     // 4개 (선택이면 노란 테두리)
     [SerializeField] Image[] slotIcons;      // 4개
-    [SerializeField] Image[] clownIcons;     // 4개 (#34 광대 아이템도 보인다)
+    // item-phone 64: 광대 아이템 아이콘(왼쪽 위)은 광대 폰(ClownPhoneView)으로 옮겨 감
     [SerializeField] Sprite slotNormal;
     [SerializeField] Sprite slotSelected;
     // ItemType 순서대로: 차트 분석, 찌라시, 거래 정지, 복권
@@ -36,7 +36,7 @@ public class ItemSlotsView : MonoBehaviour
     public void Refresh(GameManager game)
     {
         ShowItems(slotIcons, game.Player.Items);
-        ShowItems(clownIcons, game.Clown.Items);
+        // item-phone 64: 광대 아이템은 ClownPhoneView가 보여 준다
 
         // item-phone 63: 칸이 폰 목록 안으로 옮겨 감 → 금색 틀 = Space를 누르면 열릴 칸(PhoneCursor)
         for (int i = 0; i < slotFrames.Length; i++)
