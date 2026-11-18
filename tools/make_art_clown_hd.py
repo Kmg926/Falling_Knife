@@ -354,6 +354,26 @@ def make_twitch(pal):
         comp = lit.copy()
         comp[ov >= 0] = ov[ov >= 0]
         comps.append(comp)
+    # 사용자(2026-11-19): "눈동자만 움직여야 하는데 흰 배경도 움직여서 파란 선을 넘어가" →
+    # 흔들 때 쓰는 그림을 나눔: 흰 바탕(제자리) / 눈동자만(흔들림) / 눈 안쪽 가리개(눈동자가 테두리 밖으로 안 나가게)
+    face = int(lit[FOREHEAD[1], FOREHEAD[0]])
+    inner_all = np.zeros(lit.shape, bool)
+    for inner in inners:
+        inner_all |= inner
+    fill = np.full(lit.shape, -1)
+    fill[inner_all] = face
+    mask = np.full(lit.shape, -1)
+    mask[inner_all] = names.index("cream2")       # 가리개 모양만 쓰임(색은 안 보임)
+    for nm, arr in (("eyes-twitch-fill", fill), ("eyes-twitch-mask", mask)):
+        p = OUT / f"{nm}.png"
+        write_png(p, to_canvas(arr, pal).rgba())
+        files.append(p)
+    pupil = names.index("bg0")
+    for k, ov in ovs.items():
+        only = np.where(ov == pupil, pupil, -1)
+        p = OUT / f"eyes-twitch-{k}-pupil.png"
+        write_png(p, to_canvas(only, pal).rgba())
+        files.append(p)
     # 비교 그림(얼굴만 4배): 평소 · 바늘 · 갈라짐 · 위로
     crop = (slice(40, 110), slice(56, 140))
     sheet = np.concatenate([to_canvas(c, pal).rgba()[crop] for c in comps], 1)

@@ -20,3 +20,10 @@
 
 ## 확인
 - 발작을 바로 시작시키고 시간을 느리게: `TwitchEyes` 켜짐, 그림 `eyes-twitch-up`, 자리 = Eyes 자리(y −2, 숨쉬기 중) + 흔들림. 캡처 `twitch-crop.png`(눈동자가 위로 쏠림). 컴파일 오류 0.
+
+## 고침: 눈동자만 흔들리게 (사용자 "눈동자만 움직여야 하는데 흰 배경도 움직여서 파란 선(눈 화장?)을 넘어가")
+- 원인: 발작 덮개 한 장에 눈 안쪽 흰 바탕 + 눈동자가 같이 있어 통째로 ±2도트 → 흰 바탕이 파란 테두리를 넘음.
+- 그림(`twitch` 명령이 더 만듦): `eyes-twitch-fill`(눈 안쪽 흰 바탕), `eyes-twitch-mask`(눈 안쪽 모양 가리개), `eyes-twitch-pin/cross/up-pupil`(눈동자만).
+- `ClownEyeTwitch.cs`: `fill`(SpriteRenderer)·`mask`(SpriteMask)는 숨쉬기 눈 자리에 그대로, `pupil`만 + 흔들림. 눈동자는 `VisibleInsideMask`라 가리개 밖(테두리 밖)으로 나간 부분은 안 보임. 전 코드 `ClownEyeTwitch.before-pupil.cs`.
+- TitleScene: `TwitchEyes` → `TwitchFill`(흰 바탕), 새 `TwitchMask`·`TwitchPupil`(정렬 Eyes+2).
+- 확인: 발작 + 흔들림 (+2, +2도트)을 강제로: Eyes·Fill·Mask 자리 같음(y −1.5), Pupil만 (1, −0.5). 캡처 `twitch-pupil-crop.png` — 파란 테두리 그대로, 넘친 눈동자는 가려짐.
