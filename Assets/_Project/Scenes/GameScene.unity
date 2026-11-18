@@ -3303,9 +3303,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0.10248447
-    y: 0.041931383
+    y: 0.04195804
     width: 0.7950311
-    height: 0.91486657
+    height: 0.9154482
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
@@ -4759,7 +4759,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 84d2f022da409b64caf5985bc025f19a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8a3ba22874bc5b04fa3b5ed5f8211cef, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4794,8 +4794,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 128, y: -96}
-  m_SizeDelta: {x: 64, y: 21}
+  m_AnchoredPosition: {x: 124, y: -96}
+  m_SizeDelta: {x: 72, y: 21}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &711952926
 GameObject:
@@ -5498,7 +5498,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: -4}
-  m_SizeDelta: {x: 64, y: 12}
+  m_SizeDelta: {x: 72, y: 12}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &836955335
 MonoBehaviour:
@@ -9424,6 +9424,8 @@ MonoBehaviour:
   dropSeconds: 0.25
   recoverSeconds: 1
   settleSeconds: 2
+  idleSpikeMin: 0
+  idleSpikeMax: 0
   redLine:
     serializedVersion: 2
     rgba: 4280559214
@@ -13468,6 +13470,9 @@ MonoBehaviour:
   root: {fileID: 484402758}
   resumeButton: {fileID: 1754263995}
   titleButton: {fileID: 710457583}
+  highlightText: {r: 0.8509804, g: 0.7058824, b: 0.3529412, a: 1}
+  normalText: {r: 0.6392157, g: 0.6039216, b: 0.54901963, a: 1}
+  dimButton: {r: 0.6, g: 0.6, b: 0.6, a: 1}
 --- !u!114 &1887937189
 MonoBehaviour:
   m_ObjectHideFlags: 0
