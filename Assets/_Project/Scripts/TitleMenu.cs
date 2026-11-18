@@ -10,7 +10,7 @@ using UnityEngine.UI;
 // 게임 판정과 상관없는 화면 이동이라 Input Actions를 거치지 않고 키보드·마우스를 직접 읽는다(전과 같음).
 public class TitleMenu : MonoBehaviour
 {
-    public enum Panel { None, Rules, Settings, Placeholder }
+    public enum Panel { None, Rules, Settings, Credits, Placeholder }
 
     [Header("메뉴 (위에서부터 시작·규칙·설정·크레딧·종료)")]
     [SerializeField] TMP_Text[] items;
@@ -53,6 +53,23 @@ public class TitleMenu : MonoBehaviour
     const int SettingRows = 4;   // 전체 소리 · 음악 · 화면 흔들림 · 전체화면
     public int SettingRow { get; private set; }
 
+    [Header("크레딧 (title-menu 55) — 공개 저장소라 본명·학번·학교는 쓰지 않음(GitHub 이름만)")]
+    [SerializeField, TextArea(8, 16)] string credits =
+        "Falling Knife\n" +
+        "만든 사람   Kmg926\n" +
+        "엔진   Unity 6.6 (URP 2D)\n" +
+        "글꼴   Galmuri11 — Lee Minseo (quiple)\n" +
+        "        SIL Open Font License 1.1\n" +
+        "        github.com/quiple/galmuri\n" +
+        "그림·효과음   Claude(Anthropic)가 작성한 코드로 생성,\n" +
+        "        고르기·고칠 곳 지시는 만든 사람\n" +
+        "코드 도움   Claude(Anthropic)\n" +
+        "배경음악   (정해지면 추가)\n" +
+        "비영리 학교 과제";
+    public int CreditPage { get; private set; } = 1;   // TMP 쪽 번호(1부터)
+    public int CreditPages => panelBody != null ? Mathf.Max(1, panelBody.textInfo.pageCount) : 1;
+    TextOverflowModes bodyOverflow;   // 크레딧만 쪽 나누기(Page) — 닫으면 원래 방식으로
+
     static readonly string[] PageTitles = { "규칙 1/3 · 목표와 턴", "규칙 2/3 · 레버리지와 아이템", "규칙 3/3 · 조작" };
     const int PageCount = 3;
 
@@ -68,6 +85,7 @@ public class TitleMenu : MonoBehaviour
         Canvas canvas = GetComponentInParent<Canvas>();
         uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
         if (panelRoot != null) panelRoot.SetActive(false);
+        if (panelBody != null) bodyOverflow = panelBody.overflowMode;
         for (int i = 0; i < itemTexts.Length && i < itemData.Length; i++)
             itemTexts[i].text = $"{itemData[i].displayName} — {itemData[i].description}";
         RefreshMenu();
@@ -82,6 +100,7 @@ public class TitleMenu : MonoBehaviour
         {
             if (kb != null && kb.escapeKey.wasPressedThisFrame) { Back(); return; }
             if (Open == Panel.Settings) { UpdateSettings(kb, mouse); return; }
+            if (Open == Panel.Credits) { UpdateCredits(kb, mouse); return; }
             if (Open == Panel.Rules)
             {
                 if (kb != null && (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame)) Turn(-1);
@@ -131,7 +150,7 @@ public class TitleMenu : MonoBehaviour
             case 0: SceneManager.LoadScene(gameSceneName); break;
             case 1: OpenRules(); break;
             case 2: OpenSettings(); break;
-            case 3: OpenPlaceholder("크레딧"); break;    // title-menu 55에서 크레딧 창으로
+            case 3: OpenCredits(); break;
             default: Quit(); break;
         }
     }
@@ -141,6 +160,8 @@ public class TitleMenu : MonoBehaviour
     {
         if (Open == Panel.None) return;
         Open = Panel.None;
+        panelBody.overflowMode = bodyOverflow;   // 크레딧의 쪽 나누기를 되돌림
+        panelBody.pageToDisplay = 1;
         panelRoot.SetActive(false);
     }
 
@@ -234,6 +255,50 @@ public class TitleMenu : MonoBehaviour
 
     // 소리 막대: ■ = 켜진 칸, □ = 꺼진 칸, 뒤에 %
     static string Bar(int step) => new string('■', step) + new string('□', GameSettings.Steps - step) + $" {step * 10}%";
+
+    // ---------- 크레딧 창 (title-menu 55) ----------
+    void UpdateCredits(Keyboard kb, Mouse mouse)
+    {
+        if (kb != null && (kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame)) TurnCredits(-1);
+        else if (kb != null && (kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame)) TurnCredits(1);
+        else if (mouse != null)
+        {
+            float wheel = mouse.scroll.ReadValue().y;
+            if (wheel < 0f) TurnCredits(1);
+            else if (wheel > 0f) TurnCredits(-1);
+            else if (mouse.leftButton.wasPressedThisFrame) TurnCredits(1);
+        }
+    }
+
+    // 크레딧 쪽 넘기기(처음·끝에서 멈춤). 글이 창보다 길면 TMP가 쪽을 나눠 줌(overflowMode = Page)
+    public void TurnCredits(int dir)
+    {
+        if (Open != Panel.Credits) return;
+        CreditPage = Mathf.Clamp(CreditPage + dir, 1, CreditPages);
+        panelBody.pageToDisplay = CreditPage;
+        ShowCreditsFooter();
+    }
+
+    void OpenCredits()
+    {
+        Open = Panel.Credits;
+        panelRoot.SetActive(true);
+        itemRows.SetActive(false);
+        panelTitle.text = "크레딧";
+        panelBody.overflowMode = TextOverflowModes.Page;
+        panelBody.text = credits;
+        CreditPage = 1;
+        panelBody.pageToDisplay = 1;
+        panelBody.ForceMeshUpdate();   // 몇 쪽인지 바로 알기 위해
+        ShowCreditsFooter();
+    }
+
+    void ShowCreditsFooter()
+    {
+        panelFooter.text = CreditPages > 1
+            ? $"↑↓ 넘기기 ({CreditPage}/{CreditPages})   Esc 닫기"
+            : "Esc 닫기";
+    }
 
     void OpenPlaceholder(string title)
     {

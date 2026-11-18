@@ -4,12 +4,12 @@
 
 **Blocked by:** 53
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] 크레딧 창 글, 위아래 넘김, Esc 닫기
-- [ ] 글 넘침 0, 본명·학번·학교·이메일 없음 (C5)
-- [ ] `asset-rights.md` 3장 초안·확인 줄 갱신
-- [ ] GameScene 퇴행·Console 오류 0 (C6)
+- [x] 크레딧 창 글, 위아래 넘김, Esc 닫기
+- [x] 글 넘침 0, 본명·학번·학교·이메일 없음 (C5)
+- [x] `asset-rights.md` 3장 초안·확인 줄 갱신
+- [x] GameScene 퇴행·Console 오류 0 (C6)
 
 Spec: `../spec.md` (제안 5·8) · Grilling: `../grilling.md` (Q6·Q7)
 
@@ -18,3 +18,7 @@ Spec: `../spec.md` (제안 5·8) · Grilling: `../grilling.md` (Q6·Q7)
 2. ↓로 끝까지 → Esc로 닫기
 
 ## Comments
+- 2026-11-18 AI 구현(사용자 "54 진행" 뒤 이어서 — 사용량 한도로 끊긴 뒤 "continue"): `TitleMenu.cs` 크레딧 창(Scripts 직접, 전 코드 `draft/55/TitleMenu.before.cs`). Scene 변경 없음(53의 창 재사용). 글이 창보다 길어 TMP 쪽 나누기로 2쪽(↑↓·휠·클릭).
+  - `docs/asset-rights.md` 3장을 게임 안 문구 전체로 고치고 "크레딧 표기" 확인 줄 체크.
+  - 테스트 C5·C6 통과(`../draft/55/README.md`), Console 오류 0. 캡처 `.scratch/art/drafts/title-menu/credits1.png`·`credits2.png`.
+  - **남은 것(사용자):** 배경음악이 정해지면 크레딧 문구(`TitleMenu`의 `credits` 칸)와 asset-rights에 추가.

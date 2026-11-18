@@ -49,14 +49,25 @@
 | 32 | 그림(640 격자, PPU 2) `Sprites/Clown/clown-*-u·b·c·d·e.png`(숨쉬기 192×192, b는 #31을 덮어씀, 3상태 × 5장) + Animator 클립 3개 갱신(그림 순서·눈 위치만) | `tools/make_art_clown_hd.py breath` (Claude 작성, 무작위 없음) — #29 그림 전체를 1·2·3도트, 턱 아래를 그 두 배(2·4·6도트) 내림 | 원본 = #29 광대 | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
 | 33 | 그림(640 격자, PPU 2) `Sprites/Play/lamp.png`(매달린 전등 80×24: 줄·갓·안쪽 빛·전구), `lamp-beam.png`(빛줄기 440×236, gold2 점 바둑판 무늬) | `tools/make_art_lamp.py draft` (Claude 작성, 무작위 없음) | 없음(새로 그림) | 없음(#42) | 외부 이미지 없음 | 2026-11-18 |
 
-## 3. 게임 내 크레딧 문구 (초안)
+## 3. 게임 내 크레딧 문구
+
+타이틀 메뉴 "크레딧" 창에 표시(title-menu Ticket 55, 2026-11-18). 문구는 `TitleMenu.cs`의 `credits` 칸. 공개 저장소라 만든 사람은 GitHub 이름만(본명·학번·학교 없음).
 
 ```
-Font: Galmuri by Lee Minseo (quiple) — SIL Open Font License 1.1
-      https://github.com/quiple/galmuri
+Falling Knife
+만든 사람   Kmg926
+엔진   Unity 6.6 (URP 2D)
+글꼴   Galmuri11 — Lee Minseo (quiple)
+        SIL Open Font License 1.1
+        github.com/quiple/galmuri
+그림·효과음   Claude(Anthropic)가 작성한 코드로 생성,
+        고르기·고칠 곳 지시는 만든 사람
+코드 도움   Claude(Anthropic)
+배경음악   (정해지면 추가)
+비영리 학교 과제
 ```
 
 ## 제출 전 확인
 - [ ] 빌드 폴더나 제출물에 Galmuri `LICENSE.txt` 동봉
-- [ ] 게임 안(타이틀 또는 결과 화면) 또는 README에 크레딧 문구 표기
+- [x] 게임 안(타이틀 또는 결과 화면) 또는 README에 크레딧 문구 표기 — 타이틀 "크레딧" 창(title-menu 55). 배경음악이 정해지면 문구에 추가
 - [ ] 2장의 AI 생성 에셋을 모두 기록했는지, 각 도구의 이용약관을 다시 확인
