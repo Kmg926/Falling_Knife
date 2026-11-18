@@ -12,6 +12,7 @@ ADR 0003에서 Comfy Cloud를 쓰지 않은 이유는 유료 구독이었다. 20
 | 4 | **우리 게임 스프라이트(방·테이블·전등·빛줄기)+조명 흉내**를 640 격자 정확히 2배로 합성 → img2img 0.35·0.5 | 처음으로 우리 그림과 같은 모양·색. 하지만 Comfy가 더한 것은 바닥 얼룩·작은 물건 정도, 오히려 깔끔함이 줄어듦 |
 
 재현: 워크플로 `tools/comfy/title-bg*.json`, 생성 `tools/comfy_generate.py`(같은 시드 → 같은 픽셀 확인, C2), 후처리 `tools/comfy_postprocess.py`(32색·640 격자, C3), 밑그림 `tools/comfy_sketch.py`. 비교 그림 `.scratch/art/drafts/comfy/post/sheet-v1~v4.png`.
+→ 2026-11-18 사용자 "comfy 관련해서 필요 없는 것들은 전부 제거"로 이 파일들은 저장소에서 지움. **커밋 `56c29a5`에 그대로 남아 있음**(예: `git show 56c29a5:tools/comfy_generate.py`, `git checkout 56c29a5 -- tools/comfy`). 이 문서·comfy-local Grilling·Spec·Ticket 50·51은 기록으로 남김.
 
 ## 왜 안 맞았나
 
@@ -27,5 +28,5 @@ ADR 0003에서 Comfy Cloud를 쓰지 않은 이유는 유료 구독이었다. 20
 ## Consequences
 
 - 그림·효과음은 계속 AI가 코드로(ADR 0003, gdd-changes #36~38·#42). gdd-changes #67은 "시험 → 채택 안 함"으로 닫는다.
-- 타이틀 배경은 코드로: 4차 밑그림(`tools/comfy/title-bg-ours.png`, 우리 스프라이트 합성)이 후보. 움직이는 차트 선도 게임 코드로(사용자 결정). 둘은 따로 할 일.
+- 타이틀 배경은 코드로: 4차 밑그림(우리 스프라이트 합성)이 후보였고, 실제로는 같은 스프라이트·조명을 TitleScene에 배치함(title-bg Ticket 52). 움직이는 차트 선도 게임 코드로(`ChartLinesView`, 사용자 결정).
 - 라이선스(SDXL CreativeML Open RAIL++-M, pixel-art-xl CreativeML Open RAIL-M, 고친 VAE MIT): 게임에 들어간 생성 그림이 없으므로 `asset-rights.md`에 넣을 줄 없음. 모델 파일은 저장소에 없음(재배포 의무 없음).
