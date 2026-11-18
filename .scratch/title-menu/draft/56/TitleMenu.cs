@@ -31,20 +31,22 @@ public class TitleMenu : MonoBehaviour
     // 규칙 글(title-menu 56 다듬기): 짧은 이름표 + 줄 맞춘 표. TMP 태그 — <color=#..> 색, <pos=n%> 그 자리에서 시작.
     // 색: 금색 = 이름표·키, 초록 ▲ = 상승, 빨강 ▼ = 하락·피해, 흐린 크림 = 표 머리
     [SerializeField, TextArea(6, 12)] string rulesPage1 =
-        "<color=#D9B45A>목표</color><pos=22%>상대 잔고를 먼저 0으로 (잔고 10, 3라운드)\n" +
-        "<color=#D9B45A>패배</color><pos=22%>내 잔고가 0이 되면\n" +
-        "<color=#D9B45A>내 차례</color><pos=22%>숨겨진 캔들 한 장에 매수 또는 매도\n" +
+        // 위 3줄은 문장으로, 핵심 단어(목표·패배·내 차례)만 금색 강조(사용자 요청). 한 줄에 들어가는 길이로 맞춤(폭 240)
+        // 문체는 '-다' 격식체(사용자 요청)
+        "<color=#D9B45A>목표</color>는 매 라운드 상대 잔고를 먼저 0으로 만드는 것이다.\n" +
+        "어느 라운드든 내 잔고가 먼저 0이 되면 <color=#D9B45A>패배</color>다.\n" +
+        "<color=#D9B45A>내 차례</color>에는 숨겨진 캔들 한 장에 매수 또는 매도를 한다.\n" +
         "<color=#A39A8C>행동<pos=22%>캔들<pos=44%>결과</color>\n" +
         "매수<pos=22%><color=#6CC27F>▲ 상승</color><pos=44%>레버리지 +1, <color=#D9B45A>한 번 더</color>\n" +
         "매수<pos=22%><color=#E46A58>▼ 하락</color><pos=44%><color=#E46A58>내 잔고 −(1+레버리지)</color>\n" +
         "매도<pos=22%><color=#E46A58>▼ 하락</color><pos=44%><color=#E46A58>상대 잔고 −(1+레버리지)</color>\n" +
         "매도<pos=22%><color=#6CC27F>▲ 상승</color><pos=44%>변화 없음";
     [SerializeField, TextArea(2, 4)] string rulesPage1Footer =
-        "\"한 번 더\"가 아니면 차례가 넘어가요.";
+        "\"한 번 더\"가 아니면 차례가 넘어간다.";
     [SerializeField, TextArea(2, 4)] string rulesPage2 =
         "<color=#D9B45A>레버리지</color>  0~3 공용 · 다음 피해 +1씩 · 피해 후 0";
     [SerializeField, TextArea(2, 4)] string rulesPage2Footer =
-        "아이템은 라운드 시작·덱을 다시 채울 때 2개씩 (최대 4개)";
+        "아이템은 라운드 시작·덱 재장전 때 2개씩 받는다 (최대 4개).";
     [SerializeField, TextArea(4, 8)] string rulesPage3 =
         "<color=#D9B45A>Space · 클릭</color><pos=36%>모니터 열기\n" +
         "<color=#D9B45A>← → · A D</color><pos=36%>매수·매도 고르기\n" +
@@ -310,7 +312,7 @@ public class TitleMenu : MonoBehaviour
         panelRoot.SetActive(true);
         itemRows.SetActive(false);
         panelTitle.text = title;
-        panelBody.text = "준비 중이에요.";
+        panelBody.text = "준비 중이다.";
         panelFooter.text = "Esc 닫기";
     }
 
