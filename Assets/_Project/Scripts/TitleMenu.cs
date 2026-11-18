@@ -28,24 +28,28 @@ public class TitleMenu : MonoBehaviour
     [SerializeField] TMP_Text[] itemTexts;
     [SerializeField] ItemData[] itemData;           // 아이템 글은 ItemData에서 읽음 → 게임 속 설명과 늘 같음
 
+    // 규칙 글(title-menu 56 다듬기): 짧은 이름표 + 줄 맞춘 표. TMP 태그 — <color=#..> 색, <pos=n%> 그 자리에서 시작.
+    // 색: 금색 = 이름표·키, 초록 ▲ = 상승, 빨강 ▼ = 하락·피해, 흐린 크림 = 표 머리
     [SerializeField, TextArea(6, 12)] string rulesPage1 =
-        "두 사람이 번갈아 숨겨진 캔들을 한 장씩 공개해요.\n" +
-        "3라운드, 잔고 10에서 시작. 상대 잔고를 먼저 0으로\n" +
-        "만들면 라운드 승리, 3라운드를 이기면 클리어.\n" +
-        "내 잔고가 0이 되면 패배.\n" +
-        "매수 + 상승 → 레버리지 +1, 한 번 더\n" +
-        "매수 + 하락 → 내 잔고 −(1+레버리지), 차례 넘김\n" +
-        "매도 + 하락 → 상대 잔고 −(1+레버리지), 차례 넘김\n" +
-        "매도 + 상승 → 변화 없음, 차례 넘김";
+        "<color=#D9B45A>목표</color><pos=22%>상대 잔고를 먼저 0으로 (잔고 10, 3라운드)\n" +
+        "<color=#D9B45A>패배</color><pos=22%>내 잔고가 0이 되면\n" +
+        "<color=#D9B45A>내 차례</color><pos=22%>숨겨진 캔들 한 장에 매수 또는 매도\n" +
+        "<color=#A39A8C>행동<pos=22%>캔들<pos=44%>결과</color>\n" +
+        "매수<pos=22%><color=#6CC27F>▲ 상승</color><pos=44%>레버리지 +1, <color=#D9B45A>한 번 더</color>\n" +
+        "매수<pos=22%><color=#E46A58>▼ 하락</color><pos=44%><color=#E46A58>내 잔고 −(1+레버리지)</color>\n" +
+        "매도<pos=22%><color=#E46A58>▼ 하락</color><pos=44%><color=#E46A58>상대 잔고 −(1+레버리지)</color>\n" +
+        "매도<pos=22%><color=#6CC27F>▲ 상승</color><pos=44%>변화 없음";
+    [SerializeField, TextArea(2, 4)] string rulesPage1Footer =
+        "\"한 번 더\"가 아니면 차례가 넘어가요.";
     [SerializeField, TextArea(2, 4)] string rulesPage2 =
-        "레버리지: 두 사람이 같이 쓰는 0~3. 피해가 나면 0.";
+        "<color=#D9B45A>레버리지</color>  0~3 공용 · 다음 피해 +1씩 · 피해 후 0";
     [SerializeField, TextArea(2, 4)] string rulesPage2Footer =
-        "라운드 시작·덱을 다시 채울 때 2개씩, 최대 4개.";
+        "아이템은 라운드 시작·덱을 다시 채울 때 2개씩 (최대 4개)";
     [SerializeField, TextArea(4, 8)] string rulesPage3 =
-        "Space·클릭   모니터 열기\n" +
-        "←→·A D      매수·매도 고르기\n" +
-        "1~4          아이템 확인\n" +
-        "Esc          뒤로·일시정지";
+        "<color=#D9B45A>Space · 클릭</color><pos=36%>모니터 열기\n" +
+        "<color=#D9B45A>← → · A D</color><pos=36%>매수·매도 고르기\n" +
+        "<color=#D9B45A>1 ~ 4</color><pos=36%>아이템 확인\n" +
+        "<color=#D9B45A>Esc</color><pos=36%>뒤로 · 일시정지";
 
     [Header("설정 (title-menu 54) — 소리를 바꾸면 클릭음으로 바로 들려 줌")]
     [SerializeField] AudioSource sfx;
@@ -87,7 +91,7 @@ public class TitleMenu : MonoBehaviour
         if (panelRoot != null) panelRoot.SetActive(false);
         if (panelBody != null) bodyOverflow = panelBody.overflowMode;
         for (int i = 0; i < itemTexts.Length && i < itemData.Length; i++)
-            itemTexts[i].text = $"{itemData[i].displayName} — {itemData[i].description}";
+            itemTexts[i].text = $"<color=#D9B45A>{itemData[i].displayName}</color>  {itemData[i].description}";   // 이름은 금색
         RefreshMenu();
     }
 
@@ -315,7 +319,7 @@ public class TitleMenu : MonoBehaviour
         panelTitle.text = PageTitles[Page];
         itemRows.SetActive(Page == 1);
         panelBody.text = Page == 0 ? rulesPage1 : Page == 1 ? rulesPage2 : rulesPage3;
-        string tail = Page == 1 ? rulesPage2Footer + "\n" : "";
+        string tail = Page == 0 ? rulesPage1Footer + "\n" : Page == 1 ? rulesPage2Footer + "\n" : "";
         panelFooter.text = tail + (Page < PageCount - 1 ? "←/→ 쪽 넘기기   Esc 닫기" : "← 앞 쪽   Esc 닫기");
     }
 
