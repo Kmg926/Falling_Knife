@@ -71,6 +71,7 @@
     - art-hd Ticket 35~(`BalanceView.cs`·`Tween.cs` …)도 같은 방식(art-hd Spec "코드는 AI가 작성", 사용자 채택)으로 AI가 `.scratch/art-hd/draft/NN`을 만들고 Scripts에 직접 쓴다 (2026-11-17~). 면담 대비: 각 draft README.
     - stock-screen Ticket 40~(`TerminalView.cs` …)도 같은 방식(stock-screen Grilling Q9 "코드는 AI가 작성", 사용자 채택)으로 AI가 `.scratch/stock-screen/draft/NN`을 만들고 Scripts에 직접 쓴다 (2026-11-17~). 면담 대비: 각 draft README.
     - monitor-trade Ticket 42~44·clown-idle Ticket 45~46·48·title-bg Ticket 52·title-menu Ticket 53~(`ClownView.cs`·`UIManager.cs`·`ChartLinesView.cs`·`TitleMenu.cs` …)도 같은 방식(monitor-trade·clown-idle Grilling Q7·title-bg Grilling Q8·title-menu Grilling Q9 "코드는 AI가 작성", 사용자 채택)으로 AI가 `.scratch/<기능>/draft/NN`을 만들고 Scripts에 직접 쓴다 (2026-11-17~). Animator·클립도 AI가 MCP로. 면담 대비: 각 draft README.
+    - item-phone(아이템 폴더폰·모니터 정리, 2026-11-18~)도 같은 방식(item-phone Grilling Q6 "코드는 AI가 작성", 사용자 채택)으로 AI가 `.scratch/item-phone/draft/NN`을 만들고 Scripts에 직접 쓴다. 면담 대비: 각 draft README.
   - **에셋 만드는 코드(`tools/`)는 AI가 쓴다** (2026-11-15, sound-feel Grilling Q3, ADR 0003). 게임 코드(`Assets/_Project/Scripts`)가 아니라 그림·소리를 만드는 도구라서 직접 타이핑 규칙과 구분한다. 결과물은 내가 보고 듣고 고른다. 그림(스프라이트)도 AI가 만들고 고친다 — 나는 시안을 고르고 고칠 곳을 말로 지시, 직접 픽셀 보정은 안 함(2026-11-16, gdd-changes #42). 배경음악은 AI로 만들지 않는다(내가 구함). 로컬 ComfyUI는 2026-11-18 시험했지만 채택 안 함(ADR 0004, comfy-local Ticket 50·51) — 그림은 계속 코드로.
 - **파일을 바꾸기 전에 무엇을 바꿀지 먼저 말하고 허락받는다.** 바꾼 뒤에는 다시 읽어서 실제로 반영됐는지 확인하고 결과를 알려준다. (확인 없이 "완료"라고 하지 않는다.)
 - **Unity 파일 안전 규칙**
