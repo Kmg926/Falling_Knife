@@ -337,12 +337,20 @@ public class TitleMenu : MonoBehaviour
         panelFooter.text = tail + (Page < PageCount - 1 ? "←/→ 쪽 넘기기   Esc 닫기" : "← 앞 쪽   Esc 닫기");
     }
 
+    float arrowWidth = -1f;   // "▶ " 폭(처음 한 번 잼)
+
     void RefreshMenu()
     {
+        // 사용자(2026-11-19): 메뉴 글자를 부제 "떨어지는"과 같은 왼쪽 선에 → 앞 빈칸 없이 글자만 두고,
+        // 고른 줄의 "▶ "는 그 폭만큼 왼쪽 여백(margin)을 음수로 줘서 선 바깥(왼쪽)에 매단다 → 글자 시작은 늘 같은 선
+        // 끝 빈칸은 폭을 잴 때 빠지므로 "▶ 가" − "가"로 잼(처음엔 "▶ "만 재서 고른 줄 글자가 조금 오른쪽에 남았음)
+        if (arrowWidth < 0f && items.Length > 0)
+            arrowWidth = items[0].GetPreferredValues("▶ 가").x - items[0].GetPreferredValues("가").x;
         for (int i = 0; i < items.Length; i++)
         {
             bool on = i == Selected;
-            items[i].text = (on ? "▶ " : "   ") + labels[i];
+            items[i].text = (on ? "▶ " : "") + labels[i];
+            items[i].margin = new Vector4(on ? -arrowWidth : 0f, 0f, 0f, 0f);
             items[i].color = on ? selectedColor : normalColor;
         }
     }
