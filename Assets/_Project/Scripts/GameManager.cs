@@ -219,6 +219,8 @@ public class GameManager : MonoBehaviour
             case ItemType.ChartAnalysis: return ClownLine.ChartDone;
             case ItemType.Rumor: return ClownLine.RumorDone;
             case ItemType.TradingHalt: return ClownLine.HaltDone;
+            case ItemType.Dividend:
+            case ItemType.Bailout: return ClownLine.Healed;   // heal-items 90: "숨 좀 돌리지."
         }
         switch (LastLotteryOutcome)
         {
@@ -236,6 +238,8 @@ public class GameManager : MonoBehaviour
             case ItemType.ChartAnalysis: return ClownLine.UseChart;
             case ItemType.Rumor: return ClownLine.UseRumor;
             case ItemType.TradingHalt: return ClownLine.UseHalt;
+            case ItemType.Dividend: return ClownLine.UseDividend;   // heal-items 90
+            case ItemType.Bailout: return ClownLine.UseBailout;
             default: return ClownLine.UseLottery;
         }
     }
@@ -827,7 +831,8 @@ public class GameManager : MonoBehaviour
 
         IsClownThinking = false;
         ClownMove move = ClownAI.Decide(deck.RemainingDown, deck.RemainingUp, Clown.Items,
-                                        Clown.Balance, Player.IsHalted, clownKnownNext, clownLotteryThreshold);
+                                        Clown.Balance, Player.IsHalted, clownKnownNext, clownLotteryThreshold,
+                                        Clown.StartingBalance);   // heal-items 90
 
         if (move.UsesItem)
         {
@@ -870,6 +875,8 @@ public class GameManager : MonoBehaviour
             case ItemType.Rumor: UseRumor(Clown); break;
             case ItemType.TradingHalt: UseTradingHalt(Clown); break;
             case ItemType.Lottery: UseLottery(Clown); break;
+            case ItemType.Dividend:
+            case ItemType.Bailout: UseHeal(Clown, item); break;   // heal-items 90
         }
     }
 

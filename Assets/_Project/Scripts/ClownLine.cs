@@ -24,4 +24,9 @@ public enum ClownLine
     LotteryLeverage, // 복권 레버리지 +1 "판을 키우지."
     LotteryItem,   // 복권 아이템 +1 "하나 더."
     LotteryNothing,  // 복권 꽝(이미 가득이라 못 받은 것도) "…꽝이군."
+
+    // ── heal-items 90: 회복 아이템 (뒤에 추가 — 앞 번호 그대로) ──
+    UseDividend,   // "배당금을 받지."
+    UseBailout,    // "구제 금융을 쓰지."
+    Healed,        // 회복 뒤 "숨 좀 돌리지."
 }

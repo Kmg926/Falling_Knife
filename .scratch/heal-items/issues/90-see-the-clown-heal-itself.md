@@ -4,10 +4,11 @@
 
 **Blocked by:** 89
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] C4 규칙 순서·선택·말풍선 · [ ] C6 퇴행·오류 0
+- [x] C4 규칙 순서·선택·말풍선 · [x] C6 퇴행·오류 0
 
 Spec: `../spec.md` (제안 6) · Grilling: `../grilling.md` (Q4)
 
 ## Comments
+- 2026-11-23 AI 구현(사용자 "커밋 후 90"): `ClownAI`(③-1 회복)·`GameManager`·`ClownLine`·`ClownSpeechView`(Scripts 직접), 대사 표 3줄 덧붙임(MCP). 판단 7가지·실제 흐름·퇴행 확인(`../draft/90/README.md`).

@@ -45,6 +45,10 @@ public class ClownSpeechView : MonoBehaviour
         new Entry { line = ClownLine.LotteryLeverage, text = "판을 키우지." },
         new Entry { line = ClownLine.LotteryItem,     text = "하나 더." },
         new Entry { line = ClownLine.LotteryNothing,  text = "…꽝이군." },
+        // heal-items 90
+        new Entry { line = ClownLine.UseDividend,     text = "<color=#D9B45A>배당금</color>을 받지." },
+        new Entry { line = ClownLine.UseBailout,      text = "<color=#D9B45A>구제 금융</color>을 쓰지." },
+        new Entry { line = ClownLine.Healed,          text = "숨 좀 돌리지." },
     };
 
     int lastCount = -1;

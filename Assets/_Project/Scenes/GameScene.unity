@@ -2367,6 +2367,12 @@ MonoBehaviour:
     text: "\uD558\uB098 \uB354."
   - line: 19
     text: "\u2026\uAF5D\uC774\uAD70."
+  - line: 20
+    text: "<color=#D9B45A>\uBC30\uB2F9\uAE08</color>\uC744 \uBC1B\uC9C0."
+  - line: 21
+    text: "<color=#D9B45A>\uAD6C\uC81C \uAE08\uC735</color>\uC744 \uC4F0\uC9C0."
+  - line: 22
+    text: "\uC228 \uC880 \uB3CC\uB9AC\uC9C0."
 --- !u!1 &248639873
 GameObject:
   m_ObjectHideFlags: 0
