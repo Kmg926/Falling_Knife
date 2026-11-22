@@ -4,11 +4,11 @@
 
 **Blocked by:** 77
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] C3 예·아니오 이동·선택(키·마우스), 각 대답 → 1라운드
-- [ ] C4 선택 중 Esc → 바로 시작
-- [ ] C7 퇴행, Console 오류 0
+- [x] C3 예·아니오 이동·선택(키·마우스), 각 대답 → 1라운드
+- [x] C4 선택 중 Esc → 바로 시작
+- [ ] C7 퇴행(아직 안 돌림), Console 오류 0(확인)
 
 Spec: `../spec.md` · Grilling: `../grilling.md` (Q3·Q8·Q9)
 
@@ -17,3 +17,7 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q3·Q8·Q9)
 2. 다시 시작 → 마우스로 `예` 클릭 → "좋아. 시작하자."
 
 ## Comments
+- 2026-11-22 AI 구현(사용자 "78 진행"): `IntroStory.cs`에 질문·선택·대답(Scripts 직접, 전 코드 `../draft/78/IntroStory.before.cs`), Scene(MCP) `DialogBox/Choices`(예·아니오).
+  - 시안 고침 1번: 아니오 고를 때 ▶가 "예"에 붙음 → 예 x 222 → 214.
+  - C3·C4 확인(`../draft/78/README.md`, 캡처 3장), Console 오류 0. 대답 줄 다음은 ▼ + 넘김(다른 대사와 같게) — Q8 "그 줄 끝나면"을 "넘기면"으로 구현.
+  - **남은 것(사용자):** 실제 키·마우스.

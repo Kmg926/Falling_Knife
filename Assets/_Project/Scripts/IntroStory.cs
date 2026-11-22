@@ -36,6 +36,16 @@ public class IntroStory : MonoBehaviour
         "떨어지는 칼은 잡는 게 아니야. 남한테 넘기는 거지.",
     };
 
+    [Header("준비됐나? 예/아니오 (intro-story 78, Grilling Q3·Q8·Q9)")]
+    [SerializeField] string question = "준비됐나?";
+    [SerializeField] GameObject choicesRoot;     // 대사 상자 오른쪽 아래 `예` `아니오`
+    [SerializeField] TMP_Text[] choiceTexts;     // 0 = 예, 1 = 아니오
+    [SerializeField] string[] choiceLabels = { "예", "아니오" };
+    // 무엇을 골라도 시작한다. 고른 뒤 광대의 대답만 다르다
+    [SerializeField] string[] replies = { "좋아. 시작하자.", "상관없어. 칼은 이미 떨어지고 있거든." };
+    [SerializeField] Color selectedColor = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2 (타이틀 메뉴와 같음)
+    [SerializeField] Color normalColor = new Color32(0xA3, 0x9A, 0x8C, 255);     // cream0
+
     [Header("시간 (Grilling Q4)")]
     [SerializeField] float fadeInSeconds = 1f;
     [SerializeField] float charSeconds = 0.03f;          // 한 글자 나오는 간격
@@ -47,6 +57,11 @@ public class IntroStory : MonoBehaviour
     bool skip;                     // Esc를 눌렀나(어디서든 바로 시작)
 
     public bool IsPlaying { get; private set; }
+    public bool IsChoosing { get; private set; }   // 예/아니오를 고르는 중
+    public int Choice { get; private set; }        // 지금 고른 칸(0 = 예)
+
+    Camera uiCamera;          // 마우스가 글자 위에 있는지 잴 때 쓰는 카메라(HUD는 Screen Space - Camera)
+    float arrowWidth = -1f;   // "▶ " 폭(타이틀 메뉴와 같은 방법으로 처음 한 번 잼)
 
     void Awake()
     {
@@ -77,6 +92,9 @@ public class IntroStory : MonoBehaviour
             g.alpha = 0f;
             hidden[i] = g;
         }
+        Canvas canvas = GetComponentInParent<Canvas>();
+        uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+        if (choicesRoot != null) choicesRoot.SetActive(false);
         root.SetActive(true);
         StartCoroutine(Play());
     }
@@ -111,12 +129,102 @@ public class IntroStory : MonoBehaviour
         foreach (string line in lines)
             yield return Say(line);
 
+        // ③ 78: "준비됐나?" → 예/아니오 → 광대 대답 한 줄 → 시작
+        if (choicesRoot != null && choiceTexts != null && choiceTexts.Length >= 2)
+        {
+            yield return Type(question);
+            yield return Choose();
+            yield return Say(replies[Choice]);
+        }
+
         Finish();
     }
 
-    // 한 줄을 한 글자씩 보이고, 다 나오면 ▼ + 넘김을 기다린다.
-    // 나오는 중에 누르면 그 줄 전체를 바로 보인다(Grilling Q4).
+    // 예/아니오 고르기. ←/→·A/D·↑/↓·W/S 이동, Space·Enter 결정, 마우스를 올리면 그 칸, 클릭하면 그 칸으로 결정.
+    // (Esc는 Update에서 언제든 Finish = "예"와 같이 바로 시작)
+    IEnumerator Choose()
+    {
+        IsChoosing = true;
+        Choice = 0;                    // 처음은 `예`(Q9)
+        nextMark.SetActive(false);     // 고르는 동안 ▼ 대신 선택지
+        choicesRoot.SetActive(true);
+        RefreshChoices();
+        yield return null;             // 질문 줄을 넘긴 누름이 바로 결정되지 않게 한 프레임 쉼
+
+        confirmed = false;
+        while (!confirmed)
+        {
+            Keyboard kb = Keyboard.current;
+            Mouse mouse = Mouse.current;
+
+            int hovered = -1;
+            if (mouse != null)
+            {
+                Vector2 pos = mouse.position.ReadValue();
+                for (int i = 0; i < choiceTexts.Length; i++)
+                    if (RectTransformUtility.RectangleContainsScreenPoint(choiceTexts[i].rectTransform, pos, uiCamera)) hovered = i;
+                // 마우스를 움직였을 때만 올린 칸을 고름(키보드로 고른 칸을 가만히 있는 마우스가 덮어쓰지 않게 — 타이틀 메뉴와 같음)
+                if (hovered >= 0 && hovered != Choice && mouse.delta.ReadValue().sqrMagnitude > 0f) Pick(hovered);
+                if (hovered >= 0 && mouse.leftButton.wasPressedThisFrame) { Pick(hovered); break; }
+            }
+            if (kb != null)
+            {
+                if (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame) Pick(0);
+                else if (kb.rightArrowKey.wasPressedThisFrame || kb.dKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame) Pick(1);
+                else if (kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame) break;
+            }
+            yield return null;
+        }
+
+        IsChoosing = false;
+        choicesRoot.SetActive(false);
+        audioManager.PlayClick();
+    }
+
+    // 그 칸으로 결정(테스트·다른 코드에서 부를 수 있게 — 타이틀 메뉴의 Choose와 같은 역할)
+    bool confirmed;
+    public void Confirm(int index)
+    {
+        if (!IsChoosing) return;
+        Pick(index);
+        confirmed = true;
+    }
+
+    // 칸 고르기(테스트에서도 부름). 바뀔 때만 클릭음
+    public void Pick(int index)
+    {
+        index = Mathf.Clamp(index, 0, choiceTexts.Length - 1);
+        if (index != Choice) audioManager.PlayClick(typeVolume);
+        Choice = index;
+        RefreshChoices();
+    }
+
+    // 고른 칸 = 금색 + ▶(▶는 글자 왼쪽 바깥에 걸침 — 타이틀 메뉴 76과 같은 방법), 나머지 = 흐린 크림
+    void RefreshChoices()
+    {
+        if (arrowWidth < 0f)
+            arrowWidth = choiceTexts[0].GetPreferredValues("▶ 가").x - choiceTexts[0].GetPreferredValues("가").x;
+        for (int i = 0; i < choiceTexts.Length; i++)
+        {
+            bool on = i == Choice;
+            choiceTexts[i].text = (on ? "▶ " : "") + choiceLabels[i];
+            choiceTexts[i].margin = new Vector4(on ? -arrowWidth : 0f, 0f, 0f, 0f);
+            choiceTexts[i].color = on ? selectedColor : normalColor;
+        }
+    }
+
+    // 한 줄을 보이고 ▼ + 넘김을 기다린다
     IEnumerator Say(string line)
+    {
+        yield return Type(line);
+        nextMark.SetActive(true);
+        while (!advance) yield return null;
+        advance = false;
+        audioManager.PlayClick();
+    }
+
+    // 한 줄을 한 글자씩 보인다. 나오는 중에 누르면 그 줄 전체를 바로 보인다(Grilling Q4).
+    IEnumerator Type(string line)
     {
         nextMark.SetActive(false);
         lineText.text = line;
@@ -133,12 +241,7 @@ public class IntroStory : MonoBehaviour
             yield return new WaitForSeconds(charSeconds);
         }
         lineText.maxVisibleCharacters = line.Length;
-
-        nextMark.SetActive(true);
         advance = false;                     // 줄 전체를 보이게 한 누름은 다음 줄로 넘기지 않음
-        while (!advance) yield return null;
-        advance = false;
-        audioManager.PlayClick();
     }
 
     // 끝(마지막 줄 다음이나 Esc): 숨긴 UI를 되돌리고 게임을 시작하게 한다
