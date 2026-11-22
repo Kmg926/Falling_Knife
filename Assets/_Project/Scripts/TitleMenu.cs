@@ -85,7 +85,7 @@ public class TitleMenu : MonoBehaviour
         "그림·효과음   Claude(Anthropic)가 작성한 코드로 생성\n" +
         "        선택·수정 지시: 만든 사람\n" +
         "코드 도움   Claude(Anthropic)\n" +
-        "배경음악   (정해지면 추가)\n" +
+        "배경음악   xjj9 — prod. by cryalxt\n" +
         "비영리 학교 과제";
     public int CreditPage { get; private set; } = 1;   // TMP 쪽 번호(1부터)
     public int CreditPages => panelBody != null ? Mathf.Max(1, panelBody.textInfo.pageCount) : 1;

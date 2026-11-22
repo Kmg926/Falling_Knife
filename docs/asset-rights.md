@@ -8,6 +8,8 @@
 | # | 에셋 | 버전 | 제작자 | 출처 | 라이선스 | 받은 날 | 사용 파일 | 의무 | 확인 |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | Galmuri (폰트) | v2.40.4 | Lee Minseo (quiple) | https://github.com/quiple/galmuri/releases/tag/v2.40.4 | SIL OFL 1.1 | 2026-11-02 | `Assets/_Project/Fonts/Galmuri/`에 `Galmuri11.ttf`·`Galmuri11-Bold.ttf`·`LICENSE.txt` + TMP 에셋 `Galmuri11 SDF`만 보관 (나머지 37개는 2026-11-02 삭제, 필요하면 출처에서 다시 받음) | 라이선스 파일 동봉, 크레딧 표기, 폰트 단독 판매 금지 | LICENSE.txt 확인 ✅ |
+| 2 | 배경음악 "xjj9" (원래 이름 `[free] dark techno x underground x experimental type beat - xjj9 - cryalxt.mp3`, 163초, 320kbps) | — | cryalxt | 사용자가 받음(링크 미기록) | 제작자 문구 원문: "free for non profit, must credit prod. by cryalxt / contact me on instagram for exclusive or leasing rights" → **비영리 무료, 크레딧 필수** | 2026-11-22 | `Assets/_Project/Audio/Music/xjj9-intro.wav`(0~62.928초)·`xjj9-loop.wav`(62.928~151.544초). **가공(AI, 사용자 지시):** 자르기 + 전체 크기 −3.4dB(원본 디코딩 시 1.0 넘는 샘플 11만 개 → 찌그러짐 방지), 151.544초 뒤 11.5초는 안 씀. 원본·WAV는 **Git에서 제외**(`.gitignore`, 공개 저장소 재배포 허락 없음, `.meta`만 올림) | 크레딧 "prod. by cryalxt" 표기(타이틀 크레딧), 비영리만 | 문구 확인 ✅ (이 게임 = 비영리 과제) |
+| — | 배경음악 후보 "pixel 155 bpm" (prod. plucksunset) | — | plucksunset | 사용자가 받음 | 문구: "FREE FOR NON-PROFIT USE (ONLY SC and YT), MUST CREDIT ME" → SoundCloud·YouTube 업로드에만 무료로 읽힘 | 2026-11-22 | **쓰지 않음**(게임 빌드·저장소는 허락 범위 밖일 수 있음, 사용자 결정 2026-11-22). 제작자 허락을 받으면 다시 판단 | — | 쓰지 않음 |
 
 ## 2. AI 생성 에셋
 
@@ -68,11 +70,11 @@ Falling Knife
 그림·효과음   Claude(Anthropic)가 작성한 코드로 생성,
         고르기·고칠 곳 지시는 만든 사람
 코드 도움   Claude(Anthropic)
-배경음악   (정해지면 추가)
+배경음악   xjj9 — prod. by cryalxt
 비영리 학교 과제
 ```
 
 ## 제출 전 확인
 - [ ] 빌드 폴더나 제출물에 Galmuri `LICENSE.txt` 동봉
-- [x] 게임 안(타이틀 또는 결과 화면) 또는 README에 크레딧 문구 표기 — 타이틀 "크레딧" 창(title-menu 55). 배경음악이 정해지면 문구에 추가
+- [x] 게임 안(타이틀 또는 결과 화면) 또는 README에 크레딧 문구 표기 — 타이틀 "크레딧" 창(title-menu 55). 배경음악 "xjj9 — prod. by cryalxt" 추가(2026-11-22)
 - [ ] 2장의 AI 생성 에셋을 모두 기록했는지, 각 도구의 이용약관을 다시 확인
