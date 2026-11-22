@@ -11,6 +11,7 @@
     python tools/make_art.py revamp31  # UI 개편 31: 캔들 뒷면
     python tools/make_art.py revamp32  # UI 개편 32: 아이템 회전 그림 4x8 + 그림자
     python tools/make_art.py clowntell # clown-tell 80: 말풍선 꼬리
+    python tools/make_art.py skipkey   # intro-story 86: 건너뛰기 키캡 SPACE(평소·찬 것)
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -978,8 +979,64 @@ def make_clowntell(pal):
     check([p], pal)
 
 
+# intro-story 86: 건너뛰기 키캡 "SPACE"(3×5 글자) — 평소 그림 + 금색으로 찬 그림(게임에서 왼→오 채움으로 겹침)
+LETTERS35 = {
+    "S": ["111", "100", "111", "001", "111"], "P": ["111", "101", "111", "100", "100"],
+    "A": ["010", "101", "111", "101", "101"], "C": ["111", "100", "100", "100", "111"],
+    "E": ["111", "100", "111", "100", "111"],
+}
+
+
+def skip_key(names, filled):
+    """27×11 키캡: 윗면(0~8줄) + 앞 옆면(9~10줄, 눌리는 키 두께). 모서리 1칸 깎음.
+    평소: 테두리 gray0·윗면 bg0·위 빛 gray0 한 줄·글자 cream / 찬 것: 윗면 gold1·위 빛 gold2·글자 bg00·옆면 goldD."""
+    w, h = 27, 11
+    idx, mask = sprite(w, h)
+    put(idx, mask, slice(0, 9), slice(None), "gold1" if filled else "bg0", names)
+    put(idx, mask, slice(9, 11), slice(None), "goldD" if filled else "gray0", names)     # 앞 옆면
+    put(idx, mask, 10, slice(None), "gold0" if filled else "bg00", names)
+    put(idx, mask, 1, slice(1, w - 1), "gold2" if filled else "gray0", names)            # 위 빛
+    for ys, xs in ((0, slice(None)), (slice(0, 9), 0), (slice(0, 9), w - 1)):           # 테두리
+        put(idx, mask, ys, xs, "gold2" if filled else "gray0", names)
+    for y, x in ((0, 0), (0, w - 1), (10, 0), (10, w - 1)):                              # 모서리 깎기
+        mask[y, x] = False
+    x = 4
+    for ch in "SPACE":
+        for r, row in enumerate(LETTERS35[ch]):
+            for c, v in enumerate(row):
+                if v == "1":
+                    put(idx, mask, 3 + r, x + c, "bg00" if filled else "cream", names)
+        x += 4
+    return idx, mask
+
+
+def make_skipkey(pal):
+    names = list(pal.keys())
+    files = []
+    for name, filled in (("skip-key", False), ("skip-key-fill", True)):
+        idx, mask = skip_key(names, filled)
+        p = DRAFTS / f"{name}.png"
+        write_png(p, to_rgba(idx, mask, pal))
+        files.append(p)
+    # 미리보기(8배): 평소 / 반쯤 참 / 다 참
+    a, b = [to_rgba(*skip_key(names, f), pal) for f in (False, True)]
+    half = a.copy()
+    half[:, :14] = b[:, :14]
+    gap = np.zeros((11, 3, 4), np.uint8)
+    pv = np.concatenate([a, gap, half, gap, b], 1)
+    bgc = np.zeros_like(pv); bgc[..., :3] = pal["bg0"]; bgc[..., 3] = 255
+    al = pv[..., 3:4] / 255.0
+    bgc[..., :3] = (pv[..., :3] * al + bgc[..., :3] * (1 - al)).astype(np.uint8)
+    write_png(DRAFTS / "skip-key-preview-x8.png", bgc.repeat(8, 0).repeat(8, 1))
+    print("팔레트 검사:")
+    check(files, pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
+    if len(sys.argv) > 1 and sys.argv[1] == "skipkey":
+        make_skipkey(palette)
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "clowntell":
         make_clowntell(palette)
         sys.exit(0)

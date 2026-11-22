@@ -4,11 +4,11 @@
 
 **Blocked by:** 없음 (clown-phone Spec 제안 4·5)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] C4 길게·짧게·차다 뗌·Enter·클릭·Esc
-- [ ] C5 선택 중 짧게·길게
-- [ ] C6 퇴행, Console 오류 0
+- [x] C4 길게·짧게·차다 뗌·Enter·클릭·Esc
+- [x] C5 선택 중 짧게·길게
+- [x] C6 퇴행, Console 오류 0
 
 Spec: `../../clown-phone/spec.md` (제안 4·5) · Grilling: `../../clown-phone/grilling.md` (Q4~Q6)
 
@@ -17,3 +17,7 @@ Spec: `../../clown-phone/spec.md` (제안 4·5) · Grilling: `../../clown-phone/
 2. Space 짧게 → 다음 줄 / Space 꾹 → 키가 금색으로 차고 1라운드
 
 ## Comments
+- 2026-11-22 AI 구현(사용자 "커밋 후 86"): 키캡 그림 `tools/make_art.py skipkey`, `IntroStory.cs`(길게 누르기·표시·`simulateHold` 테스트 입구, Scripts 직접), Scene(MCP) `SkipHint`.
+  - 시안 고침: 키캡 1배는 글자보다 작음 → 2배, 번쩍임은 색 곱하기(1 넘김 무효) → 깜빡임.
+  - ①~④ 확인, 퇴행 T65~T68·T143 통과, Console 오류 0(`../draft/86/README.md`).
+  - **남은 것(사용자):** 실제 Space 느낌.

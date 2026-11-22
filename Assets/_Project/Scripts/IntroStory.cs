@@ -48,6 +48,15 @@ public class IntroStory : MonoBehaviour
     [SerializeField] Color selectedColor = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2 (타이틀 메뉴와 같음)
     [SerializeField] Color normalColor = new Color32(0xA3, 0x9A, 0x8C, 255);     // cream0
 
+    [Header("Space 길게 눌러 건너뛰기 (intro-story 86, clown-phone Grilling Q4~Q6)")]
+    [SerializeField] CanvasGroup skipHint;               // 오른쪽 아래 키캡 + "길게 눌러 건너뛰기"
+    [SerializeField] Image skipFill;                     // 키캡 위에 겹친 금색 그림(Filled, 왼→오)
+    [SerializeField] float holdSeconds = 1f;             // 이만큼 누르면 건너뛰기
+    [SerializeField] float tapSeconds = 0.25f;           // 이보다 짧게 누르고 떼면 = 다음 줄
+    [SerializeField] float drainSeconds = 0.3f;          // 차다 떼면 이 시간에 비워짐(가득 → 0 기준)
+    [SerializeField, Range(0f, 1f)] float idleAlpha = 0.4f;   // 평소 흐리게
+    [SerializeField] float flashSeconds = 0.1f;          // 다 찼을 때 번쩍인 뒤 건너뜀
+
     [Header("시간 (Grilling Q4)")]
     [SerializeField] float fadeInSeconds = 1f;
     [SerializeField] float charSeconds = 0.03f;          // 한 글자 나오는 간격
@@ -56,8 +65,15 @@ public class IntroStory : MonoBehaviour
 
     CanvasGroup[] hidden;          // hideDuringIntro를 투명하게 만드는 칸(실행 중에만 붙임 — Scene은 안 바뀜)
     Renderer[] hiddenArt;          // 82: hideArtDuringIntro 안의 그림들(자식 포함)
-    bool advance;                  // 이번 프레임에 Space·Enter·클릭을 눌렀나
+    bool advance;                  // 이번 프레임에 다음 줄로 넘기라는 입력이 있었나(Enter·클릭 누름, Space 짧게 뗌)
     bool skip;                     // Esc를 눌렀나(어디서든 바로 시작)
+    // 86: Space 길게 누르기
+    bool spaceTap;                 // 이번 프레임에 Space를 짧게(tapSeconds 안) 눌렀다 뗐나 — 선택지 결정에도 씀
+    float holdTime;                // 지금 Space를 누르고 있는 시간
+    float progress;                // 키캡 채움 0~1(누르는 동안 오르고, 떼면 빠르게 내려감)
+    float flashLeft = -1f;         // 다 찬 뒤 번쩍임 남은 시간(-1 = 아님)
+    // 테스트용: 켜 두면 Space를 누르고 있는 것으로 침(Unity 창에 포커스가 없으면 MCP 키 입력이 안 들어가서). 저장되지 않음
+    [System.NonSerialized] public bool simulateHold;
 
     public bool IsPlaying { get; private set; }
     public bool IsChoosing { get; private set; }   // 예/아니오를 고르는 중
@@ -105,21 +121,68 @@ public class IntroStory : MonoBehaviour
         Canvas canvas = GetComponentInParent<Canvas>();
         uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
         if (choicesRoot != null) choicesRoot.SetActive(false);
+        ShowSkip();
         root.SetActive(true);
         StartCoroutine(Play());
     }
 
     // 입력은 Update에서 받아 두고, 연출(코루틴)이 그 값을 읽는다
+    // (코루틴은 Update 뒤에 이어 돌아서, 여기서 켠 spaceTap을 같은 프레임에 읽고 다음 Update에서 꺼진다)
     void Update()
     {
         if (!IsPlaying) return;
         Keyboard kb = Keyboard.current;
         Mouse mouse = Mouse.current;
+        spaceTap = false;
         if (kb != null && kb.escapeKey.wasPressedThisFrame) skip = true;
-        if ((kb != null && (kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame)) ||
-            (mouse != null && mouse.leftButton.wasPressedThisFrame))
+        // 86: Enter·클릭은 누르는 순간 다음 줄(전과 같음). Space는 아래 UpdateHold에서 "뗄 때" 결정
+        if ((kb != null && kb.enterKey.wasPressedThisFrame) || (mouse != null && mouse.leftButton.wasPressedThisFrame))
             advance = true;
+        UpdateHold(kb);
         if (skip) Finish();
+    }
+
+    // 86: Space 길게 누르기. 누르는 동안 holdTime·채움이 오르고, holdSeconds에 닿으면 번쩍 → 건너뛰기.
+    // holdSeconds 전에 떼면: tapSeconds 안이면 "짧게 누름"(다음 줄·선택 결정), 아니면 채움만 drainSeconds에 걸쳐 비움.
+    void UpdateHold(Keyboard kb)
+    {
+        float dt = Time.unscaledDeltaTime;
+        if (flashLeft >= 0f)                                 // 다 찼음 → 금색이 0.05초씩 꺼졌다 켜지며 번쩍인 뒤 건너뜀
+        {
+            flashLeft -= dt;
+            if (skipFill != null) skipFill.enabled = Mathf.FloorToInt(flashLeft / 0.05f) % 2 == 0;
+            if (flashLeft < 0f) skip = true;
+            return;
+        }
+        bool held = (kb != null && kb.spaceKey.isPressed) || simulateHold;
+        if (held)
+        {
+            holdTime += dt;
+            progress = Mathf.Max(progress, holdTime / holdSeconds);   // 비워지는 중에 다시 눌러도 그 자리부터
+            if (progress >= 1f)
+            {
+                progress = 1f;
+                flashLeft = flashSeconds;
+            }
+        }
+        else
+        {
+            if (holdTime > 0f && holdTime < tapSeconds)      // 방금 짧게 눌렀다 뗌
+            {
+                spaceTap = true;
+                advance = true;
+            }
+            holdTime = 0f;
+            progress = Mathf.Max(0f, progress - dt / drainSeconds);
+        }
+        ShowSkip();
+    }
+
+    void ShowSkip()
+    {
+        if (skipHint == null) return;
+        skipHint.alpha = progress > 0f ? 1f : idleAlpha;     // 누르는 동안(또는 비워지는 동안) 밝게
+        if (skipFill != null) skipFill.fillAmount = progress;
     }
 
     IEnumerator Play()
@@ -181,7 +244,7 @@ public class IntroStory : MonoBehaviour
             {
                 if (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame) Pick(0);
                 else if (kb.rightArrowKey.wasPressedThisFrame || kb.dKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame) Pick(1);
-                else if (kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame) break;
+                else if (spaceTap || kb.enterKey.wasPressedThisFrame) break;   // 86: Space는 짧게 눌렀다 뗄 때 결정(길게는 건너뛰기)
             }
             yield return null;
         }

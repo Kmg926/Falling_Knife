@@ -7,7 +7,7 @@
 **Status:** done
 
 - [x] C3 광대 폰일 때만 바뀜, 글리치, 글자 가림 0
-- [ ] C6 퇴행(86 뒤 한 번에), Console 오류 0(확인)
+- [x] C6 퇴행 T65~T68·T143(86 뒤 통과), Console 오류 0
 
 Spec: `../spec.md` (제안 3) · Grilling: `../grilling.md` (Q3)
 
