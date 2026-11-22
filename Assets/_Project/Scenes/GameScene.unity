@@ -2545,6 +2545,30 @@ MonoBehaviour:
     text: "<color=#D9B45A>\uBCF5\uAD8C</color>\uC744 \uC4F0\uC9C0."
   - line: 7
     text: "\u2026\uD55C \uBC88 \uC26C\uC9C0."
+  - line: 8
+    text: "\uD55C \uBC88 \uB354."
+  - line: 9
+    text: "\u2026\uCE6B."
+  - line: 10
+    text: "\uC798 \uBC1B\uC558\uC9C0?"
+  - line: 11
+    text: "\uD765. \uC544\uBB34 \uC77C\uB3C4 \uC5C6\uAD70."
+  - line: 12
+    text: "\uD558\uD558."
+  - line: 13
+    text: "\u2026\uADF8\uB807\uAD70."
+  - line: 14
+    text: "\uB2E4\uB4E4 \uBD24\uC9C0?"
+  - line: 15
+    text: "\uB10C \uD55C \uBC88 \uC26C\uC5B4."
+  - line: 16
+    text: "\uC6B4\uC774 \uC88B\uAD70."
+  - line: 17
+    text: "\uD310\uC744 \uD0A4\uC6B0\uC9C0."
+  - line: 18
+    text: "\uD558\uB098 \uB354."
+  - line: 19
+    text: "\u2026\uAF5D\uC774\uAD70."
 --- !u!1 &248639873
 GameObject:
   m_ObjectHideFlags: 0
@@ -12574,8 +12598,8 @@ RectTransform:
   - {fileID: 1668321259}
   - {fileID: 942534231}
   - {fileID: 1221278562}
-  - {fileID: 248011809}
   - {fileID: 545351614}
+  - {fileID: 248011809}
   - {fileID: 803721163}
   - {fileID: 71194940}
   - {fileID: 1171003547}
@@ -16183,7 +16207,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1903183420
 RectTransform:
   m_ObjectHideFlags: 0
@@ -16735,7 +16759,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4291617002
   m_fontColor: {r: 0.91764706, g: 0.8784314, b: 0.8, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -16748,7 +16772,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -18507,6 +18531,7 @@ MonoBehaviour:
   fixedItems: 
   useFixedLottery: 0
   fixedLottery: 3
+  clownLaterSeconds: 1.2
 --- !u!4 &2083682520
 Transform:
   m_ObjectHideFlags: 0

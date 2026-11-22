@@ -10,4 +10,18 @@ public enum ClownLine
     UseHalt,       // "거래 정지를 쓰지."
     UseLottery,    // "복권을 쓰지."
     Halted,        // 광대가 거래 정지로 차례를 건너뜀 "…한 번 쉬지." (Spec 제안 3)
+
+    // ── clown-tell 81: 결과 대사 (Grilling Q6·Q8) ──
+    OneMore,       // 광대 매수 + 상승 "한 번 더."
+    Hurt,          // 광대가 맞음(광대 매수+하락, 내 매도+하락) "…칫."
+    Gotcha,        // 광대 매도 + 하락 = 내가 맞음 "잘 받았지?"
+    NothingHappened, // 광대 매도 + 상승 "흥. 아무 일도 없군."
+    Laugh,         // 내 매수 + 하락 = 내가 맞음 "하하."
+    ChartDone,     // 차트 분석 뒤 "…그렇군."
+    RumorDone,     // 찌라시 뒤 "다들 봤지?"
+    HaltDone,      // 거래 정지 뒤 "넌 한 번 쉬어."
+    LotteryHeal,   // 복권 잔고 +1 "운이 좋군."
+    LotteryLeverage, // 복권 레버리지 +1 "판을 키우지."
+    LotteryItem,   // 복권 아이템 +1 "하나 더."
+    LotteryNothing,  // 복권 꽝(이미 가득이라 못 받은 것도) "…꽝이군."
 }

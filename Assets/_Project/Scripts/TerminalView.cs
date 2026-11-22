@@ -64,8 +64,9 @@ public class TerminalView : MonoBehaviour
         ShowCandle(knownCandle, game.PlayerKnownNext, 1f, upSprite, downSprite);
         questionMark.enabled = !game.PlayerKnownNext.HasValue;
 
-        // 공개 중에는 비우고, 끝나면 결과
-        resultText.text = game.IsRevealing ? "" : game.LastResult;
+        // clown-tell 81: 결과 글자(9시 방향)는 쓰지 않는다 — 결과는 피해 깜빡임·잔고·불꽃·캔들 색과 광대 말풍선으로 보인다(Grilling Q3).
+        // 글자 오브젝트는 Scene에서 꺼 두고, 혹시 켜져 있어도 비워 둔다.
+        if (resultText != null) resultText.text = "";
     }
 
     // 캔들을 기준선에서 한 줄씩 seconds 동안 키운다(상승은 위로, 하락은 아래로 — 그림의 기준점이 정함).

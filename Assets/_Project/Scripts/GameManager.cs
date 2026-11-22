@@ -168,17 +168,65 @@ public class GameManager : MonoBehaviour
     public ClownLine LastClownLine { get; private set; }
     public int ClownLineCount { get; private set; }     // 말할 때마다 +1 → 화면은 "바뀌었나"만 본다(같은 대사를 두 번 해도 다시 뜸)
 
+    int clownLineFrame = -1;          // clown-tell 81: 마지막으로 말한 프레임(같은 순간에 두 대사가 겹치는지 보려고)
+    Coroutine laterLine;              // 잠시 뒤에 할 대사(겹칠 때 미뤄 둔 "…한 번 쉬지.")
+    [SerializeField] float clownLaterSeconds = 1.2f;   // 미룬 대사를 앞 대사가 보인 뒤 이만큼 뒤에
+
     void ClownSay(ClownLine line)
     {
         LastClownLine = line;
         ClownLineCount++;
+        clownLineFrame = Time.frameCount;
     }
 
-    // 내가 행동하면(모니터·폰 열기, 1~4) 말풍선을 바로 닫는다(Grilling Q9)
+    // 81: 같은 순간에 이미 결과 대사를 했으면(예: "…칫." 뒤 바로 광대가 쉬는 차례) 덮어쓰지 않고 잠시 뒤에 말한다
+    void ClownSayAfterCurrent(ClownLine line)
+    {
+        if (clownLineFrame != Time.frameCount)
+        {
+            ClownSay(line);
+            return;
+        }
+        if (laterLine != null) StopCoroutine(laterLine);
+        laterLine = StartCoroutine(SayLater(line));
+    }
+
+    IEnumerator SayLater(ClownLine line)
+    {
+        yield return new WaitForSeconds(clownLaterSeconds);
+        laterLine = null;
+        ClownSay(line);
+        ui.Refresh(this);
+    }
+
+    // 내가 행동하면(모니터·폰 열기, 1~4) 말풍선을 바로 닫는다(Grilling Q9). 미뤄 둔 대사도 취소
     void ClownSilence()
     {
+        if (laterLine != null)
+        {
+            StopCoroutine(laterLine);
+            laterLine = null;
+        }
         if (LastClownLine == ClownLine.None) return;
         ClownSay(ClownLine.None);
+    }
+
+    // 81: 아이템을 쓴 뒤의 결과 대사. 복권은 실제로 된 것으로
+    ClownLine ItemResultLine(ItemType item)
+    {
+        switch (item)
+        {
+            case ItemType.ChartAnalysis: return ClownLine.ChartDone;
+            case ItemType.Rumor: return ClownLine.RumorDone;
+            case ItemType.TradingHalt: return ClownLine.HaltDone;
+        }
+        switch (LastLotteryOutcome)
+        {
+            case LotteryPrize.Heal: return ClownLine.LotteryHeal;
+            case LotteryPrize.Leverage: return ClownLine.LotteryLeverage;
+            case LotteryPrize.Item: return ClownLine.LotteryItem;
+            default: return ClownLine.LotteryNothing;
+        }
     }
 
     static ClownLine ItemLine(ItemType item)
@@ -559,16 +607,21 @@ public class GameManager : MonoBehaviour
         LotteryPrize prize = useFixedLottery ? fixedLottery : (LotteryPrize)Random.Range(0, 4);
         string result;
 
+        LastLotteryOutcome = LotteryPrize.Nothing;   // clown-tell 81: 실제로 된 것(적용 못 하면 꽝)
+
         switch (prize)
         {
             case LotteryPrize.Heal:
-                result = user.Heal(1) ? "잔고 +1" : "꽝 (잔고가 이미 가득)";
+                bool healed = user.Heal(1);
+                if (healed) LastLotteryOutcome = LotteryPrize.Heal;
+                result = healed ? "잔고 +1" : "꽝 (잔고가 이미 가득)";
                 break;
             case LotteryPrize.Leverage:
                 if (Leverage.Value < LeverageCounter.Max)
                 {
                     Leverage.Increase();
                     RecordLeverage();
+                    LastLotteryOutcome = LotteryPrize.Leverage;
                     result = $"레버리지 +1 (현재 {Leverage.Value})";
                 }
                 else
@@ -580,6 +633,7 @@ public class GameManager : MonoBehaviour
                 ItemType bonus = NextItem();
                 bool got = user.AddItem(bonus);
                 if (got) RecordGrant(user, 1);   // item-phone 65: 복권으로 받은 아이템도 폰이 울림
+                if (got) LastLotteryOutcome = LotteryPrize.Item;
                 result = got ? $"아이템 +1 ({ItemName(bonus)})" : "꽝 (아이템이 이미 가득)";
                 break;
             default:
@@ -595,6 +649,8 @@ public class GameManager : MonoBehaviour
 
     // 마지막 복권의 당첨 내용(화면에 보이지 않음, 테스트용)
     public string LastLotteryDetail { get; private set; } = "";
+    // clown-tell 81: 마지막 복권에서 실제로 된 것(못 받은 것 = Nothing). 광대 대사를 고를 때 씀
+    public LotteryPrize LastLotteryOutcome { get; private set; } = LotteryPrize.Nothing;
 
     // 맨 위 캔들을 꺼낸다. 알고 있던 다음 캔들은 이제 지나갔으므로 잊는다.
     Candle DrawTop()
@@ -732,6 +788,9 @@ public class GameManager : MonoBehaviour
             UseClownItem(move.Item);
             ui.Refresh(this);
             yield return new WaitForSeconds(clownItemSeconds);   // 읽을 시간 뒤 다음 판단
+            // clown-tell 81: 아이템 결과 대사("다들 봤지?" 등) → 다음 생각 동안 떠 있음
+            ClownSay(ItemResultLine(move.Item));
+            ui.Refresh(this);
             StartCoroutine(ClownTurnRoutine());
             yield break;
         }
@@ -774,6 +833,7 @@ public class GameManager : MonoBehaviour
             Leverage.Increase();
             RecordLeverage();
             LastResult = $"매수 → 상승! 레버리지 {Leverage.Value}, 차례 유지";
+            if (Current == Clown) ClownSay(ClownLine.OneMore);   // clown-tell 81: "한 번 더."
         }
         else
         {
@@ -784,6 +844,8 @@ public class GameManager : MonoBehaviour
             ui.FlashDamage(Current == Player);   // monitor-trade 44: 맞은 사람이 나인가(흔들림 대상이 다름)
             Leverage.Reset();
             LastResult = $"매수 → 하락! {Current.Name} -{damage}";
+            // clown-tell 81: 맞은 사람이 광대면 "…칫.", 나면 광대가 "하하."(Q8: 내 차례엔 피해 때만)
+            ClownSay(Current == Clown ? ClownLine.Hurt : ClownLine.Laugh);
             PassTurn();
         }
     }
@@ -812,10 +874,13 @@ public class GameManager : MonoBehaviour
             ui.FlashDamage(Opponent == Player);
             Leverage.Reset();
             LastResult = $"매도 → 하락! {Opponent.Name} -{damage}";
+            // clown-tell 81: 광대가 넘겨 내가 맞으면 "잘 받았지?", 내가 넘겨 광대가 맞으면 "…칫."
+            ClownSay(Current == Clown ? ClownLine.Gotcha : ClownLine.Hurt);
         }
         else
         {
             LastResult = $"매도 → 상승! 변화 없음 (레버리지 {Leverage.Value} 그대로)";
+            if (Current == Clown) ClownSay(ClownLine.NothingHappened);   // clown-tell 81: 내 매도+상승엔 말 없음(Q8)
         }
         PassTurn();
     }
@@ -841,7 +906,7 @@ public class GameManager : MonoBehaviour
 
         if (Current.IsHalted && !IsRoundOver)
         {
-            if (Current == Clown) ClownSay(ClownLine.Halted);   // clown-tell 80(Spec 제안 3): "…한 번 쉬지."
+            if (Current == Clown) ClownSayAfterCurrent(ClownLine.Halted);   // clown-tell 80(Spec 제안 3): "…한 번 쉬지." 81: 결과 대사와 겹치면 잠시 뒤
             Current.ClearHalt();
             LastResult += $"\n{Current.Name}: 거래 정지로 턴을 건너뜀";
             Current = Opponent;

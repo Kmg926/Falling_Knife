@@ -32,6 +32,19 @@ public class ClownSpeechView : MonoBehaviour
         new Entry { line = ClownLine.UseHalt,    text = "<color=#D9B45A>거래 정지</color>를 쓰지." },
         new Entry { line = ClownLine.UseLottery, text = "<color=#D9B45A>복권</color>을 쓰지." },
         new Entry { line = ClownLine.Halted,     text = "…한 번 쉬지." },
+        // clown-tell 81: 결과 대사
+        new Entry { line = ClownLine.OneMore,         text = "한 번 더." },
+        new Entry { line = ClownLine.Hurt,            text = "…칫." },
+        new Entry { line = ClownLine.Gotcha,          text = "잘 받았지?" },
+        new Entry { line = ClownLine.NothingHappened, text = "흥. 아무 일도 없군." },
+        new Entry { line = ClownLine.Laugh,           text = "하하." },
+        new Entry { line = ClownLine.ChartDone,       text = "…그렇군." },
+        new Entry { line = ClownLine.RumorDone,       text = "다들 봤지?" },
+        new Entry { line = ClownLine.HaltDone,        text = "넌 한 번 쉬어." },
+        new Entry { line = ClownLine.LotteryHeal,     text = "운이 좋군." },
+        new Entry { line = ClownLine.LotteryLeverage, text = "판을 키우지." },
+        new Entry { line = ClownLine.LotteryItem,     text = "하나 더." },
+        new Entry { line = ClownLine.LotteryNothing,  text = "…꽝이군." },
     };
 
     int lastCount = -1;

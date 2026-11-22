@@ -4,12 +4,12 @@
 
 **Blocked by:** 80
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] C3 결과 대사 맞게, 1.5초 뒤 사라짐
-- [ ] C4 내 차례 피해 때만 반응
-- [ ] C6 9시 결과 글자 없음
-- [ ] C7 퇴행, Console 오류 0
+- [x] C3 결과 대사 맞게, 1.5초 뒤 사라짐
+- [x] C4 내 차례 피해 때만 반응
+- [x] C6 9시 결과 글자 없음
+- [ ] C7 퇴행(아직 안 돌림), Console 오류 0(확인)
 
 Spec: `../spec.md` · Grilling: `../grilling.md` (Q3·Q6·Q8·Q9)
 
@@ -19,3 +19,8 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q3·Q6·Q8·Q9)
 3. 왼쪽 벽에 결과 글자가 없음
 
 ## Comments
+- 2026-11-22 AI 구현(사용자 "81 진행"): `ClownLine`·`ClownSpeechView`·`GameManager`·`TerminalView` 바뀐 줄(Scripts 직접, 전 코드 `../draft/81/*.before.cs`), Scene(MCP) 대사 표 19줄·`ResultText` 끔·말풍선 순서.
+  - 겹침 처리: 결과 대사와 "…한 번 쉬지."가 같은 순간이면 쉬지 대사를 1.2초 뒤에.
+  - 시안 고침 1번: 재장전 연출에 말풍선이 어둡게 덮임 → 말풍선을 덱 공개 연출 위 순서로.
+  - C3·C4·C6 확인(`../draft/81/README.md`, 캡처 4장), Console 오류 0.
+  - **남은 것(사용자):** 실제 플레이 느낌(대사 빈도·분명함).
