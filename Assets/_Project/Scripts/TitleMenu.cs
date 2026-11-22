@@ -68,11 +68,8 @@ public class TitleMenu : MonoBehaviour
         "<color=#D9B45A>1 ~ 4</color><pos=30%>아이템을 확인한다(Space로 사용)\n" +
         "<color=#D9B45A>Esc</color><pos=30%>창·아이템을 닫거나 일시정지한다";
 
-    [Header("설정 (title-menu 54) — 소리를 바꾸면 클릭음으로 바로 들려 줌")]
-    [SerializeField] AudioSource sfx;
-    [SerializeField] AudioClip clickClip;
-    const int SettingRows = 4;   // 전체 소리 · 음악 · 화면 흔들림 · 전체화면
-    public int SettingRow { get; private set; }
+    [Header("설정 (title-menu 54) — game-settings 91: 내용은 공통 부품 SettingsPanel(panelBody에 그림)")]
+    [SerializeField] SettingsPanel settings;
 
     [Header("크레딧 (title-menu 55) — 공개 저장소라 본명·학번·학교는 쓰지 않음(GitHub 이름만)")]
     [SerializeField, TextArea(8, 16)] string credits =
@@ -233,82 +230,33 @@ public class TitleMenu : MonoBehaviour
         ShowPage();
     }
 
-    // ---------- 설정 창 (title-menu 54) ----------
-    void UpdateSettings(Keyboard kb, Mouse mouse)
-    {
-        // 마우스를 올린 줄을 고름(움직였을 때만), 클릭하면 그 줄을 한 단계(오른쪽) 바꿈
-        if (mouse != null)
-        {
-            int line = TMP_TextUtilities.FindIntersectingLine(panelBody, mouse.position.ReadValue(), uiCamera);
-            if (line >= 0 && line < SettingRows && mouse.delta.ReadValue().sqrMagnitude > 0f && line != SettingRow) { SettingRow = line; ShowSettings(); }
-            if (mouse.leftButton.wasPressedThisFrame && line >= 0 && line < SettingRows) { SettingRow = line; ChangeSetting(1); return; }
-        }
-        if (kb == null) return;
-        if (kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame) MoveSetting(-1);
-        else if (kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame) MoveSetting(1);
-        else if (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame) ChangeSetting(-1);
-        else if (kb.rightArrowKey.wasPressedThisFrame || kb.dKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame) ChangeSetting(1);
-    }
+    // ---------- 설정 창 (title-menu 54 → game-settings 91: 내용은 공통 SettingsPanel이 맡음) ----------
+    // 이 화면은 창을 열고 닫는 일(제목·아래 안내)만. 줄 고르기·값 바꾸기·저장·글은 SettingsPanel(게임 중 일시정지와 같은 부품)
+    void UpdateSettings(Keyboard kb, Mouse mouse) => settings.HandleInput(kb, mouse);
 
-    // 설정 줄 위·아래(돎)
+    public int SettingRow => settings.Row;
+
     public void MoveSetting(int dir)
     {
         if (Open != Panel.Settings) return;
-        SettingRow = (SettingRow + dir + SettingRows) % SettingRows;
-        ShowSettings();
+        settings.Move(dir);
     }
 
-    // 고른 줄의 값을 바꿈: 소리는 10% 단위(0~100%에서 멈춤), 켬/끔은 방향과 상관없이 바뀜. 바꿀 때마다 저장
     public void ChangeSetting(int dir)
     {
         if (Open != Panel.Settings) return;
-        switch (SettingRow)
-        {
-            case 0: GameSettings.Master += dir; break;
-            case 1: GameSettings.Music += dir; break;
-            case 2: GameSettings.Shake = !GameSettings.Shake; break;
-            default: GameSettings.Fullscreen = !GameSettings.Fullscreen; break;
-        }
-        // 소리 크기를 바로 들려 줌(전체 소리 크기로)
-        if (sfx != null && clickClip != null && GameSettings.MasterVolume > 0f) sfx.PlayOneShot(clickClip, GameSettings.MasterVolume);
-        // sound-feel 88: 타이틀에서도 음악이 나오므로 전체·음악 크기를 바꾸면 음악에도 바로
-        if (MusicPlayer.Instance != null) MusicPlayer.Instance.ApplyVolume();
-        ShowSettings();
+        settings.Change(dir);
     }
 
     void OpenSettings()
     {
         Open = Panel.Settings;
-        SettingRow = 0;
         panelRoot.SetActive(true);
         itemRows.SetActive(false);
         panelTitle.text = "설정";
         panelFooter.text = "↑↓ 고르기   ←→ 바꾸기   Esc 닫기";
-        ShowSettings();
+        settings.Begin();
     }
-
-    void ShowSettings()
-    {
-        string[] names = { "전체 소리", "음악", "화면 흔들림", "전체화면" };
-        string[] values =
-        {
-            Bar(GameSettings.Master), Bar(GameSettings.Music),
-            GameSettings.Shake ? "켬" : "끔", GameSettings.Fullscreen ? "켬" : "끔",
-        };
-        var sb = new System.Text.StringBuilder();
-        for (int i = 0; i < SettingRows; i++)
-        {
-            bool on = i == SettingRow;
-            // <pos=40%>: 이름 길이와 상관없이 값이 같은 자리에서 시작(TMP 태그)
-            string line = $"{(on ? "▶ " : "   ")}{names[i]}<pos=40%>{values[i]}";
-            sb.Append(on ? $"<color=#{ColorUtility.ToHtmlStringRGB(selectedColor)}>{line}</color>" : line);
-            if (i < SettingRows - 1) sb.Append('\n');
-        }
-        panelBody.text = sb.ToString();
-    }
-
-    // 소리 막대: ■ = 켜진 칸, □ = 꺼진 칸, 뒤에 %
-    static string Bar(int step) => new string('■', step) + new string('□', GameSettings.Steps - step) + $" {step * 10}%";
 
     // ---------- 크레딧 창 (title-menu 55) ----------
     void UpdateCredits(Keyboard kb, Mouse mouse)

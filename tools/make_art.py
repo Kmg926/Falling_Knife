@@ -12,6 +12,7 @@
     python tools/make_art.py revamp32  # UI 개편 32: 아이템 회전 그림 4x8 + 그림자
     python tools/make_art.py clowntell # clown-tell 80: 말풍선 꼬리
     python tools/make_art.py skipkey   # intro-story 86: 건너뛰기 키캡 SPACE(평소·찬 것)
+    python tools/make_art.py gear      # game-settings 91: 설정 톱니(평소 회색·올림 금색)
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -1032,8 +1033,58 @@ def make_skipkey(pal):
     check(files, pal)
 
 
+def gear_icon(names, hover):
+    """game-settings 91: 설정 톱니 22×22(지금 좌표 11×11). 이빨 8개 + 몸통 링 + 가운데 구멍.
+    평소 = 회색(gray1 몸통·cream0 위 빛·gray0 테두리), 올림(hover) = 금색(gold1·gold2·gold0). 밝은 바탕이 없어 어두운 테두리로 떼어 냄."""
+    n = 22
+    idx, mask = sprite(n, n)
+
+    def paint(m, color):          # 2D 참/거짓 칸에 한 색(put은 줄·칸을 따로 받아서)
+        idx[m] = names.index(color)
+        mask[m] = True
+    yy, xx = np.mgrid[0:n, 0:n] + 0.5
+    cx = cy = n / 2
+    r = np.hypot(xx - cx, yy - cy)
+    ang = np.arctan2(yy - cy, xx - cx)
+    tooth = (np.cos(8 * ang) > 0.35) & (r <= 10.2)              # 이빨: 각도마다 바깥 반지름이 커짐(8개)
+    body = (r <= 7.6) | tooth
+    hole = r <= 3.0
+    shape = body & ~hole
+    base, light, edge_c = ("gold1", "gold2", "gold0") if hover else ("gray1", "cream0", "gray0")
+    paint(shape, base)
+    paint(shape & (xx + yy < n - 4), light)      # 왼쪽 위 빛
+    # 테두리: 모양 바깥 1칸 + 구멍 둘레
+    m = shape.copy()
+    out = np.zeros_like(m)
+    out[1:] |= m[:-1]; out[:-1] |= m[1:]; out[:, 1:] |= m[:, :-1]; out[:, :-1] |= m[:, 1:]
+    rim = (out & ~m & ~hole) | (shape & (r <= 3.9))
+    paint(rim, edge_c)
+    return idx, mask
+
+
+def make_gear(pal):
+    names = list(pal.keys())
+    files = []
+    for name, hover in (("gear", False), ("gear-hover", True)):
+        idx, mask = gear_icon(names, hover)
+        p = DRAFTS / f"{name}.png"
+        write_png(p, to_rgba(idx, mask, pal))
+        files.append(p)
+    a, b = [to_rgba(*gear_icon(names, h), pal) for h in (False, True)]
+    pv = np.concatenate([a, np.zeros((22, 4, 4), np.uint8), b], 1)
+    bgc = np.zeros_like(pv); bgc[..., :3] = pal["bg0"]; bgc[..., 3] = 255
+    al = pv[..., 3:4] / 255.0
+    bgc[..., :3] = (pv[..., :3] * al + bgc[..., :3] * (1 - al)).astype(np.uint8)
+    write_png(DRAFTS / "gear-preview-x8.png", bgc.repeat(8, 0).repeat(8, 1))
+    print("팔레트 검사:")
+    check(files, pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
+    if len(sys.argv) > 1 and sys.argv[1] == "gear":
+        make_gear(palette)
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "skipkey":
         make_skipkey(palette)
         sys.exit(0)

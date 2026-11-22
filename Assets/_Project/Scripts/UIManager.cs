@@ -69,6 +69,11 @@ public class UIManager : MonoBehaviour
         screenShake = GameSettings.Shake;   // title-menu 54: 설정 창의 "화면 흔들림"(끄면 맞아도 안 흔들림)
     }
 
+    // game-settings 91: 게임 중 설정에서 흔들림을 바꾸면 바로
+    void OnEnable() { GameSettings.Changed += ReadSettings; }
+    void OnDisable() { GameSettings.Changed -= ReadSettings; }
+    void ReadSettings() { screenShake = GameSettings.Shake; }
+
     // F1: 개발용 글자 켜고 끄기. 판정과 상관없는 개발 도구라 PlayerInputHandler를 거치지 않고 키보드를 직접 읽는다.
     void Update()
     {

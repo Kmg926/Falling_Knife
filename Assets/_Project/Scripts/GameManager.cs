@@ -497,17 +497,61 @@ public class GameManager : MonoBehaviour
     // Esc(아이템 확인 중이 아닐 때): 멈추기 ↔ 계속. 한 판이 끝난 결과 화면에서는 멈추지 않는다.
     public void TogglePause()
     {
-        if (IsIntro || IsGameOver || IsConfirming || IsMonitorOpen || IsPhoneOpen) return;   // intro-story 77: 시네마틱 중 Esc = 넘기기(일시정지 아님). monitor-trade 43·item-phone 63: 열린 화면은 Esc로 먼저 닫음
+        // game-settings 91: 설정 창이 열려 있으면 Esc = 설정 닫기(일시정지 메뉴로, 톱니로 열었으면 게임으로)
+        if (IsSettingsOpen)
+        {
+            CloseSettings();
+            return;
+        }
+        if (!CanPause) return;
         IsPaused = !IsPaused;
         Time.timeScale = IsPaused ? 0f : 1f;
         ui.Refresh(this);
     }
 
+    // 지금 멈출 수 있나: 시네마틱 중 Esc = 넘기기(intro-story 77), 결과 화면 아님, 열린 화면은 Esc로 먼저 닫음(monitor-trade 43·item-phone 63)
+    public bool CanPause => !(IsIntro || IsGameOver || IsConfirming || IsMonitorOpen || IsPhoneOpen);
+
     // 일시정지 패널의 계속 버튼
     public void Resume()
     {
         if (!IsPaused) return;
+        if (IsSettingsOpen) IsSettingsOpen = false;
         TogglePause();
+    }
+
+    // ── game-settings 91: 게임 중 설정. 판정은 하지 않고, 멈춘 상태에서 설정 창을 켜고 끌 뿐 ──
+    public bool IsSettingsOpen { get; private set; }
+    bool settingsFromGear;     // 톱니로 열었나(닫으면 바로 게임으로) / 일시정지 메뉴에서 열었나(닫으면 메뉴로)
+    public bool CanOpenGear => CanPause && !IsPaused;   // 톱니 버튼이 보이고 눌리는 때
+
+    public void OpenSettings(bool fromGear)
+    {
+        if (IsSettingsOpen) return;
+        if (!IsPaused)
+        {
+            if (!CanPause) return;
+            IsPaused = true;
+            Time.timeScale = 0f;
+        }
+        settingsFromGear = fromGear;
+        IsSettingsOpen = true;
+        audioManager.PlayClick();
+        ui.Refresh(this);
+    }
+
+    public void CloseSettings()
+    {
+        if (!IsSettingsOpen) return;
+        IsSettingsOpen = false;
+        if (settingsFromGear)
+        {
+            IsPaused = false;
+            Time.timeScale = 1f;
+        }
+        settingsFromGear = false;
+        audioManager.PlayClick();
+        ui.Refresh(this);
     }
 
     // 일시정지·결과 화면의 타이틀 버튼. 멈춘 시간을 먼저 되돌려야 다음 Scene이 정상 속도로 움직인다.

@@ -3024,6 +3024,7 @@ GameObject:
   - component: {fileID: 1373693580}
   - component: {fileID: 1373693579}
   - component: {fileID: 1373693578}
+  - component: {fileID: 1373693583}
   m_Layer: 0
   m_Name: TitleCanvas
   m_TagString: Untagged
@@ -3082,8 +3083,7 @@ MonoBehaviour:
   rulesLeverage: "<color=#D9B45A>\uB808\uBC84\uB9AC\uC9C0</color>\uB294 \uB2E4\uC74C \uD53C\uD574\uB97C \uD0A4\uC6B0\uB294 \uC22B\uC790\uB2E4.\n\uB450 \uC0AC\uB78C\uC774 \uD568\uAED8 \uC4F0\uACE0, 0\uC5D0\uC11C \uC2DC\uC791\uD55C\uB2E4.\n\uB9E4\uC218\uD55C \uCE94\uB4E4\uC774 \uC0C1\uC2B9\uD560 \uB54C\uB9C8\uB2E4 1\uC529 \uC624\uB978\uB2E4(\uCD5C\uB300 3).\n\uD558\uB77D\uC73C\uB85C \uBC1B\uB294 \uD53C\uD574\uB294 1 + \uB808\uBC84\uB9AC\uC9C0\uB2E4.\n\uD53C\uD574\uAC00 \uB098\uAC70\uB098 \uC0C8 \uB77C\uC6B4\uB4DC\uAC00 \uC2DC\uC791\uB418\uBA74 <color=#D9B45A>0\uC73C\uB85C \uCD08\uAE30\uD654</color>\uB41C\uB2E4.\n\uB9E4\uB3C4\uD55C \uCE94\uB4E4\uC774 \uC0C1\uC2B9\uD558\uBA74 \uB808\uBC84\uB9AC\uC9C0\uB294 \uADF8\uB300\uB85C\uB2E4.\n<color=#A39A8C>\uC608)</color> \uB808\uBC84\uB9AC\uC9C0 2\uC5D0\uC11C \uB9E4\uB3C4\uD55C \uCE94\uB4E4\uC774 \uD558\uB77D\uD558\uBA74\n     \uC0C1\uB300 \uC794\uACE0\uAC00 3 \uC904\uACE0, \uB808\uBC84\uB9AC\uC9C0\uB294 0\uC73C\uB85C \uCD08\uAE30\uD654\uB41C\uB2E4."
   rulesItems: "\uB77C\uC6B4\uB4DC \uC2DC\uC791\xB7\uB371 \uC7AC\uC7A5\uC804 \uB54C \uAC01\uC790 2\uAC1C\uC529 \uBC1B\uB294\uB2E4(\uCD5C\uB300 4\uAC1C).\n\uB0B4 \uCC28\uB840\uC5D0 1~4 \uD0A4\uB098 \uC544\uC774\uCF58\uC73C\uB85C \uACE0\uB974\uACE0 Space\uB85C \uC4F4\uB2E4."
   rulesControls: "<color=#D9B45A>Space \xB7 \uD074\uB9AD</color><pos=30%>\uBAA8\uB2C8\uD130\uB97C \uC5F4\uACE0, \uACE0\uB978 \uD589\uB3D9\uC744 \uC2E4\uD589\uD55C\uB2E4\n<color=#D9B45A>\u2190 \u2192 \xB7 A D</color><pos=30%>\uBAA8\uB2C8\uD130\uC5D0\uC11C \uB9E4\uC218\xB7\uB9E4\uB3C4\uB97C \uACE0\uB978\uB2E4\n<color=#D9B45A>1 ~ 4</color><pos=30%>\uC544\uC774\uD15C\uC744 \uD655\uC778\uD55C\uB2E4(Space\uB85C \uC0AC\uC6A9)\n<color=#D9B45A>Esc</color><pos=30%>\uCC3D\xB7\uC544\uC774\uD15C\uC744 \uB2EB\uAC70\uB098 \uC77C\uC2DC\uC815\uC9C0\uD55C\uB2E4"
-  sfx: {fileID: 2143641331}
-  clickClip: {fileID: 8300000, guid: aa56820f8d2dd214ba74c70a9a3f98e3, type: 3}
+  settings: {fileID: 1373693583}
   credits: "Falling Knife\n\uB9CC\uB4E0 \uC0AC\uB78C   Kmg926\n\uC5D4\uC9C4   Unity 6.6 (URP 2D)\n\uAE00\uAF34   Galmuri11 \u2014 Lee Minseo (quiple)\n        SIL Open Font License 1.1\n        github.com/quiple/galmuri\n\uADF8\uB9BC\xB7\uD6A8\uACFC\uC74C   Claude(Anthropic)\uAC00 \uC791\uC131\uD55C \uCF54\uB4DC\uB85C \uC0DD\uC131\n        \uC120\uD0DD\xB7\uC218\uC815 \uC9C0\uC2DC: \uB9CC\uB4E0 \uC0AC\uB78C\n\uCF54\uB4DC \uB3C4\uC6C0   Claude(Anthropic)\n\uBC30\uACBD\uC74C\uC545   xjj9 \u2014 prod. by cryalxt\n\uBE44\uC601\uB9AC \uD559\uAD50 \uACFC\uC81C"
   itemIcons:
   - {fileID: 1276016434}
@@ -3188,6 +3188,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1373693583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1373693577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e5c8d0c883c5b489c826ff5a00a74b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SettingsPanel
+  body: {fileID: 2099370544}
+  selectedColor: {r: 0.8509804, g: 0.7058824, b: 0.3529412, a: 1}
+  sfx: {fileID: 2143641331}
+  clickClip: {fileID: 8300000, guid: aa56820f8d2dd214ba74c70a9a3f98e3, type: 3}
 --- !u!1 &1511507079
 GameObject:
   m_ObjectHideFlags: 0

@@ -28,6 +28,11 @@ public class AudioManager : MonoBehaviour
         masterVolume = GameSettings.MasterVolume;
     }
 
+    // game-settings 91: 게임 중 설정에서 전체 소리를 바꾸면 효과음에도 바로
+    void OnEnable() { GameSettings.Changed += ReadSettings; }
+    void OnDisable() { GameSettings.Changed -= ReadSettings; }
+    void ReadSettings() { masterVolume = GameSettings.MasterVolume; }
+
     // 공개가 시작되면 true, 끝나면 false. 음악만 줄인다(효과음은 그대로). 88: 실제로는 MusicPlayer에 비율을 넘김
     public void SetRevealDuck(bool on)
     {

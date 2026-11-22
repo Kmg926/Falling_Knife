@@ -38,6 +38,10 @@ public class MusicPlayer : MonoBehaviour
         Play();
     }
 
+    // game-settings 91: 설정이 바뀌면(타이틀·게임 중 어디서든) 크기 다시 계산
+    void OnEnable() { GameSettings.Changed += ApplyVolume; }
+    void OnDisable() { GameSettings.Changed -= ApplyVolume; }
+
     void OnDestroy()
     {
         if (Instance == this) Instance = null;
