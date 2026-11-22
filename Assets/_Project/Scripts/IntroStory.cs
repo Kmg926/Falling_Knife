@@ -23,6 +23,8 @@ public class IntroStory : MonoBehaviour
     [SerializeField] GameObject nextMark;        // 줄이 다 나오면 오른쪽 아래 ▼
     // 시네마틱 동안 숨길 게임 글자 UI(잔고·라운드·레버리지 등, Spec 제안 1). 탁자 위 폰·모니터는 그대로
     [SerializeField] RectTransform[] hideDuringIntro;
+    // 82: 탁자 위 게임용 그림(내 모니터·레버리지 상자·불꽃 등, 사용자 "레버리지 화면같은 게임 UI도 제외"). 방·탁자·조명·광대는 그대로
+    [SerializeField] GameObject[] hideArtDuringIntro;
 
     [Header("에디터에서 GameScene을 바로 Play할 때도 보기 (Spec 제안 3, 평소 끔)")]
     [SerializeField] bool playInEditorWithoutTitle = false;
@@ -53,6 +55,7 @@ public class IntroStory : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float typeVolume = 0.3f;   // 클릭음의 30%
 
     CanvasGroup[] hidden;          // hideDuringIntro를 투명하게 만드는 칸(실행 중에만 붙임 — Scene은 안 바뀜)
+    Renderer[] hiddenArt;          // 82: hideArtDuringIntro 안의 그림들(자식 포함)
     bool advance;                  // 이번 프레임에 Space·Enter·클릭을 눌렀나
     bool skip;                     // Esc를 눌렀나(어디서든 바로 시작)
 
@@ -90,8 +93,15 @@ public class IntroStory : MonoBehaviour
             CanvasGroup g = hideDuringIntro[i].GetComponent<CanvasGroup>();
             if (g == null) g = hideDuringIntro[i].gameObject.AddComponent<CanvasGroup>();
             g.alpha = 0f;
+            g.blocksRaycasts = false;   // 82: 숨긴 폰·모니터 버튼이 클릭을 받지 않게
             hidden[i] = g;
         }
+        // 82: 탁자 위 그림은 forceRenderingOff(그리기만 끔). 켜고 끄기(SetActive)·색은 각 View가 그대로 맡는다
+        var list = new System.Collections.Generic.List<Renderer>();
+        foreach (GameObject go in hideArtDuringIntro)
+            if (go != null) list.AddRange(go.GetComponentsInChildren<Renderer>(true));
+        hiddenArt = list.ToArray();
+        foreach (Renderer r in hiddenArt) r.forceRenderingOff = true;
         Canvas canvas = GetComponentInParent<Canvas>();
         uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
         if (choicesRoot != null) choicesRoot.SetActive(false);
@@ -251,7 +261,8 @@ public class IntroStory : MonoBehaviour
         IsPlaying = false;
         StopAllCoroutines();
         root.SetActive(false);
-        foreach (CanvasGroup g in hidden) g.alpha = 1f;
+        foreach (CanvasGroup g in hidden) { g.alpha = 1f; g.blocksRaycasts = true; }
+        foreach (Renderer r in hiddenArt) r.forceRenderingOff = false;   // 82
         game.EndIntro();
     }
 }

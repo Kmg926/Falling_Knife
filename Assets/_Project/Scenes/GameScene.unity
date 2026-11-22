@@ -2166,7 +2166,7 @@ MonoBehaviour:
   loopSource: {fileID: 242777086}
   masterVolume: 1
   musicVolume: 0.6
-  musicBase: 0.5
+  musicBase: 0.35
   revealDuck: 0.2
 --- !u!82 &242777083
 AudioSource:
@@ -2293,7 +2293,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.3
+  m_Volume: 0.21000001
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -2390,7 +2390,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.3
+  m_Volume: 0.21000001
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -8897,6 +8897,23 @@ MonoBehaviour:
   - {fileID: 1018071162}
   - {fileID: 1004525768}
   - {fileID: 1867288134}
+  - {fileID: 2000460868}
+  - {fileID: 1058612890}
+  - {fileID: 2051391735}
+  - {fileID: 1549197932}
+  - {fileID: 803721163}
+  - {fileID: 71194940}
+  hideArtDuringIntro:
+  - {fileID: 1294237394}
+  - {fileID: 1310452627}
+  - {fileID: 650356322}
+  - {fileID: 1352171270}
+  - {fileID: 68046081}
+  - {fileID: 1134480776}
+  - {fileID: 898558077}
+  - {fileID: 971846998}
+  - {fileID: 1862606649}
+  - {fileID: 2070946899}
   playInEditorWithoutTitle: 0
   lines:
   - "\u2026\u2026\uB610 \uD55C \uBA85 \uC654\uB124."

@@ -26,3 +26,4 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q1~Q7·Q10)
   - C1·C2·C4~C6 MCP 확인, C7은 Console 오류 0만(퇴행 테스트는 아직)(`../draft/77/README.md`, 캡처 4장), Console 오류 0.
   - **남은 것(사용자):** 실제 Space·Enter·클릭·Esc, 글자 소리 크기·속도 느낌.
 - 2026-11-22 퇴행 T65~T68·T143 모두 통과(사용자 "퇴행 테스트 돌려줘", 코드 `80d6d49`), Console 오류 0. 절차·결과 `../../regression/README.md`.
+- 2026-11-22 사용자 "음악 70%, 진동은 시네마틱 끝나고, 레버리지 화면같은 게임 UI도 제외": 음악 기준 0.5 → 0.35, 진동은 스토리·덱 공개 연출 뒤, 스토리 중 탁자 위 게임 그림 10개 + HUD 6개 더 숨김(Spec 제안 1 바뀜). 설명·캡처 `../draft/82/README.md`, Console 오류 0.

@@ -25,7 +25,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float masterVolume = 1f;
     [SerializeField, Range(0f, 1f)] float musicVolume = 0.6f;
     // 79: 곡 자체가 커서(사용자 "기본 음량 너무 커") 설정 100%일 때 이 비율로 튼다 → 설정 100% = 전의 50%
-    [SerializeField, Range(0f, 1f)] float musicBase = 0.5f;
+    // 82: 사용자 "음악 사운드 70%로" → 0.5 × 0.7 = 0.35
+    [SerializeField, Range(0f, 1f)] float musicBase = 0.35f;
     // 캔들 공개 중 음악 크기 비율 (GDD "공개 직전 잠깐 무음"을 음악이 있는 상태로)
     [SerializeField, Range(0f, 1f)] float revealDuck = 0.2f;
 
