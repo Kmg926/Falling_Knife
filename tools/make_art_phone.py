@@ -213,11 +213,51 @@ TABLE_PHONES = {
     # 2026-11-22 사용자 "광대랑 내 핸드폰이 묘하게 다르게 보여": phi 0.8·thick 8 → 광대 폰과 같은 phi 0.9, 두께는 크기 비율대로 7.
     # (전에는 가까운 내 폰이 먼 광대 폰보다 더 눌려(0.8 < 0.9) 거꾸로였고, 두께 비율 8/5 = 1.6이 크기 비율 1.22보다 커서 내 폰만 두꺼워 보였음)
     # 광대 폰: 처음 dict(yn=230, xl=434, xr=493, depth=20, thick=6)(곧게 눕힘) → 사용자 "원근감·입체감 더" → 바닥 원근 계산 + 비스듬히 돌림
-    "clown": dict(cx=466, cy=224, phi=0.9, scale=0.92, theta=18, thick=6),   # phi 0.6·0.75는 숫자 넘침. scale 0.85 → 1.15(너무 큼) → 0.92. 두께 5 → 6(2026-11-22, 내 폰 7과 크기 비율 맞춤)
+    "clown": dict(cx=466, cy=224, phi=0.9, scale=0.92, theta=18, thick=6, style="clown"),   # phi 0.6·0.75는 숫자 넘침. scale 0.85 → 1.15(너무 큼) → 0.92. 두께 5 → 6(2026-11-22, 내 폰 7과 크기 비율 맞춤)
+    # clown-phone 84: style="clown" = 빨강 몸통·금 간 화면·깨진 모서리·테이프(사용자 "광대 폰은 깨져있고 불안정하게, 광대 것이라는 걸 알게")
 }
 
 
-def top_view_src(pal, digit=None):
+SCREEN_SRC = (11, 33, 24, 56)   # 바깥 화면(금색 틀 포함) 원본 칸: y0, y1, x0, x1 — 색 바꿀 때 빼는 곳
+
+
+def clown_damage(cv):
+    """clown-phone 84: 위에서 본 원본에 깨진 흔적. 원근으로 눕히기 전에 그려서 같이 기울어진다.
+    - 테이프: 왼쪽 끝(경첩 반대)을 비스듬히 감은 띠(cream0, 가장자리 gray1) — LED(13~15)는 피함
+    - 깨진 모서리: 왼쪽 앞(아래) 모서리를 계단 모양으로 떼어 냄(mask 끔) + 깨진 면 bg00
+    - 화면 금: 화면 바탕(bg00·navy0) 위에만 그어 숫자(green2)는 안 가림. 왼쪽 위 충격점(cream2)에서 갈라짐, 오른쪽 아래 짧은 금"""
+    yy, xx = np.mgrid[0:CH, 0:CW]
+    top, _ = closed_mask()
+    # 테이프: 왼쪽 위(먼 쪽) 모서리를 비스듬히 감은 띠 — (x-4)+(y-8)이 13~18인 대각선 띠(LED(13~15, 21~23)와 안 겹침)
+    # 처음엔 왼쪽 끝 세로 띠였는데 눕히면 밝은 모서리처럼 보여 테이프로 안 읽힘 → 모서리를 가로지르게
+    d = (xx - 4) + (yy - 8)
+    band = top & (d >= 13) & (d < 19)
+    cv.fill(band, "cream0")
+    cv.fill(band & ((d == 13) | (d == 18)), "gray1")     # 테이프 가장자리
+    cv.fill(band & (d == 15) & (xx % 3 == 0), "cream2")  # 테이프 윤기
+    # 깨진 모서리: 왼쪽 아래(가까운 쪽). 원래 둥근 모서리(r7)라 작게 떼면 이미 빈 곳 → 크게(합 < 11) + 계단 모양 가장자리
+    #  처음 (합 < 6)은 둥근 모서리 바깥이라 아무것도 안 떨어졌음
+    k = (xx - 4) + (38 - yy)
+    chip = top & ((k < 10) | ((k < 12) & ((xx + 2 * yy) % 4 == 0)))
+    cv.mask[chip] = False
+    broken = outline_of(chip, 1) & top & ~chip
+    cv.fill(broken, "bg00")
+    # 화면 금(바탕 위에만)
+    scr_bg = (cv.idx == cv.c("bg00")) | (cv.idx == cv.c("navy0"))
+    inside = (yy >= 13) & (yy < 31) & (xx >= 26) & (xx < 54)
+    cracks = [((27, 14), (31, 18)), ((31, 18), (33, 17)), ((31, 18), (32, 22)), ((29, 16), (27, 19)),
+              ((53, 30), (49, 26)), ((49, 26), (48, 28))]
+    for i, ((x0, y0), (x1, y1)) in enumerate(cracks):
+        n = max(abs(x1 - x0), abs(y1 - y0)) + 1
+        for t in np.linspace(0, 1, n):
+            x, y = int(round(x0 + (x1 - x0) * t)), int(round(y0 + (y1 - y0) * t))
+            if inside[y, x] and scr_bg[y, x]:
+                cv.fill((y, x), "cream0" if i in (0, 4) else "gray1")   # 큰 금(첫 줄)은 한 단계 밝게, 갈래는 흐리게
+    if scr_bg[14, 27]:
+        cv.fill((14, 27), "cream2")   # 충격점
+
+
+def top_view_src(pal, digit=None, clown=False):
     """phone_closed에서 윗면(뚜껑+경첩)만 잘라 위에서 본 원본으로."""
     cv = phone_closed(pal)
     if digit is not None:   # item-phone 66: 개수 숫자를 바깥 화면 가운데에 미리 그림 → 눕히고 돌릴 때 같이 기울어짐(칸 밖으로 못 나감)
@@ -230,12 +270,20 @@ def top_view_src(pal, digit=None):
         if label.startswith("+"):          # item-phone 65: "+N" = 더하기 + 숫자(가운데 맞춤, 폭 5+1+5 칸 ×2 = 22)
             glyph57(cv, "+", 29, 15, "green2", 2)
             glyph57(cv, label[1:], 41, 15, "green2", 2)
+        elif label == "noise":              # clown-phone 84: 지지직 순간 — 화면에 가로줄 노이즈(무작위 없음, 줄마다 다른 길이)
+            for r, (a, b, col) in enumerate([(26, 41, "gray1"), (33, 54, "green0"), (26, 37, "gray0"), (40, 52, "gray1"),
+                                             (29, 54, "green0"), (26, 46, "gray0"), (36, 50, "gray1"), (26, 33, "green0"), (44, 54, "gray0")]):
+                y = 14 + r * 2
+                cv.fill((slice(y, y + 1), slice(a, b)), col)
         elif label:                         # "" = 빈 화면(깜빡임 꺼진 순간)
             glyph57(cv, label, 35, 15, "green2", 2)   # 5×7 둥근 숫자 ×2 = 10×14 — 3×5는 "2"가 "ㄹ"처럼 보임
+    if clown:
+        clown_damage(cv)
     top, _ = closed_mask()
     ys, xs = np.nonzero(top)
     y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
-    return cv.idx[y0:y1, x0:x1], top[y0:y1, x0:x1]
+    keep = top & cv.mask if clown else top   # clown-phone 84: 깨진 모서리(mask 끈 칸)는 빼고. 내 폰은 전과 같음
+    return cv.idx[y0:y1, x0:x1], keep[y0:y1, x0:x1]
 
 
 def phone_on_table(pal, g):
@@ -298,7 +346,8 @@ def phone_on_table_rot(pal, g, digit=None):
     바닥 원근: 소실점 높이 VPy에서 화면 y까지 거리 dy일 때 깊이 Z = f/dy, 가로 X = (x - VPx)·dy0/dy(폰 가운데 깊이에서 1도트 = 1).
     f = dy0²/phi → 폰 가운데에서 화면 1줄 = 바닥 1/phi도트(phi = 위아래 눌림). 바닥 좌표를 theta만큼 돌려 원본 그림 칸을 찾는다.
     두께는 화면 아래로 thick줄 밀어 만든 옆면(가까운 쪽 + 안쪽 옆면이 저절로 보임), 음영: 전등(화면 가운데 위) 쪽이 밝고 반대가 어두움."""
-    idx, msk = top_view_src(pal, digit)
+    clown = g.get("style") == "clown"          # clown-phone 84
+    idx, msk = top_view_src(pal, digit, clown)
     sh, sw = idx.shape
     cx, cy, phi, s, th, thick = g["cx"], g["cy"], g["phi"], g["scale"], np.radians(g["theta"]), g["thick"]
     vx, vy = VP_T
@@ -310,6 +359,7 @@ def phone_on_table_rot(pal, g, digit=None):
     W, H = X1 - X0, Y1 - Y0
     cv = Canvas(pal, W, H)
     face = np.zeros((H, W), bool)
+    scr = np.zeros((H, W), bool)          # clown-phone 84: 바깥 화면(틀 포함)에서 온 칸 — 빨강으로 바꿀 때 뺌
     lite = np.zeros((H, W))               # 0 = 어둠 ~ 1 = 밝음(윗면 음영용)
     ct, st = np.cos(th), np.sin(th)
     green2_i = cv.c("green2")
@@ -329,6 +379,8 @@ def phone_on_table_rot(pal, g, digit=None):
                 cv.idx[ty - Y0, tx - X0] = idx[sy, sx]
                 cv.mask[ty - Y0, tx - X0] = True
                 face[ty - Y0, tx - X0] = True
+                if SCREEN_SRC[0] <= sy + 6 < SCREEN_SRC[1] and SCREEN_SRC[2] <= sx + 4 < SCREEN_SRC[3]:   # 원본 좌표 = 자른 칸 + (4, 6)
+                    scr[ty - Y0, tx - X0] = True
                 lite[ty - Y0, tx - X0] = 1 - (sx / sw) * 0.7 - (sy / sh) * 0.3   # 경첩 반대쪽·먼 쪽(전등 쪽)이 밝게
                 # 숫자 획이 돌리며 끊기지 않게: 이 칸 안 4곳을 더 보고 하나라도 숫자면 숫자 색(획이 1칸씩 굵어짐)
                 if digit is not None and idx[sy, sx] in (bg00_i, navy0_i_scr) and 13 <= sy + 6 < 31 and 26 <= sx + 4 < 54:   # 화면 안쪽에서만 굵힘(원본 좌표 = 자른 칸 + (4, 6))
@@ -375,6 +427,10 @@ def phone_on_table_rot(pal, g, digit=None):
     sh2[3:, 4:] = body[:-3, :-4]
     cv.fill(sh2 & ~body & ((xx + yy) % 2 == 0), "bg00")
     cv.fill(sh1 & ~body, "bg00")
+    # clown-phone 84: 광대 폰 = 남색 계열을 빨강 계열로(윗면 음영·옆면까지 같은 단계로). 바깥 화면·금색 테·LED·테이프는 그대로
+    if clown:
+        for a, b in (("navy0", "red0"), ("navy", "red1"), ("navy2", "red2")):
+            cv.idx[body & ~scr & (cv.idx == cv.c(a))] = cv.c(b)
     # 바깥 화면 가운데(개수 글자 자리): 원본 (40, 23) → 폰 좌표 → 바닥 → 화면
     a = ((40 - 4 + 0.5) - sw / 2) * s
     b = ((23 - 6 + 0.5) - sh / 2) * s
@@ -429,7 +485,9 @@ def make_table(pal):
                 write_png(pn, cn.rgba())
                 files.append(pn)
             # item-phone 65: 받을 때 깜빡임용 — 빈 화면(blank)과 "+1"~"+4"
-            for lab, suf in [("", "blank")] + [(f"+{k}", f"p{k}") for k in range(1, 5)]:
+            # clown-phone 84: 광대 폰은 지지직 순간 그림(noise)도
+            extra = [("noise", "noise")] if g.get("style") == "clown" else []
+            for lab, suf in [("", "blank")] + [(f"+{k}", f"p{k}") for k in range(1, 5)] + extra:
                 cn, _, _ = phone_on_table_rot(pal, g, lab)
                 pn = OUT / f"phone-table-{name}-{suf}.png"
                 write_png(pn, cn.rgba())
