@@ -261,6 +261,8 @@ public class TitleMenu : MonoBehaviour
         }
         // 소리 크기를 바로 들려 줌(전체 소리 크기로)
         if (sfx != null && clickClip != null && GameSettings.MasterVolume > 0f) sfx.PlayOneShot(clickClip, GameSettings.MasterVolume);
+        // sound-feel 88: 타이틀에서도 음악이 나오므로 전체·음악 크기를 바꾸면 음악에도 바로
+        if (MusicPlayer.Instance != null) MusicPlayer.Instance.ApplyVolume();
         ShowSettings();
     }
 
