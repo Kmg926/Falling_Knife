@@ -9,7 +9,7 @@
 - [x] C3 결과 대사 맞게, 1.5초 뒤 사라짐
 - [x] C4 내 차례 피해 때만 반응
 - [x] C6 9시 결과 글자 없음
-- [ ] C7 퇴행(아직 안 돌림), Console 오류 0(확인)
+- [x] C7 퇴행 T65~T68·T143, Console 오류 0 (2026-11-22, `../../regression/README.md`)
 
 Spec: `../spec.md` · Grilling: `../grilling.md` (Q3·Q6·Q8·Q9)
 
@@ -24,3 +24,4 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q3·Q6·Q8·Q9)
   - 시안 고침 1번: 재장전 연출에 말풍선이 어둡게 덮임 → 말풍선을 덱 공개 연출 위 순서로.
   - C3·C4·C6 확인(`../draft/81/README.md`, 캡처 4장), Console 오류 0.
   - **남은 것(사용자):** 실제 플레이 느낌(대사 빈도·분명함).
+- 2026-11-22 퇴행 T65~T68·T143 모두 통과(사용자 "퇴행 테스트 돌려줘", 코드 `80d6d49`), Console 오류 0. 절차·결과 `../../regression/README.md`.

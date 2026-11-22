@@ -11,7 +11,7 @@
 - [x] C4 Esc 바로 시작(일시정지 안 열림)
 - [x] C5 게임 입력 무시·UI 숨김, 끝나면 덱 공개 연출
 - [x] C6 다시하기 → 없음
-- [ ] C7 퇴행 T65~T68·T143(아직 안 돌림), Console 오류 0(확인)
+- [x] C7 퇴행 T65~T68·T143, Console 오류 0 (2026-11-22, `../../regression/README.md`)
 
 Spec: `../spec.md` · Grilling: `../grilling.md` (Q1~Q7·Q10)
 
@@ -25,3 +25,4 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q1~Q7·Q10)
   - 시안 고침 1번: 3번째 줄이 2줄로 넘침 → 대사 칸 높이 28.
   - C1·C2·C4~C6 MCP 확인, C7은 Console 오류 0만(퇴행 테스트는 아직)(`../draft/77/README.md`, 캡처 4장), Console 오류 0.
   - **남은 것(사용자):** 실제 Space·Enter·클릭·Esc, 글자 소리 크기·속도 느낌.
+- 2026-11-22 퇴행 T65~T68·T143 모두 통과(사용자 "퇴행 테스트 돌려줘", 코드 `80d6d49`), Console 오류 0. 절차·결과 `../../regression/README.md`.

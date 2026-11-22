@@ -9,7 +9,7 @@
 - [x] C1 매수·매도 말풍선 → 0.6초 뒤 공개
 - [x] C2 아이템 4종 말풍선 → 0.8초 뒤 다음 판단
 - [x] C5 내가 행동하면 사라짐
-- [ ] C7 퇴행 T65~T68·T143(아직 안 돌림), Console 오류 0(확인)
+- [x] C7 퇴행 T65~T68·T143, Console 오류 0 (2026-11-22, `../../regression/README.md`)
 
 Spec: `../spec.md` · Grilling: `../grilling.md` (Q1·Q2·Q4·Q6·Q7·Q9·Q10)
 
@@ -22,3 +22,4 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q1·Q2·Q4·Q6·Q7·Q9·Q10)
   - Spec 제안 3(광대가 쉬는 차례 "…한 번 쉬지.")도 여기서 넣음.
   - C1·C2·C5 MCP 확인(`../draft/80/README.md`, 캡처 2장), Console 오류 0.
   - **남은 것(사용자):** 실제 플레이에서 읽을 시간·자리·대사 느낌.
+- 2026-11-22 퇴행 T65~T68·T143 모두 통과(사용자 "퇴행 테스트 돌려줘", 코드 `80d6d49`), Console 오류 0. 절차·결과 `../../regression/README.md`.

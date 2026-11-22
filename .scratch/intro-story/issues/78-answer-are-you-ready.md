@@ -8,7 +8,7 @@
 
 - [x] C3 예·아니오 이동·선택(키·마우스), 각 대답 → 1라운드
 - [x] C4 선택 중 Esc → 바로 시작
-- [ ] C7 퇴행(아직 안 돌림), Console 오류 0(확인)
+- [x] C7 퇴행 T65~T68·T143, Console 오류 0 (2026-11-22, `../../regression/README.md`)
 
 Spec: `../spec.md` · Grilling: `../grilling.md` (Q3·Q8·Q9)
 
@@ -21,3 +21,4 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q3·Q8·Q9)
   - 시안 고침 1번: 아니오 고를 때 ▶가 "예"에 붙음 → 예 x 222 → 214.
   - C3·C4 확인(`../draft/78/README.md`, 캡처 3장), Console 오류 0. 대답 줄 다음은 ▼ + 넘김(다른 대사와 같게) — Q8 "그 줄 끝나면"을 "넘기면"으로 구현.
   - **남은 것(사용자):** 실제 키·마우스.
+- 2026-11-22 퇴행 T65~T68·T143 모두 통과(사용자 "퇴행 테스트 돌려줘", 코드 `80d6d49`), Console 오류 0. 절차·결과 `../../regression/README.md`.
