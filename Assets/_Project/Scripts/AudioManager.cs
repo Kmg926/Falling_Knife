@@ -61,6 +61,8 @@ public class AudioManager : MonoBehaviour
     public void PlayImpact() { Play(impactClip); }
     public void PlayTick() { Play(tickClip); }
     public void PlayClick() { Play(clickClip); }
+    // intro-story 77: 대사 글자 소리 = 같은 클릭음을 작게(scale 0~1, 전체 소리에 곱함)
+    public void PlayClick(float scale) { Play(clickClip, scale); }
     public void PlayShuffle() { Play(shuffleClip); }
 
     // item-phone 65: 두 폰이 같은 순간에 울려도 진동음은 한 번만(0.1초 안의 두 번째 요청은 무시)
@@ -73,10 +75,10 @@ public class AudioManager : MonoBehaviour
     }
 
     // 클립이나 재생기가 비어 있거나 크기가 0이면 아무것도 하지 않는다.
-    void Play(AudioClip clip)
+    void Play(AudioClip clip, float scale = 1f)   // intro-story 77: scale = 이번 소리만 작게(기본 1 = 전과 같음)
     {
         if (clip == null || sfxSource == null) return;
         if (masterVolume <= 0f) return;
-        sfxSource.PlayOneShot(clip, masterVolume);
+        sfxSource.PlayOneShot(clip, masterVolume * scale);
     }
 }

@@ -85,7 +85,7 @@ public class GameManager : MonoBehaviour
 
     // 지금 플레이어가 매수·매도를 고를 수 있는가 (버튼을 밝게/회색으로 보일 때 쓴다)
     // item-phone 63: 폰이 열려 있어도 매수·매도는 못 고른다(A/D 무시)
-    public bool CanPlayerAct => !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused && !IsPresenting && !IsPhoneOpen;
+    public bool CanPlayerAct => !IsIntro && !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused && !IsPresenting && !IsPhoneOpen;
 
     // monitor-trade 43: 모니터 확대 화면이 열려 있는가(매수·매도를 고르는 중)
     public bool IsMonitorOpen { get; private set; }
@@ -126,6 +126,24 @@ public class GameManager : MonoBehaviour
     {
         IsPresenting = false;
         SkipRequested = false;
+        ui.Refresh(this);
+    }
+
+    // ── 시작 스토리 시네마틱 (intro-story 77). 판정은 하지 않고, 시네마틱 동안 게임 입력과 덱 공개 연출만 미룬다. ──
+    public bool IsIntro { get; private set; }
+
+    // IntroStory.Awake가 부름(Start보다 먼저) → StartGame의 ui.Refresh 때 덱 공개 연출이 시작되지 않는다
+    public void BeginIntro()
+    {
+        IsIntro = true;
+    }
+
+    // 시네마틱이 끝나면(마지막 줄·Esc) 부름 → 한 판 시간은 여기서부터 재고, 화면을 새로 그려 덱 공개 연출을 시작
+    public void EndIntro()
+    {
+        if (!IsIntro) return;
+        IsIntro = false;
+        gameStartTime = Time.time;
         ui.Refresh(this);
     }
 
@@ -235,7 +253,7 @@ public class GameManager : MonoBehaviour
     // A/D·←/→. 공개 중, 라운드 끝, 광대 차례, 아이템 확인 중이면 무시한다.
     public void Select(PlayerAction action)
     {
-        if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn || IsConfirming || IsPhoneOpen) return;
+        if (IsIntro || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn || IsConfirming || IsPhoneOpen) return;
         if (Selected != action) audioManager.PlayClick();   // 실제로 바뀔 때만
         Selected = action;
         ui.Refresh(this);
@@ -245,7 +263,7 @@ public class GameManager : MonoBehaviour
     // 최종 승리·패배면 무시. 광대 차례면 무시.
     public void Execute()
     {
-        if (IsPaused || IsRevealing) return;
+        if (IsIntro || IsPaused || IsRevealing) return;
 
         // 연출 중 Space = 건너뛰기 (Q3)
         if (IsPresenting)
@@ -295,7 +313,7 @@ public class GameManager : MonoBehaviour
     // 1~4. 내 차례(공개 중·광대 차례·라운드 끝이 아닐 때)에 그 슬롯에 아이템이 있으면 확인을 연다.
     public void SelectItem(int slot)
     {
-        if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (IsIntro || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
         if (slot < 0 || slot >= Player.Items.Count) return;
         ConfirmingSlot = slot;
         PhoneCursor = slot;
@@ -315,7 +333,7 @@ public class GameManager : MonoBehaviour
             SelectItem(slot);
             return;
         }
-        if (IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (IsIntro || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
         if (slot < 0 || slot >= Clown.Items.Count) return;
         ConfirmingSlot = slot;
         PhoneCursor = slot;
@@ -391,7 +409,7 @@ public class GameManager : MonoBehaviour
     // Esc(아이템 확인 중이 아닐 때): 멈추기 ↔ 계속. 한 판이 끝난 결과 화면에서는 멈추지 않는다.
     public void TogglePause()
     {
-        if (IsGameOver || IsConfirming || IsMonitorOpen || IsPhoneOpen) return;   // monitor-trade 43·item-phone 63: 열린 화면은 Esc로 먼저 닫음
+        if (IsIntro || IsGameOver || IsConfirming || IsMonitorOpen || IsPhoneOpen) return;   // intro-story 77: 시네마틱 중 Esc = 넘기기(일시정지 아님). monitor-trade 43·item-phone 63: 열린 화면은 Esc로 먼저 닫음
         IsPaused = !IsPaused;
         Time.timeScale = IsPaused ? 0f : 1f;
         ui.Refresh(this);

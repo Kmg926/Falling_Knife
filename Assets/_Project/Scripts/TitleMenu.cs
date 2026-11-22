@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -18,6 +19,10 @@ public class TitleMenu : MonoBehaviour
     [SerializeField] Color selectedColor = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2
     [SerializeField] Color normalColor = new Color32(0xA3, 0x9A, 0x8C, 255);     // cream0
     [SerializeField] string gameSceneName = "GameScene";
+    // intro-story 77: 시작 → 화면 전체 검정이 0.5초 동안 짙어진 뒤 GameScene(거기서 검정 → 밝아지며 시작 스토리)
+    [SerializeField] Image fade;
+    [SerializeField] float fadeOutSeconds = 0.5f;
+    bool starting;   // 어두워지는 중 = 입력 무시(두 번 눌러도 한 번만)
 
     [Header("창 (규칙 3쪽 / 준비 중)")]
     [SerializeField] GameObject panelRoot;          // 뒤 어둡게 + 창
@@ -102,6 +107,7 @@ public class TitleMenu : MonoBehaviour
         Canvas canvas = GetComponentInParent<Canvas>();
         uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
         if (panelRoot != null) panelRoot.SetActive(false);
+        if (fade != null) fade.gameObject.SetActive(false);
         if (panelBody != null) bodyOverflow = panelBody.overflowMode;
         for (int i = 0; i < itemTexts.Length && i < itemData.Length; i++)
             itemTexts[i].text = $"<color=#D9B45A>{itemData[i].displayName}</color>  {itemData[i].description}";   // 이름은 금색
@@ -110,6 +116,7 @@ public class TitleMenu : MonoBehaviour
 
     void Update()
     {
+        if (starting) return;
         Keyboard kb = Keyboard.current;
         Mouse mouse = Mouse.current;
 
@@ -164,12 +171,30 @@ public class TitleMenu : MonoBehaviour
     {
         switch (Selected)
         {
-            case 0: SceneManager.LoadScene(gameSceneName); break;
+            case 0: StartCoroutine(StartGame()); break;
             case 1: OpenRules(); break;
             case 2: OpenSettings(); break;
             case 3: OpenCredits(); break;
             default: Quit(); break;
         }
+    }
+
+    // intro-story 77: 검정이 짙어진 뒤 시작 스토리를 켜고 GameScene으로
+    IEnumerator StartGame()
+    {
+        starting = true;
+        if (fade != null)
+        {
+            fade.gameObject.SetActive(true);
+            for (float t = 0f; t < fadeOutSeconds; t += Time.unscaledDeltaTime)
+            {
+                fade.color = new Color(0f, 0f, 0f, t / fadeOutSeconds);
+                yield return null;
+            }
+            fade.color = Color.black;
+        }
+        IntroStory.PlayNext = true;
+        SceneManager.LoadScene(gameSceneName);
     }
 
     // 창 닫기(Esc). 첫 화면에선 아무 일 없음
