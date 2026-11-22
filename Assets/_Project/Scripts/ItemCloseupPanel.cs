@@ -116,6 +116,11 @@ public class ItemCloseupPanel : MonoBehaviour
         {
             description += "\n(상대가 이미 정지 상태라 못 쓴다)";
         }
+        // heal-items 89: 회복 아이템은 잔고가 가득이면 쓸 수 없다고 미리 알려 준다
+        if (GameManager.CannotHeal(game.Player, item) && !game.IsViewingClownPhone)
+        {
+            description += "\n(잔고가 가득이라 못 쓴다)";
+        }
         descriptionText.text = description;
     }
 }

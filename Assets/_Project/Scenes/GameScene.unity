@@ -11410,6 +11410,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 533d28281ca42f0419a2447733ceedf2, type: 3}
   - {fileID: 21300000, guid: 263ee15f208b04d4fb637478bf92c09b, type: 3}
   - {fileID: 21300000, guid: 178d8c77fac6f494387f1fda8afd8522, type: 3}
+  - {fileID: 21300000, guid: 0f21f7b881a000d489c2b134c91b8a5d, type: 3}
+  - {fileID: 21300000, guid: 7531654fa30339c498c398cc16b408a1, type: 3}
   newMarks:
   - {fileID: 99585473}
   - {fileID: 1996597101}
@@ -16405,6 +16407,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 5d63494184d57d949a3bd913cadc0ea1, type: 3}
   - {fileID: 21300000, guid: ed0aff145624d9048a6604d684cb7160, type: 3}
   - {fileID: 21300000, guid: 6ed42f0c8db5bab4ba8b58f49992551a, type: 3}
+  - {fileID: 21300000, guid: 3bd072dd78390ec4da918f76edf6ea4a, type: 3}
+  - {fileID: 21300000, guid: ba09531a5b4d6644b9d59fa2a6339ba4, type: 3}
   spinFrames:
   - {fileID: 21300000, guid: 03276c38c688fb147a094471ff4abcd8, type: 3}
   - {fileID: 21300000, guid: 3a88ae6c554da76418829a9dc0e34771, type: 3}
@@ -16449,6 +16453,8 @@ MonoBehaviour:
   - {x: 3, y: 0}
   - {x: 0, y: 0}
   - {x: 3, y: 0}
+  - {x: 0, y: 0}
+  - {x: 0, y: 0}
   shadow: {fileID: 1056394211}
 --- !u!114 &1887937187
 MonoBehaviour:
@@ -19016,6 +19022,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9fa720211fe4f2a409e7a6ff3f627d56, type: 2}
   - {fileID: 11400000, guid: 47a61241fbf52e241834e5ebcf2b92b5, type: 2}
   - {fileID: 11400000, guid: c76f2e658e8a2df47af0673dcc32cc29, type: 2}
+  - {fileID: 11400000, guid: 226ad1e96e40fe54f8ec7bcd1359035d, type: 2}
+  - {fileID: 11400000, guid: 863f371f79ff6694bb4ef73dcd3fe245, type: 2}
   itemsPerGrant: 2
   clownLotteryThreshold: 3
   useFixedItems: 0

@@ -91,9 +91,19 @@ public class TitleMenu : MonoBehaviour
     public int CreditPages => panelBody != null ? Mathf.Max(1, panelBody.textInfo.pageCount) : 1;
     TextOverflowModes bodyOverflow;   // 크레딧만 쪽 나누기(Page) — 닫으면 원래 방식으로
 
-    static readonly string[] PageTitles = { "규칙 1/4 · 목표와 턴", "규칙 2/4 · 레버리지", "규칙 3/4 · 아이템", "규칙 4/4 · 조작" };
-    const int PageCount = 4;
-    const int ItemPage = 2;   // 아이템 아이콘 줄을 보이는 쪽
+    // heal-items 89: 아이템이 6종이 되어 한 쪽(4줄 자리)에 다 안 들어감 → "회복 아이템" 쪽을 하나 더(5쪽)
+    static readonly string[] PageTitles = { "규칙 1/5 · 목표와 턴", "규칙 2/5 · 레버리지", "규칙 3/5 · 아이템", "규칙 4/5 · 회복 아이템", "규칙 5/5 · 조작" };
+    const int PageCount = 5;
+    const int ItemPage = 2;   // 아이템 아이콘 줄을 보이는 쪽(앞 4종)
+    const int HealPage = 3;   // heal-items 89: 회복 아이템 2종 쪽
+    const int RowsPerPage = 4;
+
+    [Header("heal-items 89: 규칙 아이템 줄 그림(쪽마다 바꿔 끼움)")]
+    [SerializeField] Image[] itemIcons;             // 줄마다 아이콘(4개)
+    [SerializeField] Sprite[] itemIconSprites;      // ItemType 순서 6개
+    [SerializeField, TextArea(2, 4)] string rulesHealItems =
+        "잔고는 시작 잔고보다 많아지지 않는다.\n" +
+        "잔고가 가득이면 쓸 수 없다(아이템은 남는다).";
 
     public int Selected { get; private set; }
     public Panel Open { get; private set; } = Panel.None;
@@ -357,11 +367,29 @@ public class TitleMenu : MonoBehaviour
     void ShowPage()
     {
         panelTitle.text = PageTitles[Page];
-        itemRows.SetActive(Page == ItemPage);
-        string[] pages = { rulesPage1, rulesLeverage, rulesItems, rulesControls };
+        itemRows.SetActive(Page == ItemPage || Page == HealPage);
+        if (Page == ItemPage) ShowItemRows(0, 4);                       // 차트 분석·찌라시·거래 정지·복권
+        else if (Page == HealPage) ShowItemRows(4, 2);                  // heal-items 89: 배당금·구제 금융
+        string[] pages = { rulesPage1, rulesLeverage, rulesItems, rulesHealItems, rulesControls };
         panelBody.text = pages[Page];
         string tail = Page == 0 ? rulesPage1Footer + "\n" : "";
         panelFooter.text = tail + (Page < PageCount - 1 ? "←/→ 쪽 넘기기   Esc 닫기" : "← 앞 쪽   Esc 닫기");
+    }
+
+    // heal-items 89: 아이템 줄 4칸에 first번째부터 count개(ItemType 순서) — 남는 줄은 숨김
+    void ShowItemRows(int first, int count)
+    {
+        for (int row = 0; row < itemTexts.Length; row++)
+        {
+            int i = first + row;
+            bool show = row < count && i < itemData.Length;
+            itemTexts[row].gameObject.SetActive(show);
+            if (itemIcons != null && row < itemIcons.Length) itemIcons[row].gameObject.SetActive(show);
+            if (!show) continue;
+            itemTexts[row].text = $"<color=#D9B45A>{itemData[i].displayName}</color>  {itemData[i].description}";   // 이름은 금색
+            if (itemIcons != null && row < itemIcons.Length && itemIconSprites != null && i < itemIconSprites.Length)
+                itemIcons[row].sprite = itemIconSprites[i];
+        }
     }
 
     float arrowWidth = -1f;   // "▶ " 폭(처음 한 번 잼)

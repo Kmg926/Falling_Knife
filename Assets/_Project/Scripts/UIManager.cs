@@ -213,6 +213,7 @@ public class UIManager : MonoBehaviour
             {
                 message += " (사용 불가: 상대가 이미 정지 상태)";
             }
+            if (GameManager.CannotHeal(game.Player, item)) message += " (사용 불가: 잔고가 가득)";   // heal-items 89
         }
 
         if (game.IsRoundCleared)

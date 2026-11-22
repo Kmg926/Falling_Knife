@@ -559,6 +559,18 @@ public class GameManager : MonoBehaviour
                 RemovePlayerItemAt(ConfirmingSlot);
                 UseLottery(Player);
                 break;
+            case ItemType.Dividend:
+            case ItemType.Bailout:
+                // heal-items 89: 잔고가 가득이면 못 씀(아이템은 남음) — 거래 정지와 같은 방식
+                if (CannotHeal(Player, item))
+                {
+                    LastResult = $"{ItemName(item)}: 사용 불가 (잔고가 가득)";
+                    used = false;
+                    break;
+                }
+                RemovePlayerItemAt(ConfirmingSlot);
+                UseHeal(Player, item);
+                break;
             default:
                 // 17~19에서 하나씩 채운다. 지금은 아이템을 남겨 둔다.
                 LastResult = $"{ItemName(item)}: 아직 쓸 수 없음";
@@ -684,10 +696,45 @@ public class GameManager : MonoBehaviour
                 if (c == 'J') return ItemType.Rumor;
                 if (c == 'S') return ItemType.TradingHalt;
                 if (c == 'L') return ItemType.Lottery;
+                if (c == 'D') return ItemType.Dividend;   // heal-items 89
+                if (c == 'B') return ItemType.Bailout;
                 // 공백 등 다른 글자는 건너뛴다.
             }
         }
-        return (ItemType)Random.Range(0, 4);
+        return RandomItem();
+    }
+
+    // heal-items 89: 아이템마다 나올 무게(ItemType 순서). 구제 금융(+2)은 세서 절반(Grilling Q3). 숫자만 바꾸면 조정
+    static readonly float[] ItemWeights = { 1f, 1f, 1f, 1f, 1f, 0.5f };
+
+    // 무게대로 하나 고르기: 0 ~ 무게 합 사이 숫자를 뽑고, 무게를 앞에서부터 빼 가다 0 밑으로 내려간 칸
+    static ItemType RandomItem()
+    {
+        float total = 0f;
+        foreach (float w in ItemWeights) total += w;
+        float r = Random.Range(0f, total);
+        for (int i = 0; i < ItemWeights.Length; i++)
+        {
+            r -= ItemWeights[i];
+            if (r < 0f) return (ItemType)i;
+        }
+        return (ItemType)(ItemWeights.Length - 1);   // 소수점 오차 대비
+    }
+
+    // heal-items 89: 회복량(배당금 1·구제 금융 2, 회복 아이템이 아니면 0)
+    public static int HealAmount(ItemType item) =>
+        item == ItemType.Dividend ? 1 : item == ItemType.Bailout ? 2 : 0;
+
+    // 잔고가 가득이면 회복 아이템을 쓸 수 없다(Grilling Q2) — 확인 화면 안내에도 씀
+    public static bool CannotHeal(Participant p, ItemType item) =>
+        HealAmount(item) > 0 && p.Balance >= p.StartingBalance;
+
+    // 회복: Participant.Heal이 시작 잔고를 넘지 않게 자름(1만 비었으면 구제 금융도 1)
+    void UseHeal(Participant user, ItemType item)
+    {
+        int before = user.Balance;
+        user.Heal(HealAmount(item));
+        LastResult = $"{user.Name}: {ItemName(item)} 사용 → 잔고 +{user.Balance - before}";
     }
 
     // 화면에 쓸 이름. 에셋이 연결되지 않았으면 enum 이름.

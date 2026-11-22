@@ -3075,6 +3075,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9fa720211fe4f2a409e7a6ff3f627d56, type: 2}
   - {fileID: 11400000, guid: 47a61241fbf52e241834e5ebcf2b92b5, type: 2}
   - {fileID: 11400000, guid: c76f2e658e8a2df47af0673dcc32cc29, type: 2}
+  - {fileID: 11400000, guid: 226ad1e96e40fe54f8ec7bcd1359035d, type: 2}
+  - {fileID: 11400000, guid: 863f371f79ff6694bb4ef73dcd3fe245, type: 2}
   rulesPage1: "<color=#D9B45A>\uBAA9\uD45C</color>\uB294 \uB9E4 \uB77C\uC6B4\uB4DC \uC0C1\uB300 \uC794\uACE0\uB97C \uBA3C\uC800 0\uC73C\uB85C \uB9CC\uB4DC\uB294 \uAC83\uC774\uB2E4.\n\uC5B4\uB290 \uB77C\uC6B4\uB4DC\uB4E0 \uB0B4 \uC794\uACE0\uAC00 \uBA3C\uC800 0\uC774 \uB418\uBA74 <color=#D9B45A>\uD328\uBC30</color>\uD55C\uB2E4.\n<color=#D9B45A>\uB0B4 \uCC28\uB840</color>\uC5D0\uB294 \uC228\uACA8\uC9C4 \uCE94\uB4E4\uC744 \uB450\uACE0 \uB9E4\uC218\uB098 \uB9E4\uB3C4\uB97C \uACE0\uB978\uB2E4.\n<color=#A39A8C>\uD589\uB3D9<pos=22%>\uCE94\uB4E4<pos=44%>\uACB0\uACFC</color>\n\uB9E4\uC218<pos=22%><color=#6CC27F>\u25B2 \uC0C1\uC2B9</color><pos=44%>\uB808\uBC84\uB9AC\uC9C0 +1, <color=#D9B45A>\uD55C \uBC88 \uB354</color>\n\uB9E4\uC218<pos=22%><color=#E46A58>\u25BC \uD558\uB77D</color><pos=44%><color=#E46A58>\uB0B4 \uC794\uACE0 \u2212(1+\uB808\uBC84\uB9AC\uC9C0)</color>\n\uB9E4\uB3C4<pos=22%><color=#E46A58>\u25BC \uD558\uB77D</color><pos=44%><color=#E46A58>\uC0C1\uB300 \uC794\uACE0 \u2212(1+\uB808\uBC84\uB9AC\uC9C0)</color>\n\uB9E4\uB3C4<pos=22%><color=#6CC27F>\u25B2 \uC0C1\uC2B9</color><pos=44%>\uBCC0\uD654 \uC5C6\uC74C"
   rulesPage1Footer: "\"\uD55C \uBC88 \uB354\"\uAC00 \uC544\uB2C8\uBA74 \uCC28\uB840\uAC00 \uC0C1\uB300\uC5D0\uAC8C \uB118\uC5B4\uAC04\uB2E4."
   rulesLeverage: "<color=#D9B45A>\uB808\uBC84\uB9AC\uC9C0</color>\uB294 \uB2E4\uC74C \uD53C\uD574\uB97C \uD0A4\uC6B0\uB294 \uC22B\uC790\uB2E4.\n\uB450 \uC0AC\uB78C\uC774 \uD568\uAED8 \uC4F0\uACE0, 0\uC5D0\uC11C \uC2DC\uC791\uD55C\uB2E4.\n\uB9E4\uC218\uD55C \uCE94\uB4E4\uC774 \uC0C1\uC2B9\uD560 \uB54C\uB9C8\uB2E4 1\uC529 \uC624\uB978\uB2E4(\uCD5C\uB300 3).\n\uD558\uB77D\uC73C\uB85C \uBC1B\uB294 \uD53C\uD574\uB294 1 + \uB808\uBC84\uB9AC\uC9C0\uB2E4.\n\uD53C\uD574\uAC00 \uB098\uAC70\uB098 \uC0C8 \uB77C\uC6B4\uB4DC\uAC00 \uC2DC\uC791\uB418\uBA74 <color=#D9B45A>0\uC73C\uB85C \uCD08\uAE30\uD654</color>\uB41C\uB2E4.\n\uB9E4\uB3C4\uD55C \uCE94\uB4E4\uC774 \uC0C1\uC2B9\uD558\uBA74 \uB808\uBC84\uB9AC\uC9C0\uB294 \uADF8\uB300\uB85C\uB2E4.\n<color=#A39A8C>\uC608)</color> \uB808\uBC84\uB9AC\uC9C0 2\uC5D0\uC11C \uB9E4\uB3C4\uD55C \uCE94\uB4E4\uC774 \uD558\uB77D\uD558\uBA74\n     \uC0C1\uB300 \uC794\uACE0\uAC00 3 \uC904\uACE0, \uB808\uBC84\uB9AC\uC9C0\uB294 0\uC73C\uB85C \uCD08\uAE30\uD654\uB41C\uB2E4."
@@ -3083,6 +3085,19 @@ MonoBehaviour:
   sfx: {fileID: 2143641331}
   clickClip: {fileID: 8300000, guid: aa56820f8d2dd214ba74c70a9a3f98e3, type: 3}
   credits: "Falling Knife\n\uB9CC\uB4E0 \uC0AC\uB78C   Kmg926\n\uC5D4\uC9C4   Unity 6.6 (URP 2D)\n\uAE00\uAF34   Galmuri11 \u2014 Lee Minseo (quiple)\n        SIL Open Font License 1.1\n        github.com/quiple/galmuri\n\uADF8\uB9BC\xB7\uD6A8\uACFC\uC74C   Claude(Anthropic)\uAC00 \uC791\uC131\uD55C \uCF54\uB4DC\uB85C \uC0DD\uC131\n        \uC120\uD0DD\xB7\uC218\uC815 \uC9C0\uC2DC: \uB9CC\uB4E0 \uC0AC\uB78C\n\uCF54\uB4DC \uB3C4\uC6C0   Claude(Anthropic)\n\uBC30\uACBD\uC74C\uC545   xjj9 \u2014 prod. by cryalxt\n\uBE44\uC601\uB9AC \uD559\uAD50 \uACFC\uC81C"
+  itemIcons:
+  - {fileID: 1276016434}
+  - {fileID: 1921259343}
+  - {fileID: 81385643}
+  - {fileID: 1077655711}
+  itemIconSprites:
+  - {fileID: 21300000, guid: 27e07b7b009f47d40a596a3e8ca20c6b, type: 3}
+  - {fileID: 21300000, guid: 533d28281ca42f0419a2447733ceedf2, type: 3}
+  - {fileID: 21300000, guid: 263ee15f208b04d4fb637478bf92c09b, type: 3}
+  - {fileID: 21300000, guid: 178d8c77fac6f494387f1fda8afd8522, type: 3}
+  - {fileID: 21300000, guid: 0f21f7b881a000d489c2b134c91b8a5d, type: 3}
+  - {fileID: 21300000, guid: 7531654fa30339c498c398cc16b408a1, type: 3}
+  rulesHealItems: "\uC794\uACE0\uB294 \uC2DC\uC791 \uC794\uACE0\uBCF4\uB2E4 \uB9CE\uC544\uC9C0\uC9C0 \uC54A\uB294\uB2E4.\n\uC794\uACE0\uAC00 \uAC00\uB4DD\uC774\uBA74 \uC4F8 \uC218 \uC5C6\uB2E4(\uC544\uC774\uD15C\uC740 \uB0A8\uB294\uB2E4)."
 --- !u!114 &1373693579
 MonoBehaviour:
   m_ObjectHideFlags: 0
