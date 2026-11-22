@@ -27,6 +27,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] MonitorZoomPanel monitorZoom;     // monitor-trade 43
     [SerializeField] PhoneView phoneView;              // item-phone 63: 테이블 위 접힌 폰 + 확대된 폰(옛 TableItemsView 자리)
     [SerializeField] ClownPhoneView clownPhone;        // item-phone 64: 광대 폰(광대 아이템 2×2, 사용 반짝임)
+    [SerializeField] ClownSpeechView clownSpeech;      // clown-tell 80: 광대 말풍선
     // 피해 때 화면 전체를 덮는 반투명 빨강
     [SerializeField] Image damageFlash;
 
@@ -183,6 +184,7 @@ public class UIManager : MonoBehaviour
         monitorZoom.Refresh(game);
         phoneView.Refresh(game);
         clownPhone.Refresh(game);
+        if (clownSpeech != null) clownSpeech.Refresh(game);   // clown-tell 80
 
         string choice = game.Selected == PlayerAction.Buy ? "[매수]  매도" : " 매수  [매도]";
         string message = game.IsRevealing ? "공개 중..." : game.LastResult;

@@ -26,6 +26,9 @@ public class GameManager : MonoBehaviour
     [Header("연출")]
     [SerializeField] float revealSeconds = 1f;
     [SerializeField] float clownThinkSeconds = 0.5f;
+    // clown-tell 80: 광대가 말풍선으로 말한 뒤 읽을 시간(Grilling Q4)
+    [SerializeField] float clownDeclareSeconds = 0.6f;   // 매수·매도를 말하고 → 공개까지
+    [SerializeField] float clownItemSeconds = 0.8f;      // 아이템을 말하고 → 다음 판단까지
     // 공개가 시작되고 이만큼 뒤에 초침 (앞부분은 GDD "공개 직전 잠깐 무음")
     [SerializeField] float tickDelaySeconds = 0.2f;
 
@@ -161,6 +164,34 @@ public class GameManager : MonoBehaviour
     public int ClownItemUseCount { get; private set; }  // 광대가 아이템을 쓸 때마다 +1 → 화면은 "바뀌었나"만 본다
     public int ClownLastUsedSlot { get; private set; }  // 방금 쓴 아이템이 쓰기 직전 몇 번째 칸이었나(0~3)
 
+    // ── clown-tell 80: 광대 말풍선 신호. "지금 어떤 대사를 할 순간인지"만 알리고 글은 ClownSpeechView에 있다. 판정에는 쓰지 않는다. ──
+    public ClownLine LastClownLine { get; private set; }
+    public int ClownLineCount { get; private set; }     // 말할 때마다 +1 → 화면은 "바뀌었나"만 본다(같은 대사를 두 번 해도 다시 뜸)
+
+    void ClownSay(ClownLine line)
+    {
+        LastClownLine = line;
+        ClownLineCount++;
+    }
+
+    // 내가 행동하면(모니터·폰 열기, 1~4) 말풍선을 바로 닫는다(Grilling Q9)
+    void ClownSilence()
+    {
+        if (LastClownLine == ClownLine.None) return;
+        ClownSay(ClownLine.None);
+    }
+
+    static ClownLine ItemLine(ItemType item)
+    {
+        switch (item)
+        {
+            case ItemType.ChartAnalysis: return ClownLine.UseChart;
+            case ItemType.Rumor: return ClownLine.UseRumor;
+            case ItemType.TradingHalt: return ClownLine.UseHalt;
+            default: return ClownLine.UseLottery;
+        }
+    }
+
     // ── item-phone 65: 아이템을 받은 신호(폰이 울리고 "+N"을 깜빡이는 데 씀). 판정에는 쓰지 않는다. ──
     public int PlayerGrantCount { get; private set; }   // 내가 아이템을 받을 때마다 +1
     public int PlayerLastGrant { get; private set; }    // 방금 실제로 받은 개수(가득 차서 못 받은 것은 빼고)
@@ -242,6 +273,7 @@ public class GameManager : MonoBehaviour
         PlayerKnownNext = null;
         clownKnownNext = null;
         LastResult = "";
+        ClownSilence();             // clown-tell 80: 새 라운드엔 말풍선 없이
         ShownCandle = null;                                                            // ← 25 추가
         deck.SetComposition(config.minCards, config.maxCards, config.fixedOrder);
         LastFillWasRoundStart = true;
@@ -316,6 +348,7 @@ public class GameManager : MonoBehaviour
         if (IsIntro || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
         if (slot < 0 || slot >= Player.Items.Count) return;
         ConfirmingSlot = slot;
+        ClownSilence();             // clown-tell 80: 1~4도 내 행동
         PhoneCursor = slot;
         // item-phone 63: 1~4 키·폰 칸으로 고르면 폰이 그 아이템 상세로 바로 열린다(모니터가 열려 있었으면 닫음 — 둘은 동시에 안 열림)
         IsPhoneOpen = true;
@@ -354,6 +387,7 @@ public class GameManager : MonoBehaviour
     public void OpenPhone()
     {
         if (!CanOpenPhone) return;
+        ClownSilence();             // clown-tell 80: 내가 행동하면 말풍선 닫기
         IsPhoneOpen = true;
         IsViewingClownPhone = false;
         PhoneCursor = 0;
@@ -365,6 +399,7 @@ public class GameManager : MonoBehaviour
     public void OpenClownPhone()
     {
         if (!CanOpenPhone) return;
+        ClownSilence();             // clown-tell 80
         IsPhoneOpen = true;
         IsViewingClownPhone = true;
         PhoneCursor = 0;
@@ -392,6 +427,7 @@ public class GameManager : MonoBehaviour
     public void OpenMonitor()
     {
         if (!CanOpenMonitor) return;
+        ClownSilence();             // clown-tell 80: 내가 행동하면 말풍선 닫기
         IsMonitorOpen = true;
         audioManager.PlayClick();
         ui.Refresh(this);
@@ -692,13 +728,18 @@ public class GameManager : MonoBehaviour
 
         if (move.UsesItem)
         {
+            ClownSay(ItemLine(move.Item));                  // clown-tell 80: "찌라시를 쓰지." 등
             UseClownItem(move.Item);
             ui.Refresh(this);
+            yield return new WaitForSeconds(clownItemSeconds);   // 읽을 시간 뒤 다음 판단
             StartCoroutine(ClownTurnRoutine());
             yield break;
         }
 
         Selected = move.Action;
+        ClownSay(move.Action == PlayerAction.Buy ? ClownLine.Buy : ClownLine.Sell);   // clown-tell 80
+        ui.Refresh(this);
+        yield return new WaitForSeconds(clownDeclareSeconds);   // 말풍선을 읽은 뒤 공개
         StartCoroutine(RevealRoutine(Selected));
     }
 
@@ -800,6 +841,7 @@ public class GameManager : MonoBehaviour
 
         if (Current.IsHalted && !IsRoundOver)
         {
+            if (Current == Clown) ClownSay(ClownLine.Halted);   // clown-tell 80(Spec 제안 3): "…한 번 쉬지."
             Current.ClearHalt();
             LastResult += $"\n{Current.Name}: 거래 정지로 턴을 건너뜀";
             Current = Opponent;

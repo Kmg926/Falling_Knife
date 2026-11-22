@@ -10,6 +10,7 @@
     python tools/make_art.py revamp30  # UI 개편 30: 한 단계 어두운 광대·턴 띠
     python tools/make_art.py revamp31  # UI 개편 31: 캔들 뒷면
     python tools/make_art.py revamp32  # UI 개편 32: 아이템 회전 그림 4x8 + 그림자
+    python tools/make_art.py clowntell # clown-tell 80: 말풍선 꼬리
     python tools/make_art.py check <png...>   # 팔레트 검사만
 
 - 입력: tools/palette.txt (16색), .scratch/art/reference/sketch-play-320.png
@@ -946,8 +947,42 @@ def make_revamp32(pal):
     check(files, pal)
 
 
+def speech_tail(names):
+    """clown-tell 80: 말풍선 꼬리(오른쪽 = 광대 쪽을 가리킴), 4x7.
+    왼쪽 줄은 창 안쪽 색(bg0)이라 창의 오른쪽 테두리 위에 겹쳐 놓으면 틀과 꼬리가 한 덩어리로 이어진다.
+    줄 r의 길이 e = 3 - |r - 3| → 0..e-1 = bg0, e = gold1(테두리, 창 테두리와 같은 색)."""
+    idx, mask = sprite(4, 7)
+    for r in range(7):
+        e = 3 - abs(r - 3)
+        if e > 0:
+            put(idx, mask, r, slice(0, e), "bg0", names)
+        put(idx, mask, r, e, "gold1", names)
+    return idx, mask
+
+
+def make_clowntell(pal):
+    """clown-tell 80 그림: 말풍선 꼬리 + 미리보기(창 테두리와 이어지는지, 8배)."""
+    names = list(pal.keys())
+    idx, mask = speech_tail(names)
+    p = DRAFTS / "speech-tail.png"
+    write_png(p, to_rgba(idx, mask, pal))
+    # 미리보기: 20x9 창(1도트 금색 테두리) 오른쪽 테두리 위에 꼬리를 겹침
+    box_i, box_m = frame(20, 9, "gold1", "bg0", names)
+    canvas_i, canvas_m = sprite(24, 9)
+    canvas_i[:, :20], canvas_m[:, :20] = box_i, box_m
+    canvas_i[1:8, 19:23][mask] = idx[mask]
+    canvas_m[1:8, 19:23] |= mask
+    rgba = to_rgba(canvas_i, canvas_m, pal)
+    write_png(DRAFTS / "speech-tail-preview-x8.png", rgba.repeat(8, 0).repeat(8, 1))
+    print("팔레트 검사:")
+    check([p], pal)
+
+
 if __name__ == "__main__":
     palette = load_palette()
+    if len(sys.argv) > 1 and sys.argv[1] == "clowntell":
+        make_clowntell(palette)
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == "revamp32":
         make_revamp32(palette)
         sys.exit(0)
