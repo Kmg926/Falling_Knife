@@ -28,7 +28,8 @@ public class AudioManager : MonoBehaviour
     // 82: 사용자 "음악 사운드 70%로" → 0.5 × 0.7 = 0.35
     [SerializeField, Range(0f, 1f)] float musicBase = 0.35f;
     // 캔들 공개 중 음악 크기 비율 (GDD "공개 직전 잠깐 무음"을 음악이 있는 상태로)
-    [SerializeField, Range(0f, 1f)] float revealDuck = 0.2f;
+    // 2026-11-22 사용자 "모든 상황에서 음악 사운드 일정하게, 특정 행동 때 줄이니 정신없어" → 0.2에서 1(줄이지 않음). 기능은 남겨 둠(값만 1)
+    [SerializeField, Range(0f, 1f)] float revealDuck = 1f;
 
     bool ducking;
 

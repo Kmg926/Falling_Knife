@@ -25,3 +25,4 @@ Spec: `../spec.md` · Grilling: `../grilling.md` (Q10, Q11, 사용자 추가 결
   - T145 ✅ Play 중에만 임시로 셔플(0.6초)을 곡 칸에 넣고 1.5초 뒤 → `isPlaying` true, `loop` true, 재생 위치 0.31초(반복 중). 끝나고 곡 칸 비움
   - T146 ✅ 퇴행 `clown-ai` T65 패배 / T67 클리어 / T66 클리어 / T68 `차례: 광대` 클리어 → Space → 2라운드 플레이어 (C10)
   - Console 오류 0(목록의 CS1061 `FlashDamage`는 22 반영 중간의 옛 기록). Play를 멈춘 뒤 다시 "변경됨" 표시가 나왔지만 복사본 비교 결과 내용 차이 0 → 저장할 것 없음.
+- 2026-11-22 사용자 "모든 상황에서 음악 사운드 일정하게": 공개 중 줄임 0.2 → 1(줄이지 않음, 기능은 남김). gdd-changes #75, `../../item-phone/draft/87/README.md`.
