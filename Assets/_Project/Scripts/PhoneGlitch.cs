@@ -41,6 +41,7 @@ public class PhoneGlitch : MonoBehaviour
     // 꺼질 때(씬 전환 등) 덮개를 끄고 제자리로
     void OnDisable()
     {
+        StopAllCoroutines();   // clown-phone 85: enabled = false로 꺼도 코루틴은 안 멈추므로 직접(ScreenGlitch와 같은 이유)
         overlay.enabled = false;
         rt.anchoredPosition = home;
         IsGlitching = false;

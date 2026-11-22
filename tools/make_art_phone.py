@@ -791,6 +791,115 @@ def mini_lottery(pal):
     return cv
 
 
+# ---------- clown-phone 85: 광대 폰 확대 화면(사용자 "광대 핸드폰을 클릭했을 때 나오는 화면도 휴대폰 겉모습과 어울리게") ----------
+def recolor_red(cv, keep):
+    """남색 계열 → 빨강 계열(탁자 위 광대 폰과 같은 대응). keep = 바꾸지 않을 칸."""
+    for a, b in (("navy0", "red0"), ("navy", "red1"), ("navy2", "red2")):
+        cv.idx[cv.mask & ~keep & (cv.idx == cv.c(a))] = cv.c(b)
+
+
+def line(cv, p0, p1, col, allow=None):
+    (x0, y0), (x1, y1) = p0, p1
+    n = max(abs(x1 - x0), abs(y1 - y0)) + 1
+    for t in np.linspace(0, 1, n):
+        x, y = int(round(x0 + (x1 - x0) * t)), int(round(y0 + (y1 - y0) * t))
+        if allow is None or allow[y, x]:
+            cv.fill((y, x), col)
+
+
+def phone_open_clown(pal):
+    """phone_open과 같은 모양 + 빨강 몸통·키패드, 키 "6" 금, 키 "*" 빠짐, 뚜껑 왼쪽 위 모서리 테이프.
+    아이템 키 1~4(금색 조각이 겹치는 자리)는 건드리지 않음. 화면은 그대로(금은 따로 phone-crack 그림)."""
+    cv = phone_open(pal)
+    yy, xx = np.mgrid[0:OH, 0:OW]
+    sx0, sy0, sx1, sy1 = SCREEN
+    screen = (xx >= sx0 - 2) & (xx < sx1 + 2) & (yy >= sy0 - 2) & (yy < sy1 + 2)
+    recolor_red(cv, screen)
+    # 키 "6"(5번째): 금 — 왼쪽 위에서 오른쪽 아래로 갈라짐(글자 위를 지나도 bg00 1줄이라 숫자는 읽힘)
+    x0, y0, x1, y1 = key_rect(5)
+    line(cv, (x0 + 4, y0 + 2), (x0 + 18, y1 - 4), "bg00")
+    line(cv, (x0 + 18, y1 - 4), (x1 - 6, y0 + 6), "bg00")
+    line(cv, (x0 + 11, y0 + 7), (x0 + 9, y1 - 3), "gray0")
+    # 키 "*"(9번째): 빠짐 — 키 자리 = 움푹한 구멍(bg00) + 안쪽 위 그늘 줄(red0) + 남은 접점 2개(gray0)
+    x0, y0, x1, y1 = key_rect(9)
+    hole = round_rect(OW, OH, x0, y0, x1, y1, 5)
+    cv.fill(hole, "bg00")
+    cv.fill(hole & (yy < y0 + 2), "red0")
+    for cx in (x0 + 14, x1 - 16):
+        cv.fill((slice(y0 + 8, y0 + 12), slice(cx, cx + 3)), "gray0")
+    # 테이프: 뚜껑 왼쪽 위 모서리를 대각선으로(x+y가 8~25, 화면 틀(x+y ≥ 28)에 안 닿음). 처음 10~20은 작아서 안 보임
+    lid = round_rect(OW, OH, 0, 0, OW, LID_H, 14)
+    d = xx + yy
+    band = lid & (d >= 8) & (d < 26)
+    cv.fill(band, "cream0")
+    cv.fill(band & ((d == 8) | (d == 25)), "gray1")
+    cv.fill(band & (d == 13) & (xx % 3 == 0), "cream2")
+    cv.fill(band & (d == 19) & (xx % 4 == 1), "gray1")   # 주름
+    # 끊기(빨간) 키: 몸통이 빨강이 되어 묻힘 → 밝은 빨강(red3) + 위 빛(red4)
+    x0 = OW - KEYS_X0 - 36
+    m = round_rect(OW, OH, x0, BTN_Y0, x0 + 36, BTN_Y0 + 18, 6)
+    cv.fill(m, "red3")
+    cv.fill(m & (yy < BTN_Y0 + 3), "red4")
+    cv.fill(m & (yy >= BTN_Y0 + 16), "red0")
+    return cv
+
+
+def phone_crack(pal):
+    """화면 유리 금(투명 그림, 폰과 같은 200×354). 게임에서 화면 글자 **아래**에 깔아 글자는 안 가림.
+    오른쪽 위 모서리 충격점에서 갈라진 금 + 왼쪽 아래 짧은 금 — 가운데(칸 2×2)는 비움."""
+    cv = Canvas(pal, OW, OH)
+    sx0, sy0, sx1, sy1 = SCREEN
+    yy, xx = np.mgrid[0:OH, 0:OW]
+    inside = (xx >= sx0) & (xx < sx1) & (yy >= sy0) & (yy < sy1)
+    hit = (sx1 - 10, sy0 + 8)                       # 충격점
+    main = [(hit, (sx1 - 40, sy0 + 30)), (hit, (sx1 - 1, sy0 + 34)), (hit, (sx1 - 26, sy0)),
+            ((sx1 - 40, sy0 + 30), (sx1 - 52, sy0 + 34)), ((sx1 - 24, sy0 + 19), (sx1 - 20, sy0 + 44))]
+    for i, (p0, p1) in enumerate(main):
+        line(cv, p0, p1, "cream0" if i < 3 else "gray1", inside)
+    for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2), (-1, -1), (1, 1)):
+        line(cv, hit, (hit[0] + dx * 3, hit[1] + dy * 3), "cream2", inside)   # 충격점 둘레 잔금
+    low = [((sx0, sy1 - 30), (sx0 + 16, sy1 - 18)), ((sx0 + 16, sy1 - 18), (sx0 + 22, sy1 - 1)),
+           ((sx0 + 16, sy1 - 18), (sx0 + 30, sy1 - 22))]
+    for i, (p0, p1) in enumerate(low):
+        line(cv, p0, p1, "gray1" if i else "cream0", inside)
+    return cv
+
+
+def phone_glitch(pal):
+    """글리치 띠(화면 폭 172 × 10): 줄마다 길이·자리가 다른 가로 노이즈(초록·회색·빨강). 무작위 없음."""
+    w, h = SCREEN[2] - SCREEN[0], 10
+    cv = Canvas(pal, w, h)
+    rows = [(0, 120, "green0"), (2, 40, "gray1"), (2, 70, "red2"), (4, 0, "green2"), (6, 90, "gray0"), (8, 20, "red0")]
+    lens = [36, 60, 28, 50, 70, 44]
+    for (y, x, col), n in zip(rows, lens):
+        cv.fill((slice(y, y + 1 + (y % 4 == 0)), slice(x, min(w, x + n))), col)
+    cv.fill((slice(5, 6), slice(140, 172)), "green0")
+    return cv
+
+
+def make_clownzoom(pal):
+    OUT.mkdir(parents=True, exist_ok=True)
+    parts = {"phone-open-clown": phone_open_clown(pal), "phone-crack": phone_crack(pal), "phone-glitch": phone_glitch(pal)}
+    files = []
+    for name, cv in parts.items():
+        p = OUT / f"{name}.png"
+        write_png(p, cv.rgba())
+        files.append(p)
+    # 미리보기: 내 폰 | 광대 폰 + 금 | 광대 폰 + 금 + 글리치 띠(화면 가운데) — ×2
+    mine, clown, crack = phone_open(pal).rgba(), parts["phone-open-clown"].rgba(), parts["phone-crack"].rgba()
+    def over(dst, src, x=0, y=0):
+        h, w = src.shape[:2]
+        a = src[..., 3:4] / 255.0
+        dst[y:y + h, x:x + w, :3] = (src[..., :3] * a + dst[y:y + h, x:x + w, :3] * (1 - a)).astype(np.uint8)
+    c1 = clown.copy(); over(c1, crack)
+    c2 = c1.copy(); over(c2, parts["phone-glitch"].rgba(), SCREEN[0], 90)
+    pv = np.concatenate([mine, np.zeros((OH, 8, 4), np.uint8), c1, np.zeros((OH, 8, 4), np.uint8), c2], 1)
+    pv[..., 3] = 255
+    write_png(OUT / "clownzoom-preview-x2.png", pv.repeat(2, 0).repeat(2, 1))
+    print("팔레트 검사 (32색):")
+    return check32(files, pal)
+
+
 def make_draft(pal):
     OUT.mkdir(parents=True, exist_ok=True)
     parts = {"phone-closed": phone_closed(pal), "phone-closed-outline": phone_closed_outline(pal),
@@ -822,4 +931,6 @@ if __name__ == "__main__":
         sys.exit(0 if make_far(load_pal()) else 1)
     if cmd == "draft":
         sys.exit(0 if make_draft(load_pal()) else 1)
+    if cmd == "clownzoom":   # clown-phone 85: 광대 폰 확대 화면(빨강·금·빠진 키·테이프) + 화면 금 + 글리치 띠
+        sys.exit(0 if make_clownzoom(load_pal()) else 1)
     print(__doc__)

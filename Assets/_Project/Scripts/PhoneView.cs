@@ -37,6 +37,13 @@ public class PhoneView : MonoBehaviour
     [Header("받을 때 울림 (item-phone 65)")]
     [SerializeField] PhoneBuzz buzz;           // 진동·"+N" 깜빡임(깜빡이는 동안은 폰 그림을 buzz가 맡음)
 
+    [Header("clown-phone 85: 광대 폰 확대 화면 (빨강·금 간 유리·가끔 튐)")]
+    [SerializeField] Image bodyImage;          // 펼친 폰 그림
+    [SerializeField] Sprite mineBody;          // phone-open
+    [SerializeField] Sprite clownBody;         // phone-open-clown
+    [SerializeField] GameObject clownCrack;    // 화면 금(글자 아래 깔림)
+    [SerializeField] ScreenGlitch clownGlitch; // 가끔 화면이 튐
+
     [Header("소프트키 마우스 올림 (item-phone 70)")]
     [SerializeField] Color softNormal = new Color32(0xCD, 0xC4, 0xB6, 255);   // cream
     [SerializeField] Color softHover = new Color32(0xD9, 0xB4, 0x5A, 255);    // gold2 (일시정지·타이틀 메뉴와 같음)
@@ -90,6 +97,10 @@ public class PhoneView : MonoBehaviour
 
         // item-phone 66: 광대 폰을 보고 있으면 광대 아이템·"광대" 제목, 사용 칸(왼쪽 소프트키)은 비우고 키패드는 못 누름
         bool clown = game.IsViewingClownPhone;
+        // clown-phone 85: 광대 폰이면 빨간 깨진 폰 그림 + 화면 금 + 글리치, 내 폰이면 원래대로
+        if (bodyImage != null) bodyImage.sprite = clown ? clownBody : mineBody;
+        if (clownCrack != null) clownCrack.SetActive(clown);
+        if (clownGlitch != null) clownGlitch.enabled = clown;
         int shown = game.PhoneItems.Count;
         bool detail = game.IsConfirming;
         listGroup.SetActive(!detail);
