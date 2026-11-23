@@ -25,7 +25,9 @@ public class GameManager : MonoBehaviour
 
     [Header("연출")]
     [SerializeField] float revealSeconds = 1f;
-    [SerializeField] float clownThinkSeconds = 0.5f;
+    // 광대가 행동(매수·매도·아이템) 하나를 하기 전 생각 시간 = 광대 행동 사이 간격.
+    // 0.5 → 1(#22) → 2026-11-23 사용자 "광대 행동이 너무 빨라, 사이에 텀을 2초씩" → 2
+    [SerializeField] float clownThinkSeconds = 2f;
     // clown-tell 80: 광대가 말풍선으로 말한 뒤 읽을 시간(Grilling Q4)
     [SerializeField] float clownDeclareSeconds = 0.6f;   // 매수·매도를 말하고 → 공개까지
     [SerializeField] float clownItemSeconds = 0.8f;      // 아이템을 말하고 → 다음 판단까지

@@ -4624,10 +4624,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.10248447
-    y: 0.041931383
-    width: 0.7950311
-    height: 0.91486657
+    x: 0.23446563
+    y: 0.16789669
+    width: 0.5302403
+    height: 0.6642066
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
@@ -19862,7 +19862,7 @@ MonoBehaviour:
     maxCards: 9
     fixedOrder: 
   revealSeconds: 1
-  clownThinkSeconds: 1
+  clownThinkSeconds: 2
   clownDeclareSeconds: 0.6
   clownItemSeconds: 0.8
   tickDelaySeconds: 0.2
