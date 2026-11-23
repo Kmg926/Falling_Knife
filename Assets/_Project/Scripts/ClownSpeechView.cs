@@ -27,10 +27,10 @@ public class ClownSpeechView : MonoBehaviour
     {
         new Entry { line = ClownLine.Buy,        text = "<color=#D9B45A>매수</color>. 들고 간다." },
         new Entry { line = ClownLine.Sell,       text = "<color=#D9B45A>매도</color>. 너한테 넘긴다." },
-        new Entry { line = ClownLine.UseChart,   text = "<color=#D9B45A>차트 분석</color>을 쓴다." },
-        new Entry { line = ClownLine.UseRumor,   text = "<color=#D9B45A>찌라시</color>를 쓴다." },
-        new Entry { line = ClownLine.UseHalt,    text = "<color=#D9B45A>거래 정지</color>를 쓴다." },
-        new Entry { line = ClownLine.UseLottery, text = "<color=#D9B45A>복권</color>을 쓴다." },
+        new Entry { line = ClownLine.UseChart,   text = "<color=#D9B45A>차트 분석</color>을 쓰겠다." },
+        new Entry { line = ClownLine.UseRumor,   text = "<color=#D9B45A>찌라시</color>를 쓰겠다." },
+        new Entry { line = ClownLine.UseHalt,    text = "<color=#D9B45A>거래 정지</color>를 쓰겠다." },
+        new Entry { line = ClownLine.UseLottery, text = "<color=#D9B45A>복권</color>을 쓰겠다." },
         new Entry { line = ClownLine.Halted,     text = "…한 번 쉰다." },
         // clown-tell 81: 결과 대사
         new Entry { line = ClownLine.OneMore,         text = "한 번 더." },
@@ -39,15 +39,15 @@ public class ClownSpeechView : MonoBehaviour
         new Entry { line = ClownLine.NothingHappened, text = "아무 일도 없군." },
         new Entry { line = ClownLine.Laugh,           text = "하하." },
         new Entry { line = ClownLine.ChartDone,       text = "…그렇군." },
-        new Entry { line = ClownLine.RumorDone,       text = "다들 봤나?" },
+        new Entry { line = ClownLine.RumorDone,       text = "봤나?" },
         new Entry { line = ClownLine.HaltDone,        text = "넌 한 번 쉬어." },
         new Entry { line = ClownLine.LotteryHeal,     text = "운이 좋군." },
         new Entry { line = ClownLine.LotteryLeverage, text = "판을 키운다." },
         new Entry { line = ClownLine.LotteryItem,     text = "하나 더." },
         new Entry { line = ClownLine.LotteryNothing,  text = "…꽝이군." },
         // heal-items 90
-        new Entry { line = ClownLine.UseDividend,     text = "<color=#D9B45A>배당금</color>을 받지." },
-        new Entry { line = ClownLine.UseBailout,      text = "<color=#D9B45A>구제 금융</color>을 쓰지." },
+        new Entry { line = ClownLine.UseDividend,     text = "<color=#D9B45A>배당금</color>을 쓰겠다." },
+        new Entry { line = ClownLine.UseBailout,      text = "<color=#D9B45A>구제 금융</color>을 쓰겠다." },
         new Entry { line = ClownLine.Healed,          text = "숨 좀 돌리지." },
     };
 

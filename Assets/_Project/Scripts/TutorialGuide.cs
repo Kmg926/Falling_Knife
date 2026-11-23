@@ -198,12 +198,12 @@ public class TutorialGuide : MonoBehaviour
         Step = 7;
         yield return Act(Task.Trade, PlayerAction.Buy, 2);
         yield return Talk($"판이 꽤 커졌군. 지금 떨어지면 {1 + game.Leverage.Value}이다.",
-                          "다음 캔들이 궁금하지? 그럴 때 아이템이다. 네 폰을 열어 <color=#D9B45A>차트 분석</color>을 써.");
+                          "다음 캔들이 궁금하지? 네 폰을 열어 <color=#D9B45A>차트 분석</color>을 써라.");
 
         Step = 8;
         yield return Act(Task.Phone, PlayerAction.Buy, 0);
         yield return Talk("다음은 하락. 너만 봤다.",
-                          "떨어질 걸 알면…… 나한테 넘겨라.");
+                          "떨어질 걸 알았으면…… 나한테 넘겨라.");
 
         Step = 9;
         clownBefore = game.Clown.Balance;

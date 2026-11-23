@@ -2433,13 +2433,13 @@ MonoBehaviour:
   - line: 2
     text: "<color=#D9B45A>\uB9E4\uB3C4</color>. \uB108\uD55C\uD14C \uB118\uAE34\uB2E4."
   - line: 3
-    text: "<color=#D9B45A>\uCC28\uD2B8 \uBD84\uC11D</color>\uC744 \uC4F4\uB2E4."
+    text: "<color=#D9B45A>\uCC28\uD2B8 \uBD84\uC11D</color>\uC744 \uC4F0\uACA0\uB2E4."
   - line: 4
-    text: "<color=#D9B45A>\uCC0C\uB77C\uC2DC</color>\uB97C \uC4F4\uB2E4."
+    text: "<color=#D9B45A>\uCC0C\uB77C\uC2DC</color>\uB97C \uC4F0\uACA0\uB2E4."
   - line: 5
-    text: "<color=#D9B45A>\uAC70\uB798 \uC815\uC9C0</color>\uB97C \uC4F4\uB2E4."
+    text: "<color=#D9B45A>\uAC70\uB798 \uC815\uC9C0</color>\uB97C \uC4F0\uACA0\uB2E4."
   - line: 6
-    text: "<color=#D9B45A>\uBCF5\uAD8C</color>\uC744 \uC4F4\uB2E4."
+    text: "<color=#D9B45A>\uBCF5\uAD8C</color>\uC744 \uC4F0\uACA0\uB2E4."
   - line: 7
     text: "\u2026\uD55C \uBC88 \uC270\uB2E4."
   - line: 8
@@ -2455,7 +2455,7 @@ MonoBehaviour:
   - line: 13
     text: "\u2026\uADF8\uB807\uAD70."
   - line: 14
-    text: "\uB2E4\uB4E4 \uBD24\uB098?"
+    text: "\uBD24\uB098?"
   - line: 15
     text: "\uB10C \uD55C \uBC88 \uC26C\uC5B4."
   - line: 16
@@ -2467,9 +2467,9 @@ MonoBehaviour:
   - line: 19
     text: "\u2026\uAF5D\uC774\uAD70."
   - line: 20
-    text: "<color=#D9B45A>\uBC30\uB2F9\uAE08</color>\uC744 \uBC1B\uC9C0."
+    text: "<color=#D9B45A>\uBC30\uB2F9\uAE08</color>\uC744 \uC4F0\uACA0\uB2E4."
   - line: 21
-    text: "<color=#D9B45A>\uAD6C\uC81C \uAE08\uC735</color>\uC744 \uC4F0\uC9C0."
+    text: "<color=#D9B45A>\uAD6C\uC81C \uAE08\uC735</color>\uC744 \uC4F0\uACA0\uB2E4."
   - line: 22
     text: "\uC228 \uC880 \uB3CC\uB9AC\uC9C0."
 --- !u!1 &248639873
@@ -4723,9 +4723,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.10242086
+    x: 0.10291383
     y: 0.04076433
-    width: 0.7945376
+    width: 0.7935524
     height: 0.91719747
   near clip plane: 0.3
   far clip plane: 1000
