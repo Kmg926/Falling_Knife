@@ -32,8 +32,8 @@ public class IntroStory : MonoBehaviour
     [Header("대사 (Grilling Q3)")]
     [SerializeField, TextArea(1, 3)] string[] lines =
     {
-        "……또 한 명 왔네.",
-        "너도 나도 더 잃을 게 없으니까 여기 앉아 있는 거겠지.",
+        "……또 한 명 왔군.",
+        "너도 나도 더 잃을 게 없으니 여기 앉아 있는 거 아닌가?",
         "규칙은 간단해. 다음 캔들을 들고 있을지, 나한테 넘길지.",
         "떨어지는 칼은 잡는 게 아니야. 남한테 넘기는 거지.",
     };
@@ -44,7 +44,7 @@ public class IntroStory : MonoBehaviour
     [SerializeField] TMP_Text[] choiceTexts;     // 0 = 예, 1 = 아니오
     [SerializeField] string[] choiceLabels = { "예", "아니오" };
     // 무엇을 골라도 시작한다. 고른 뒤 광대의 대답만 다르다
-    [SerializeField] string[] replies = { "좋아. 시작하자.", "상관없어. 칼은 이미 떨어지고 있거든." };
+    [SerializeField] string[] replies = { "좋아. 시작하자.", "...상관없다. 칼은 이미 떨어지고 있으니." };
     [SerializeField] Color selectedColor = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2 (타이틀 메뉴와 같음)
     [SerializeField] Color normalColor = new Color32(0xA3, 0x9A, 0x8C, 255);     // cream0
 
@@ -62,6 +62,16 @@ public class IntroStory : MonoBehaviour
     [SerializeField] float charSeconds = 0.03f;          // 한 글자 나오는 간격
     [SerializeField] int charsPerSound = 2;              // 글자 소리: 2글자마다 한 번(Spec 제안 4)
     [SerializeField, Range(0f, 1f)] float typeVolume = 0.3f;   // 클릭음의 30%
+
+    [Header("읽기 편하게 (intro-story 92, 대화창 사례 조사)")]
+    [SerializeField] float punctSeconds = 0.2f;          // . , ? ! 뒤 멈춤(사례: 150~300ms)
+    [SerializeField] float ellipsisSeconds = 0.4f;       // … 또는 ... 뒤 멈춤(더 길게 = 머뭇거림)
+    [SerializeField] float dotSeconds = 0.12f;           // 말줄임표 점과 점 사이
+    [SerializeField] float voicePitch = 0.75f;           // 광대 목소리 높낮이(1 = 원래 클릭음)
+    [SerializeField] float voicePitchJitter = 0.05f;     // 글자마다 ± 이만큼 무작위(기계 소리처럼 안 들리게)
+    [SerializeField] RectTransform nextMarkRect;         // ▼ 위치(까딱임)
+    [SerializeField] float bobSeconds = 0.5f;            // ▼ 한 번 내려갔다 올라오는 시간
+    [SerializeField] float openSeconds = 0.15f;          // 대화창이 세로로 펼쳐지는 시간
 
     CanvasGroup[] hidden;          // hideDuringIntro를 투명하게 만드는 칸(실행 중에만 붙임 — Scene은 안 바뀜)
     Renderer[] hiddenArt;          // 82: hideArtDuringIntro 안의 그림들(자식 포함)
@@ -81,6 +91,8 @@ public class IntroStory : MonoBehaviour
 
     Camera uiCamera;          // 마우스가 글자 위에 있는지 잴 때 쓰는 카메라(HUD는 Screen Space - Camera)
     float arrowWidth = -1f;   // "▶ " 폭(타이틀 메뉴와 같은 방법으로 처음 한 번 잼)
+    Vector2 markBase;         // 92: ▼ 원래 자리
+    float markShownAt;        // 92: ▼가 나타난 시각(까딱임을 원래 자리부터 시작)
 
     void Awake()
     {
@@ -121,6 +133,7 @@ public class IntroStory : MonoBehaviour
         Canvas canvas = GetComponentInParent<Canvas>();
         uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
         if (choicesRoot != null) choicesRoot.SetActive(false);
+        if (nextMarkRect != null) markBase = nextMarkRect.anchoredPosition;
         ShowSkip();
         root.SetActive(true);
         StartCoroutine(Play());
@@ -139,7 +152,23 @@ public class IntroStory : MonoBehaviour
         if ((kb != null && kb.enterKey.wasPressedThisFrame) || (mouse != null && mouse.leftButton.wasPressedThisFrame))
             advance = true;
         UpdateHold(kb);
+        BobMark();
         if (skip) Finish();
+    }
+
+    // 92: ▼ 까딱임. 앞 절반은 원래 자리, 뒤 절반은 1칸 아래(도트라 부드럽게 말고 1칸씩 뚝뚝)
+    void BobMark()
+    {
+        if (nextMarkRect == null || !nextMark.activeSelf) return;
+        float t = (Time.unscaledTime - markShownAt) % bobSeconds;
+        nextMarkRect.anchoredPosition = markBase + (t < bobSeconds * 0.5f ? Vector2.zero : Vector2.down);
+    }
+
+    void ShowMark(bool on)
+    {
+        nextMark.SetActive(on);
+        markShownAt = Time.unscaledTime;
+        if (nextMarkRect != null) nextMarkRect.anchoredPosition = markBase;
     }
 
     // 86: Space 길게 누르기. 누르는 동안 holdTime·채움이 오르고, holdSeconds에 닿으면 번쩍 → 건너뛰기.
@@ -197,8 +226,11 @@ public class IntroStory : MonoBehaviour
         }
         black.gameObject.SetActive(false);
 
-        // ② 대사를 한 줄씩
+        // ② 대사를 한 줄씩. 92: 대화창이 먼저 세로로 펼쳐진 뒤 글자가 나온다
+        lineText.text = "";
+        nextMark.SetActive(false);
         dialogBox.SetActive(true);
+        yield return Open();
         foreach (string line in lines)
             yield return Say(line);
 
@@ -211,6 +243,25 @@ public class IntroStory : MonoBehaviour
         }
 
         Finish();
+    }
+
+    // 92: 대화창이 가운데에서 위아래로 펼쳐짐(세로 크기 0 → 1).
+    // 대화창 기준점이 위쪽이라, 크기를 줄인 만큼 절반을 내려 가운데에서 펼쳐지는 것처럼 보이게 한다
+    IEnumerator Open()
+    {
+        RectTransform box = (RectTransform)dialogBox.transform;
+        Vector2 basePos = box.anchoredPosition;
+        float h = box.rect.height;
+        for (float t = 0f; t < openSeconds; t += Time.deltaTime)
+        {
+            float s = t / openSeconds;
+            box.localScale = new Vector3(1f, s, 1f);
+            box.anchoredPosition = basePos + Vector2.down * Mathf.Round(h * (1f - s) * 0.5f);
+            yield return null;
+        }
+        box.localScale = Vector3.one;
+        box.anchoredPosition = basePos;
+        advance = false;   // 펼쳐지는 중의 누름은 첫 줄에 쓰지 않음
     }
 
     // 예/아니오 고르기. ←/→·A/D·↑/↓·W/S 이동, Space·Enter 결정, 마우스를 올리면 그 칸, 클릭하면 그 칸으로 결정.
@@ -290,7 +341,7 @@ public class IntroStory : MonoBehaviour
     IEnumerator Say(string line)
     {
         yield return Type(line);
-        nextMark.SetActive(true);
+        ShowMark(true);
         while (!advance) yield return null;
         advance = false;
         audioManager.PlayClick();
@@ -309,12 +360,30 @@ public class IntroStory : MonoBehaviour
         {
             if (advance) break;
             lineText.maxVisibleCharacters = shown;
-            if (!char.IsWhiteSpace(line[shown - 1]) && sounded++ % charsPerSound == 0)
-                audioManager.PlayClick(typeVolume);
-            yield return new WaitForSeconds(charSeconds);
+            char c = line[shown - 1];
+            // 92: 글자 소리 = 광대 목소리(낮게 + 조금 무작위). 문장부호에는 소리 없음(멈춤이 대신 말함)
+            if (!char.IsWhiteSpace(c) && !IsPunct(c) && sounded++ % charsPerSound == 0)
+                audioManager.PlayVoice(typeVolume, voicePitch + Random.Range(-voicePitchJitter, voicePitchJitter));
+            // 92: WaitForSeconds 대신 직접 기다림 → 문장부호 멈춤 중에 눌러도 바로 줄 전체
+            float wait = Delay(line, shown - 1);
+            for (float t = 0f; t < wait && !advance; t += Time.deltaTime) yield return null;
         }
         lineText.maxVisibleCharacters = line.Length;
         advance = false;                     // 줄 전체를 보이게 한 누름은 다음 줄로 넘기지 않음
+    }
+
+    static bool IsPunct(char c) { return ".,?!…".IndexOf(c) >= 0; }
+    static bool IsDot(char c) { return c == '.' || c == '…'; }
+
+    // 92: i번째 글자를 보인 뒤 기다릴 시간
+    float Delay(string line, int i)
+    {
+        if (i >= line.Length - 1) return charSeconds;          // 줄 끝은 ▼가 나오니 멈춤 없음
+        char c = line[i], next = line[i + 1];
+        if (IsDot(c) && IsDot(next)) return dotSeconds;         // 말줄임표 안: 점과 점 사이 머뭇거림
+        if (!IsPunct(c) || IsPunct(next)) return charSeconds;   // 보통 글자, 또는 "?!"처럼 이어지는 부호의 앞쪽
+        bool ellipsis = c == '…' || (c == '.' && i > 0 && line[i - 1] == '.');
+        return ellipsis ? ellipsisSeconds : punctSeconds;
     }
 
     // 끝(마지막 줄 다음이나 Esc): 숨긴 UI를 되돌리고 게임을 시작하게 한다

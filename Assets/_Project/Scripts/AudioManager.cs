@@ -12,6 +12,8 @@ public class AudioManager : MonoBehaviour
 
     [Header("재생기")]
     [SerializeField] AudioSource sfxSource;
+    // intro-story 92: 광대 목소리(글자 소리) 전용. 높낮이(pitch)를 바꿔도 다른 효과음엔 영향이 없게 따로 둔 재생기
+    [SerializeField] AudioSource voiceSource;
 
     // 88: 배경음악은 MusicPlayer(씬이 바뀌어도 남는 재생기)가 맡는다 — 타이틀에서 시작해 게임까지 끊기지 않게.
     //     여기(GameScene)는 효과음만 튼다. 음악 크기 기준(0.35)·인트로/루프 예약도 MusicPlayer로 옮김.
@@ -45,6 +47,16 @@ public class AudioManager : MonoBehaviour
     // intro-story 77: 대사 글자 소리 = 같은 클릭음을 작게(scale 0~1, 전체 소리에 곱함)
     public void PlayClick(float scale) { Play(clickClip, scale); }
     public void PlayShuffle() { Play(shuffleClip); }
+
+    // intro-story 92: 광대 목소리 = 클릭음을 낮은 높낮이로(pitch 1 = 원래, 0.75 = 더 낮고 느림).
+    // 전용 재생기가 없으면 전과 같은 클릭음으로 대신
+    public void PlayVoice(float scale, float pitch)
+    {
+        if (voiceSource == null) { PlayClick(scale); return; }
+        if (clickClip == null || masterVolume <= 0f) return;
+        voiceSource.pitch = pitch;
+        voiceSource.PlayOneShot(clickClip, masterVolume * scale);
+    }
 
     // item-phone 65: 두 폰이 같은 순간에 울려도 진동음은 한 번만(0.1초 안의 두 번째 요청은 무시)
     float lastBuzzTime = -1f;
