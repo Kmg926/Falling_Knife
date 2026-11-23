@@ -271,6 +271,7 @@ public class GameManager : MonoBehaviour
             case ItemType.TradingHalt: return ClownLine.HaltDone;
             case ItemType.Dividend:
             case ItemType.Bailout: return ClownLine.Healed;   // heal-items 90: "숨 좀 돌리지."
+            case ItemType.Flip: return ClownLine.FlipDone;    // flip-item 101: "흐름을 바꿨다."
         }
         switch (LastLotteryOutcome)
         {
@@ -290,6 +291,7 @@ public class GameManager : MonoBehaviour
             case ItemType.TradingHalt: return ClownLine.UseHalt;
             case ItemType.Dividend: return ClownLine.UseDividend;   // heal-items 90
             case ItemType.Bailout: return ClownLine.UseBailout;
+            case ItemType.Flip: return ClownLine.UseFlip;          // flip-item 101
             default: return ClownLine.UseLottery;
         }
     }
@@ -663,6 +665,10 @@ public class GameManager : MonoBehaviour
                 RemovePlayerItemAt(ConfirmingSlot);
                 UseLottery(Player);
                 break;
+            case ItemType.Flip:   // flip-item 101
+                RemovePlayerItemAt(ConfirmingSlot);
+                UseFlip(Player);
+                break;
             case ItemType.Dividend:
             case ItemType.Bailout:
                 // heal-items 89: 잔고가 가득이면 못 씀(아이템은 남음) — 거래 정지와 같은 방식
@@ -709,6 +715,29 @@ public class GameManager : MonoBehaviour
         else clownKnownNext = deck.Peek();
         LastResult = $"{user.Name}: 차트 분석 사용";
     }
+
+    // flip-item 101: 작전 — 덱 맨 위 1장을 반대로. 차트 분석으로 알던 사람은 뒤집힌 값으로 안다(쓴 사실은 둘 다 앎, Grilling Q3).
+    // 차례·레버리지는 그대로(아이템은 행동이 아님). 덱이 비어 있으면(재장전 직전 등) 아무 일 없음
+    void UseFlip(Participant user)
+    {
+        if (deck.IsEmpty) return;
+        Candle before = deck.Peek();
+        deck.FlipTop();
+        Candle after = deck.Peek();
+        if (PlayerKnownNext.HasValue) PlayerKnownNext = after;
+        if (clownKnownNext.HasValue) clownKnownNext = after;
+        LastResult = $"{user.Name}: 작전 사용 → 다음 캔들을 뒤집음";
+        if (user == Player)
+        {
+            // 결과 판(LotteryPopupView)에 보일 한 줄: 알고 있었으면 무엇에서 무엇으로, 모르면 뒤집었다는 사실만
+            LastFlipText = PlayerKnownNext.HasValue ? $"다음 캔들: {CandleName(before)} → {CandleName(after)}" : "다음 캔들을 뒤집었다";
+            PlayerFlipCount++;
+        }
+    }
+
+    // flip-item 101: 내가 작전을 쓸 때마다 +1(결과 판 신호)과 그 한 줄. 판정에는 쓰지 않는다
+    public int PlayerFlipCount { get; private set; }
+    public string LastFlipText { get; private set; } = "";
 
     // 거래 정지: 상대의 다음 차례 한 번을 건너뛰게 한다. 실제로 건너뛰는 일은 PassTurn()이 한다.
     void UseTradingHalt(Participant user)
@@ -761,7 +790,12 @@ public class GameManager : MonoBehaviour
         // 당첨 내용은 테스트·개발용으로만 남긴다(화면에 쓰지 않음).
         LastLotteryDetail = result;
         LastResult = $"{user.Name}: 복권 사용";
+        // round-feedback 100: 내가 쓴 복권은 결과를 화면에 보여 준다(#60을 바꿈) → 화면은 이 번호가 바뀌었나만 본다
+        if (user == Player) PlayerLotteryCount++;
     }
+
+    // round-feedback 100: 내가 복권을 쓸 때마다 +1(결과 연출 신호). 판정에는 쓰지 않는다
+    public int PlayerLotteryCount { get; private set; }
 
     // 마지막 복권의 당첨 내용(화면에 보이지 않음, 테스트용)
     public string LastLotteryDetail { get; private set; } = "";
@@ -826,12 +860,14 @@ public class GameManager : MonoBehaviour
             case 'L': return ItemType.Lottery;
             case 'D': return ItemType.Dividend;   // heal-items 89
             case 'B': return ItemType.Bailout;
+            case 'F': return ItemType.Flip;          // flip-item 101
             default: return null;
         }
     }
 
     // heal-items 89: 아이템마다 나올 무게(ItemType 순서). 구제 금융(+2)은 세서 절반(Grilling Q3). 숫자만 바꾸면 조정
-    static readonly float[] ItemWeights = { 1f, 1f, 1f, 1f, 1f, 0.5f };
+    // flip-item 101: 작전도 절반(0.5, Grilling Q6)
+    static readonly float[] ItemWeights = { 1f, 1f, 1f, 1f, 1f, 0.5f, 0.5f };
 
     // 무게대로 하나 고르기: 0 ~ 무게 합 사이 숫자를 뽑고, 무게를 앞에서부터 빼 가다 0 밑으로 내려간 칸
     static ItemType RandomItem()
@@ -1013,6 +1049,7 @@ public class GameManager : MonoBehaviour
             case ItemType.Lottery: UseLottery(Clown); break;
             case ItemType.Dividend:
             case ItemType.Bailout: UseHeal(Clown, item); break;   // heal-items 90
+            case ItemType.Flip: UseFlip(Clown); break;           // flip-item 101
         }
     }
 

@@ -91,7 +91,7 @@ public class TitleMenu : MonoBehaviour
     TextOverflowModes bodyOverflow;   // 크레딧만 쪽 나누기(Page) — 닫으면 원래 방식으로
 
     // heal-items 89: 아이템이 6종이 되어 한 쪽(4줄 자리)에 다 안 들어감 → "회복 아이템" 쪽을 하나 더(5쪽)
-    static readonly string[] PageTitles = { "규칙 1/5 · 목표와 턴", "규칙 2/5 · 레버리지", "규칙 3/5 · 아이템", "규칙 4/5 · 회복 아이템", "규칙 5/5 · 조작" };
+    static readonly string[] PageTitles = { "규칙 1/5 · 목표와 턴", "규칙 2/5 · 레버리지", "규칙 3/5 · 아이템", "규칙 4/5 · 회복·기타 아이템", "규칙 5/5 · 조작" };
     const int PageCount = 5;
     const int ItemPage = 2;   // 아이템 아이콘 줄을 보이는 쪽(앞 4종)
     const int HealPage = 3;   // heal-items 89: 회복 아이템 2종 쪽
@@ -386,7 +386,7 @@ public class TitleMenu : MonoBehaviour
         panelTitle.text = PageTitles[Page];
         itemRows.SetActive(Page == ItemPage || Page == HealPage);
         if (Page == ItemPage) ShowItemRows(0, 4);                       // 차트 분석·찌라시·거래 정지·복권
-        else if (Page == HealPage) ShowItemRows(4, 2);                  // heal-items 89: 배당금·구제 금융
+        else if (Page == HealPage) ShowItemRows(4, 3);                  // heal-items 89: 배당금·구제 금융 + flip-item 102: 작전
         string[] pages = { rulesPage1, rulesLeverage, rulesItems, rulesHealItems, rulesControls };
         panelBody.text = pages[Page];
         string tail = Page == 0 ? rulesPage1Footer + "\n" : "";

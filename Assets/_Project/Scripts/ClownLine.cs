@@ -29,4 +29,8 @@ public enum ClownLine
     UseDividend,   // "배당금을 받지."
     UseBailout,    // "구제 금융을 쓰지."
     Healed,        // 회복 뒤 "숨 좀 돌리지."
+
+    // ── flip-item 101: 작전 (뒤에 추가 — 앞 번호 그대로) ──
+    UseFlip,       // "작전을 쓰겠다."
+    FlipDone,      // 쓴 뒤 "흐름을 바꿨다."
 }

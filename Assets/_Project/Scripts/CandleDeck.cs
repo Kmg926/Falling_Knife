@@ -73,6 +73,14 @@ public class CandleDeck : MonoBehaviour
         return top;
     }
 
+    // flip-item 101: 맨 위 한 장을 반대로(하락 ↔ 상승). 개수도 다시 셈. 비어 있으면 아무 일 없음
+    public void FlipTop()
+    {
+        if (cards.Count == 0) return;
+        cards[0] = cards[0] == Candle.Down ? Candle.Up : Candle.Down;
+        Recount();
+    }
+
     // 맨 위 한 장을 보기만 한다(꺼내지 않음). 차트 분석용. 비어 있을 때 부르면 안 된다.
     public Candle Peek()
     {

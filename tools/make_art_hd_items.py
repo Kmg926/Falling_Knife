@@ -322,8 +322,41 @@ def icon_bailout(pal, w, h):
     return cv
 
 
+def icon_flip(pal, w, h):
+    """flip-item 102 — 작전(다음 캔들 뒤집기) = 왼쪽 빨간(하락) 캔들 + 오른쪽 초록(상승) 캔들 + 서로 자리를 바꾸는 금색 화살표 2개.
+    위 화살표는 왼쪽 → 오른쪽, 아래 화살표는 오른쪽 → 왼쪽(맞바꿈). 캔들은 심지(가는 세로선) + 몸통(빛·그늘 한 줄씩)."""
+    cv = blank(pal, w, h)
+    u, v, px = grid(w, h)
+
+    def candle_at(cx, top, bot, wtop, wbot, c):
+        wick = (np.abs(u - cx) <= 0.55) & (v >= wtop) & (v <= wbot)
+        body = (np.abs(u - cx) <= 2.4) & (v >= top) & (v <= bot)
+        cv.fill(wick, c["edge"])
+        cv.fill(body, c["body"])
+        cv.fill(body & (u < cx - 1.3), c["light"])                 # 왼쪽 빛
+        cv.fill(body & (u > cx + 1.4), c["shade"])                 # 오른쪽 그늘
+        cv.fill(outline(body), c["edge"])
+
+    candle_at(4.2, 6.0, 12.6, 3.6, 14.6, dict(edge="red0", body="red2", light="red3", shade="red1"))      # 하락
+    candle_at(16.8, 3.4, 10.0, 1.4, 12.4, dict(edge="green0", body="green", light="green2", shade="green0"))  # 상승
+
+    def arrow(x1, x2, y, right):
+        shaft = (seg_dist(u, v, x1, y, x2, y) <= 0.75)
+        tip_x = x2 if right else x1
+        s = -1 if right else 1                                     # 화살촉이 꺾이는 방향
+        head = (seg_dist(u, v, tip_x, y, tip_x + s * 1.8, y - 1.8) <= 0.75) | (seg_dist(u, v, tip_x, y, tip_x + s * 1.8, y + 1.8) <= 0.75)
+        m = shaft | head
+        cv.fill(outline(m), "goldD")
+        cv.fill(m, "gold2")
+
+    arrow(8.2, 12.8, 4.6, right=True)       # 위: 하락 쪽 → 상승 쪽
+    arrow(8.2, 12.8, 11.6, right=False)     # 아래: 상승 쪽 → 하락 쪽
+    return cv
+
+
 ICONS = {"chart": icon_chart, "rumor": icon_rumor, "halt": icon_halt, "lottery": icon_lottery}
 HEAL_ICONS = {"dividend": icon_dividend, "bailout": icon_bailout}   # heal-items 89(따로 — 기존 아이콘 파일은 다시 안 그림)
+FLIP_ICONS = {"flip": icon_flip}   # flip-item 102(따로 — 기존 아이콘 파일은 다시 안 그림)
 ICON_SMALL = (42, 32)          # 슬롯·광대 아이템 (지금 21x16)
 ICON_BIG = (68, 52)            # 확인 패널 (지금 34x26)
 SPIN_W, SPIN_THICK = 80, 6     # 회전 그림 80x52 (지금 40x26), 두께 6도트
@@ -468,8 +501,31 @@ def make_heal(pal):
     return check32(files, pal)
 
 
+def make_flip(pal):
+    """flip-item 102: 작전 아이콘 2장(슬롯 42x32·확인 68x52) + 기존 6종과 나란히 미리보기(×3)."""
+    dst = OUT / "game"
+    dst.mkdir(parents=True, exist_ok=True)
+    files = []
+    for name, fn in FLIP_ICONS.items():
+        for suf, size in (("", ICON_SMALL), ("-big", ICON_BIG)):
+            f = dst / f"item-{name}{suf}.png"
+            write_png(f, fn(pal, *size).rgba())
+            files.append(f)
+    allicons = list(ICONS.items()) + list(HEAL_ICONS.items()) + list(FLIP_ICONS.items())
+    n = len(allicons)
+    sheet = np.tile(pal["bg0"], (32 + 52 + 12, n * 72 + 8, 1)).astype(np.uint8)
+    for i, (name, fn) in enumerate(allicons):
+        paste(sheet, fn(pal, *ICON_SMALL), 4 + 72 * i + 13, 2, pal)
+        paste(sheet, fn(pal, *ICON_BIG), 4 + 72 * i, 40, pal)
+    write_png(OUT / "flip-preview-x3.png", sheet.repeat(3, 0).repeat(3, 1))
+    print("팔레트 검사 (32색):")
+    return check32(files, pal)
+
+
 if __name__ == "__main__":
     pal = load_pal()
+    if len(sys.argv) > 1 and sys.argv[1] == "flip":   # flip-item 102: 작전 아이콘
+        sys.exit(0 if make_flip(pal) else 1)
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "draft":
         sys.exit(0 if make_draft(pal) else 1)

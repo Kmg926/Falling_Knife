@@ -26,6 +26,9 @@ public static class ClownAI
                                    int balance, bool opponentHalted, Candle? knownNext, int lotteryThreshold,
                                    int maxBalance)   // heal-items 90: 회복 상한(= 시작 잔고)
     {
+        // ①′ flip-item 101: 다음이 하락인 걸 알고 작전이 있으면 → 작전(뒤집은 뒤 다시 물으면 상승을 아니까 ①에서 매수)
+        if (knownNext.HasValue && knownNext.Value == Candle.Down && Has(items, ItemType.Flip)) return ClownMove.UseItem(ItemType.Flip);
+
         // ① 차트 분석으로 다음 캔들을 알면 그대로: 상승이면 매수, 하락이면 매도
         if (knownNext.HasValue)
         {
