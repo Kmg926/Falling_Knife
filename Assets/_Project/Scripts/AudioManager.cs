@@ -27,13 +27,13 @@ public class AudioManager : MonoBehaviour
     // title-menu 54: 타이틀 설정 창에서 저장한 소리 크기를 시작할 때 읽음(Inspector 값 대신)
     void Awake()
     {
-        masterVolume = GameSettings.MasterVolume;
+        masterVolume = GameSettings.EffectsVolume;   // 96: 전체 × 효과음
     }
 
     // game-settings 91: 게임 중 설정에서 전체 소리를 바꾸면 효과음에도 바로
     void OnEnable() { GameSettings.Changed += ReadSettings; }
     void OnDisable() { GameSettings.Changed -= ReadSettings; }
-    void ReadSettings() { masterVolume = GameSettings.MasterVolume; }
+    void ReadSettings() { masterVolume = GameSettings.EffectsVolume; }   // 96: 전체 × 효과음
 
     // 공개가 시작되면 true, 끝나면 false. 음악만 줄인다(효과음은 그대로). 88: 실제로는 MusicPlayer에 비율을 넘김
     public void SetRevealDuck(bool on)

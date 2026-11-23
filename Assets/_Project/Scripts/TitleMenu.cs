@@ -11,11 +11,13 @@ using UnityEngine.UI;
 // 게임 판정과 상관없는 화면 이동이라 Input Actions를 거치지 않고 키보드·마우스를 직접 읽는다(전과 같음).
 public class TitleMenu : MonoBehaviour
 {
-    public enum Panel { None, Rules, Settings, Credits, Placeholder }
+    public enum Panel { None, Rules, Settings, Credits, Placeholder, AskTutorial }   // tutorial 98: 처음 권유 창
 
-    [Header("메뉴 (위에서부터 시작·규칙·설정·크레딧·종료)")]
+    [Header("메뉴 (위에서부터 시작·튜토리얼·규칙·설정·크레딧·종료)")]
     [SerializeField] TMP_Text[] items;
-    [SerializeField] string[] labels = { "시작", "규칙", "설정", "크레딧", "종료" };
+    [SerializeField] string[] labels = { "시작", "튜토리얼", "규칙", "설정", "크레딧", "종료" };   // tutorial 98: 튜토리얼 추가
+    const string TutorialAskedKey = "fk.tutorialAsked";   // tutorial 98: 처음 권유를 이미 했나(저장)
+    public int AskRow { get; private set; }               // 권유 창: 0 = 튜토리얼 먼저, 1 = 바로 시작
     [SerializeField] Color selectedColor = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2
     [SerializeField] Color normalColor = new Color32(0xA3, 0x9A, 0x8C, 255);     // cream0
     [SerializeField] string gameSceneName = "GameScene";
@@ -131,6 +133,7 @@ public class TitleMenu : MonoBehaviour
         {
             if (kb != null && kb.escapeKey.wasPressedThisFrame) { Back(); return; }
             if (Open == Panel.Settings) { UpdateSettings(kb, mouse); return; }
+            if (Open == Panel.AskTutorial) { UpdateAsk(kb, mouse); return; }   // tutorial 98
             if (Open == Panel.Credits) { UpdateCredits(kb, mouse); return; }
             if (Open == Panel.Rules)
             {
@@ -178,16 +181,76 @@ public class TitleMenu : MonoBehaviour
     {
         switch (Selected)
         {
-            case 0: StartCoroutine(StartGame()); break;
-            case 1: OpenRules(); break;
-            case 2: OpenSettings(); break;
-            case 3: OpenCredits(); break;
+            // tutorial 98: 처음 `시작`이면 한 번만 튜토리얼을 권함(Grilling Q10)
+            case 0:
+                if (PlayerPrefs.GetInt(TutorialAskedKey, 0) == 0) OpenAsk();
+                else StartCoroutine(StartGame(false));
+                break;
+            case 1: StartCoroutine(StartGame(true)); break;   // tutorial 98
+            case 2: OpenRules(); break;
+            case 3: OpenSettings(); break;
+            case 4: OpenCredits(); break;
             default: Quit(); break;
         }
     }
 
+    // ---------- 튜토리얼 권유 창 (tutorial 98) ----------
+    void OpenAsk()
+    {
+        Open = Panel.AskTutorial;
+        AskRow = 0;
+        panelRoot.SetActive(true);
+        itemRows.SetActive(false);
+        panelTitle.text = "처음이라면";
+        panelFooter.text = "↑↓ 고르기   Space 결정   Esc 닫기";
+        ShowAsk();
+    }
+
+    void ShowAsk()
+    {
+        string[] rows = { "튜토리얼 먼저 (약 2분)", "바로 시작" };
+        var sb = new System.Text.StringBuilder("광대가 규칙을 알려 주는 짧은 연습 판이 있다.\n\n");
+        for (int i = 0; i < rows.Length; i++)
+        {
+            bool on = i == AskRow;
+            string line = (on ? "▶ " : "   ") + rows[i];
+            sb.Append(on ? $"<color=#{ColorUtility.ToHtmlStringRGB(selectedColor)}>{line}</color>" : line);
+            if (i < rows.Length - 1) sb.Append('\n');
+        }
+        panelBody.text = sb.ToString();
+    }
+
+    // 2·3번째 줄(빈 줄 다음)이 선택지. 마우스를 올리면 그 줄, 클릭·Space·Enter = 결정
+    void UpdateAsk(Keyboard kb, Mouse mouse)
+    {
+        if (mouse != null)
+        {
+            int line = TMP_TextUtilities.FindIntersectingLine(panelBody, mouse.position.ReadValue(), uiCamera) - 2;
+            if (line >= 0 && line <= 1 && mouse.delta.ReadValue().sqrMagnitude > 0f && line != AskRow) { AskRow = line; ShowAsk(); }
+            if (mouse.leftButton.wasPressedThisFrame && line >= 0 && line <= 1) { AnswerAsk(line); return; }
+        }
+        if (kb == null) return;
+        if (kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame)
+        {
+            AskRow = 1 - AskRow;
+            ShowAsk();
+        }
+        else if (kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame) AnswerAsk(AskRow);
+    }
+
+    // 답하면 저장(다시 안 물음) → 튜토리얼 또는 실전
+    public void AnswerAsk(int row)
+    {
+        if (Open != Panel.AskTutorial) return;
+        PlayerPrefs.SetInt(TutorialAskedKey, 1);
+        PlayerPrefs.Save();
+        Back();
+        StartCoroutine(StartGame(row == 0));
+    }
+
     // intro-story 77: 검정이 짙어진 뒤 시작 스토리를 켜고 GameScene으로
-    IEnumerator StartGame()
+    // tutorial 98: tutorial = true면 시작 스토리 대신 튜토리얼
+    IEnumerator StartGame(bool tutorial)
     {
         starting = true;
         if (fade != null)
@@ -200,7 +263,8 @@ public class TitleMenu : MonoBehaviour
             }
             fade.color = Color.black;
         }
-        IntroStory.PlayNext = true;
+        if (tutorial) TutorialGuide.PlayNext = true;
+        else IntroStory.PlayNext = true;
         SceneManager.LoadScene(gameSceneName);
     }
 
@@ -208,6 +272,7 @@ public class TitleMenu : MonoBehaviour
     public void Back()
     {
         if (Open == Panel.None) return;
+        if (Open == Panel.Settings) settings.End();   // 95: X 숨김(규칙·크레딧 창엔 X 없음)
         Open = Panel.None;
         panelBody.overflowMode = bodyOverflow;   // 크레딧의 쪽 나누기를 되돌림
         panelBody.pageToDisplay = 1;
@@ -232,7 +297,11 @@ public class TitleMenu : MonoBehaviour
 
     // ---------- 설정 창 (title-menu 54 → game-settings 91: 내용은 공통 SettingsPanel이 맡음) ----------
     // 이 화면은 창을 열고 닫는 일(제목·아래 안내)만. 줄 고르기·값 바꾸기·저장·글은 SettingsPanel(게임 중 일시정지와 같은 부품)
-    void UpdateSettings(Keyboard kb, Mouse mouse) => settings.HandleInput(kb, mouse);
+    void UpdateSettings(Keyboard kb, Mouse mouse)
+    {
+        settings.HandleInput(kb, mouse);
+        if (settings.CloseClicked) Back();   // 95: X = Esc와 같은 닫기
+    }
 
     public int SettingRow => settings.Row;
 

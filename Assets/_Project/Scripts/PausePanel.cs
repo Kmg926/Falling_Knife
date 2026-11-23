@@ -91,7 +91,11 @@ public class PausePanel : MonoBehaviour
         // 91: 설정 창이 열려 있으면 그 창이 입력을 받음(Esc 닫기는 PlayerInputHandler → TogglePause → CloseSettings)
         if (game.IsSettingsOpen)
         {
-            if (settings != null) settings.HandleInput(kb, mouse);
+            if (settings != null)
+            {
+                settings.HandleInput(kb, mouse);
+                if (settings.CloseClicked) game.CloseSettings();   // 95: X = Esc와 같은 닫기
+            }
             return;
         }
 

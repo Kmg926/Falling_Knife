@@ -32,7 +32,7 @@ public class DeckRevealView : MonoBehaviour
     public void Refresh(GameManager game)
     {
         // intro-story 77: 시작 스토리 중엔 연출을 미룸(lastFillCount를 안 바꿔 두면 끝난 뒤 Refresh 때 시작됨)
-        if (game.IsIntro) return;
+        if (game.IsCutscene) return;   // tutorial 97: 튜토리얼 대사 중에도 미룸
         int fill = game.Deck.FillCount;
         if (fill == lastFillCount) return;
         lastFillCount = fill;                      // 먼저 바꿔 둔다: 아래 BeginPresentation이 Refresh를 다시 불러도 두 번 시작하지 않게

@@ -6,7 +6,7 @@
 ## 준비 (Play → 타이틀 `시작` → 시작 스토리 넘기기 뒤)
 | 값 | 테스트 값 | 이유 |
 |---|---|---|
-| `GameManager.rounds[0].startingBalance` | 2 | 기록의 잔고(GDD 원래 값)로 짧게 끝나게 |
+| `GameManager.rounds[0].minBalance`·`maxBalance` | 2·2 | 기록의 잔고(GDD 원래 값)로 짧게 끝나게. 2026-11-23 random-deck 93부터 `startingBalance` 대신 범위 칸(둘 다 2 = 고정) |
 | `rounds[0].fixedOrder` | 테스트마다(아래) | 덱 순서 고정 |
 | `CandleDeck.useFixedOrder` | true | 고정 순서 쓰기(재장전도 같은 순서) |
 | `GameManager.itemsPerGrant` | 0 | 아이템이 광대 판단을 바꾸지 않게 |

@@ -58,7 +58,7 @@ public class PhoneBuzz : MonoBehaviour
         rt.anchoredPosition = home;
         // 라운드 시작·재장전 때는 덱 공개 연출(라운드 안내)이 끝난 뒤에(겹치지 않게)
         // intro-story 82: 시작 스토리 중에도 기다림(스토리가 끝나면 바로 덱 공개 연출이 시작되므로 그것까지 기다리게 됨)
-        while (game.IsIntro || game.IsPresenting) yield return null;
+        while (game.IsCutscene || game.IsPresenting) yield return null;   // tutorial 97: 튜토리얼 대사 중에도 기다림
 
         if (audioManager != null) audioManager.PlayBuzz();
         Sprite plus = plusSprites[Mathf.Clamp(n, 1, plusSprites.Length) - 1];

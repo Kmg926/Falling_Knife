@@ -7,6 +7,7 @@ public static class GameSettings
 {
     const string MasterKey = "fk.master";
     const string MusicKey = "fk.music";
+    const string SfxKey = "fk.sfx";           // game-settings 96: 효과음 따로
     const string ShakeKey = "fk.shake";
     const string FullscreenKey = "fk.fullscreen";
 
@@ -17,6 +18,7 @@ public static class GameSettings
     public static event System.Action Changed;
     const int DefaultMaster = 10;
     const int DefaultMusic = 6;
+    const int DefaultSfx = 10;                // 96: 처음엔 전과 같은 크기(효과음 = 전체 소리 그대로)
 
     public static int Master
     {
@@ -28,6 +30,13 @@ public static class GameSettings
     {
         get => PlayerPrefs.GetInt(MusicKey, DefaultMusic);
         set { PlayerPrefs.SetInt(MusicKey, Mathf.Clamp(value, 0, Steps)); PlayerPrefs.Save(); Changed?.Invoke(); }
+    }
+
+    // 96: 효과음(클릭·공개 초침·피해·진동·광대 목소리 등). 전체 소리에 곱해짐
+    public static int Sfx
+    {
+        get => PlayerPrefs.GetInt(SfxKey, DefaultSfx);
+        set { PlayerPrefs.SetInt(SfxKey, Mathf.Clamp(value, 0, Steps)); PlayerPrefs.Save(); Changed?.Invoke(); }
     }
 
     public static bool Shake
@@ -43,7 +52,18 @@ public static class GameSettings
         set { PlayerPrefs.SetInt(FullscreenKey, value ? 1 : 0); PlayerPrefs.Save(); Screen.fullScreen = value; Changed?.Invoke(); }
     }
 
-    // 0~1 크기(AudioManager가 씀)
+    // 0~1 크기. 실제로 들리는 크기 = 전체 × 각자(MusicPlayer는 전체 × 음악, AudioManager는 EffectsVolume)
     public static float MasterVolume => Master / (float)Steps;
     public static float MusicVolume => Music / (float)Steps;
+    public static float SfxVolume => Sfx / (float)Steps;
+    public static float EffectsVolume => MasterVolume * SfxVolume;   // 96: 효과음이 실제로 들리는 크기
+
+    // 96: 소리 줄 번호(설정 창 순서)로 읽고 쓰기 — 0 전체 · 1 효과음 · 2 음악
+    public static int GetVolume(int which) => which == 0 ? Master : which == 1 ? Sfx : Music;
+    public static void SetVolume(int which, int step)
+    {
+        if (which == 0) Master = step;
+        else if (which == 1) Sfx = step;
+        else Music = step;
+    }
 }

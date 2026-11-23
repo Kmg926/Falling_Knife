@@ -1,0 +1,129 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+
+// 결과 화면 (스케치 화면 4 파산 / 5 생존). 한 판이 끝나면 켜지고, 원인·결정타와 한 판 기록을 보여 준다.
+// 판정은 하지 않는다: 다시하기 버튼은 GameManager.Restart()를 부를 뿐.
+public class ResultPanel : MonoBehaviour
+{
+    [SerializeField] GameManager game;
+    [SerializeField] GameObject root;             // 결과 화면 전체 (켜고 끄는 단위)
+
+    [Header("그림 (파산 / 생존)")]
+    [SerializeField] Image background;
+    [SerializeField] Image box;
+    [SerializeField] Image clown;
+    [SerializeField] Sprite backgroundBankrupt;
+    [SerializeField] Sprite backgroundSurvive;
+    [SerializeField] Sprite boxBankrupt;
+    [SerializeField] Sprite boxSurvive;
+    [SerializeField] Sprite clownIdle;
+    [SerializeField] Sprite clownDark;            // 생존: 조명이 꺼져 어둡게 남은 광대
+
+    [Header("글자")]
+    [SerializeField] TMP_Text titleText;          // 파산 / 생존
+    [SerializeField] TMP_Text reasonText;         // 잔고가 0이 되었다
+    [SerializeField] TMP_Text causeLabel;         // 원인 / 결정타
+    [SerializeField] TMP_Text causeText;          // R2, 광대 매도, 하락, 피해 3 (레버리지 2)
+    [SerializeField] TMP_Text statsText;          // 도달 라운드·최대 레버리지·아이템 사용·시간
+    [SerializeField] Color bankruptColor = new Color32(0xA3, 0x28, 0x2B, 255);   // 팔레트 red2
+    [SerializeField] Color surviveColor = new Color32(0xCD, 0xC4, 0xB6, 255);    // 팔레트 cream
+    [SerializeField] Color causeBankruptColor = new Color32(0xC4, 0x3A, 0x3A, 255); // 팔레트 red3
+
+    [Header("버튼")]
+    [SerializeField] Button retryButton;
+    [SerializeField] Button titleButton;          // TitleScene으로 (Ticket 29)
+
+    [Header("마우스 올림 강조 (title-menu 94, 일시정지 메뉴 60과 같음)")]
+    [SerializeField] Color highlightText = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2
+    [SerializeField] Color normalText = new Color32(0xA3, 0x9A, 0x8C, 255);      // cream0
+    [SerializeField] Color dimButton = new Color(0.6f, 0.6f, 0.6f, 1f);          // 강조 안 된 버튼 그림(곱하는 색)
+
+    Camera uiCamera;
+    Button[] buttons;      // 0 = 다시하기, 1 = 타이틀
+    TMP_Text[] labels;
+    string[] labelTexts;
+    int highlighted = -1;
+    bool wasOver;          // 지난 Refresh 때 결과 화면이 켜져 있었나
+
+    void Awake()
+    {
+        retryButton.onClick.AddListener(() => game.Restart());
+        titleButton.onClick.AddListener(() => game.GoToTitle());
+        Canvas canvas = GetComponentInParent<Canvas>();
+        uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+        buttons = new[] { retryButton, titleButton };
+        labels = new TMP_Text[buttons.Length];
+        labelTexts = new string[buttons.Length];
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            labels[i] = buttons[i].GetComponentInChildren<TMP_Text>(true);
+            labelTexts[i] = labels[i] != null ? labels[i].text : "";
+        }
+    }
+
+    // 94: 결과 화면이 켜져 있는 동안 마우스를 올린 버튼을 강조. 버튼 밖으로 나가면 마지막 강조를 그대로 둠(일시정지와 같음)
+    void Update()
+    {
+        if (game == null || !game.IsGameOver || Mouse.current == null) return;
+        Vector2 pos = Mouse.current.position.ReadValue();
+        for (int i = 0; i < buttons.Length; i++)
+            if (i != highlighted && IsOver(buttons[i], pos)) SetHighlight(i);
+    }
+
+    // 고른 버튼은 금색 글 + "▶ " + 원래 밝기, 나머지는 흐린 글 + 어두운 그림
+    void SetHighlight(int index)
+    {
+        highlighted = index;
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            bool on = i == index;
+            if (labels[i] != null)
+            {
+                labels[i].text = (on ? "▶ " : "") + labelTexts[i];
+                labels[i].color = on ? highlightText : normalText;
+            }
+            if (buttons[i].targetGraphic != null) buttons[i].targetGraphic.color = on ? Color.white : dimButton;
+        }
+    }
+
+    bool IsOver(Button button, Vector2 screenPos) =>
+        button != null && button.isActiveAndEnabled &&
+        RectTransformUtility.RectangleContainsScreenPoint((RectTransform)button.transform, screenPos, uiCamera);
+
+    public void Refresh(GameManager game)
+    {
+        root.SetActive(game.IsGameOver);
+        if (game.IsGameOver && !wasOver) SetHighlight(0);   // 94: 막 켜졌을 때는 "다시하기" 강조
+        wasOver = game.IsGameOver;
+        if (!game.IsGameOver) return;
+
+        bool survived = game.IsFinalVictory;
+
+        background.sprite = survived ? backgroundSurvive : backgroundBankrupt;
+        box.sprite = survived ? boxSurvive : boxBankrupt;
+        clown.sprite = survived ? clownDark : clownIdle;
+
+        titleText.text = survived ? "생존" : "파산";
+        titleText.color = survived ? surviveColor : bankruptColor;
+        reasonText.text = survived ? "광대의 잔고가 0이 되었다" : "내 잔고가 0이 되었다";
+        causeLabel.text = survived ? "결정타" : "원인";
+        causeText.text = game.LastDamage;
+        causeText.color = survived ? surviveColor : causeBankruptColor;
+
+        // 생존 = 모든 라운드 클리어, 파산 = 쓰러진 라운드
+        string reach = survived
+            ? $"클리어 {game.RoundCount}/{game.RoundCount}"
+            : $"도달 라운드 {game.RoundNumber}/{game.RoundCount}";
+        statsText.text = $"{reach}   최대 레버리지 {game.MaxLeverage}\n" +
+                         $"아이템 사용 {game.ItemUses}회   시간 {Clock(game.PlaySeconds)}";
+    }
+
+    // 초 → "3:12"  (:00 = 두 자리로 채움)
+    static string Clock(float seconds)
+    {
+        int total = Mathf.FloorToInt(seconds);
+        return $"{total / 60}:{total % 60:00}";
+    }
+}

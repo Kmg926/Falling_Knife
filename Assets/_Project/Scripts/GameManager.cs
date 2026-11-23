@@ -15,12 +15,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] UIManager ui;
     [SerializeField] AudioManager audioManager;
 
-    [Header("라운드 표 (잔고 / 최소 장수 / 최대 장수 / 고정 순서)")]
+    [Header("라운드 표 (잔고 최소·최대 / 최소 장수 / 최대 장수 / 고정 순서)")]
     [SerializeField] RoundConfig[] rounds =
     {
-        new RoundConfig { startingBalance = 10, minCards = 4, maxCards = 6 },
-        new RoundConfig { startingBalance = 10, minCards = 6, maxCards = 8 },
-        new RoundConfig { startingBalance = 10, minCards = 7, maxCards = 9 },
+        new RoundConfig { minBalance = 5,  maxBalance = 7,  minCards = 4, maxCards = 6 },
+        new RoundConfig { minBalance = 5,  maxBalance = 7,  minCards = 6, maxCards = 8 },
+        new RoundConfig { minBalance = 10, maxBalance = 10, minCards = 7, maxCards = 9 },   // 93: 마지막 라운드는 10 고정
     };
 
     [Header("연출")]
@@ -49,6 +49,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] bool useFixedLottery = false;
     [SerializeField] LotteryPrize fixedLottery = LotteryPrize.Nothing;
 
+    [Header("튜토리얼 (tutorial 97, 각본 — Spec 3)")]
+    [SerializeField] RoundConfig tutorialRound = new RoundConfig { minBalance = 5, maxBalance = 5, minCards = 8, maxCards = 8, fixedOrder = "UDUDDUUD" };
+    [SerializeField] string tutorialPlayerItems = "C";    // 내 아이템(NextItem 글자 규칙): 차트 분석 1개
+    [SerializeField] string tutorialClownMoves = "SB";    // 광대 행동 순서: S 매도 · B 매수(다 쓰면 원래 판단)
+
     public Participant Player { get; private set; }
     public Participant Clown { get; private set; }
     public Participant Current { get; private set; }
@@ -75,7 +80,8 @@ public class GameManager : MonoBehaviour
 
     // 지금 라운드 (1부터). StartRound 밖에서만 바꾼다.
     public int RoundNumber { get; private set; }
-    public int RoundCount => rounds.Length;
+    public int RoundCount => IsTutorial ? 1 : rounds.Length;   // tutorial 97: 튜토리얼은 1라운드
+    RoundConfig CurrentConfig => IsTutorial ? tutorialRound : rounds[RoundNumber - 1];
     public bool IsLastRound => RoundNumber == RoundCount;
 
     // 둘 중 하나라도 파산하면 라운드 끝 (클리어·최종 승리·패배 모두)
@@ -90,17 +96,17 @@ public class GameManager : MonoBehaviour
 
     // 지금 플레이어가 매수·매도를 고를 수 있는가 (버튼을 밝게/회색으로 보일 때 쓴다)
     // item-phone 63: 폰이 열려 있어도 매수·매도는 못 고른다(A/D 무시)
-    public bool CanPlayerAct => !IsIntro && !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused && !IsPresenting && !IsPhoneOpen;
+    public bool CanPlayerAct => !IsCutscene && !IsRevealing && !IsRoundOver && !IsClownTurn && !IsConfirming && !IsPaused && !IsPresenting && !IsPhoneOpen;
 
     // monitor-trade 43: 모니터 확대 화면이 열려 있는가(매수·매도를 고르는 중)
     public bool IsMonitorOpen { get; private set; }
     // 지금 모니터를 열 수 있는가 = 내가 행동할 수 있고 아직 안 열려 있을 때(광대 차례·공개 중·연출 중·멈춤·폰 열림엔 못 엶)
-    public bool CanOpenMonitor => CanPlayerAct && !IsMonitorOpen;
+    public bool CanOpenMonitor => CanPlayerAct && !IsMonitorOpen && (!IsTutorial || tutorialAllowMonitor);   // tutorial 97: 허용된 단계에서만
 
     // item-phone 63: 내 폰(아이템)이 열려 있는가. 모니터와 동시에 열리지 않는다.
     public bool IsPhoneOpen { get; private set; }
     // 지금 폰을 열 수 있는가 = 모니터와 같은 조건(내 차례·공개 중 아님, Q12) + 둘 다 닫혀 있을 때
-    public bool CanOpenPhone => CanPlayerAct && !IsMonitorOpen;
+    public bool CanOpenPhone => CanPlayerAct && !IsMonitorOpen && (!IsTutorial || tutorialAllowPhone);   // tutorial 97
     // 폰 목록에서 Space를 누르면 열릴 칸(금색 틀). 상세에서 Esc로 돌아오면 그 칸에 남는다.
     public int PhoneCursor { get; private set; }
     // item-phone 66: 열린 폰이 광대 폰인가(보기 전용 — 상세는 볼 수 있지만 쓸 수 없다)
@@ -149,6 +155,48 @@ public class GameManager : MonoBehaviour
         if (!IsIntro) return;
         IsIntro = false;
         gameStartTime = Time.time;
+        ui.Refresh(this);
+    }
+
+    // ── tutorial 97: 튜토리얼 판. 판정은 그대로 두고, 값(각본)과 "지금 해도 되는 행동"만 바꾼다. ──
+    public bool IsTutorial { get; private set; }
+    // 튜토리얼 광대가 말하는 중 = 게임 입력·광대 차례·덱 공개 연출을 멈춤(시작 스토리와 같은 효과)
+    public bool IsGuideTalking { get; private set; }
+    // 지금 연출(시작 스토리·튜토리얼 대사) 중이라 게임이 기다리는가
+    public bool IsCutscene => IsIntro || IsGuideTalking;
+    // 공개가 끝날 때마다 +1(튜토리얼이 "해냈나"를 보는 신호). 판정에는 쓰지 않는다
+    public int RevealCount { get; private set; }
+
+    bool tutorialAllowMonitor, tutorialAllowPhone;
+    PlayerAction? tutorialForced;                       // 매수·매도 중 이것만(null = 둘 다)
+    readonly Queue<PlayerAction> tutorialClown = new Queue<PlayerAction>();
+
+    // TutorialGuide.Awake가 부름(모든 Start보다 먼저) → 첫 라운드가 튜토리얼 값으로 시작. 처음엔 말하는 중
+    public void BeginTutorial()
+    {
+        IsTutorial = true;
+        IsGuideTalking = true;
+        tutorialClown.Clear();
+        foreach (char c in tutorialClownMoves.ToUpper())
+        {
+            if (c == 'S') tutorialClown.Enqueue(PlayerAction.Sell);
+            else if (c == 'B') tutorialClown.Enqueue(PlayerAction.Buy);
+        }
+    }
+
+    public void SetGuideTalking(bool on)
+    {
+        IsGuideTalking = on;
+        ui.Refresh(this);
+    }
+
+    // 지금 단계에서 할 수 있는 것: 모니터를 열 수 있나, 폰을 열 수 있나, 매수·매도 중 무엇만(null = 둘 다)
+    public void SetTutorialGate(bool monitor, bool phone, PlayerAction? forced)
+    {
+        tutorialAllowMonitor = monitor;
+        tutorialAllowPhone = phone;
+        tutorialForced = forced;
+        if (forced.HasValue) Selected = forced.Value;   // 모니터를 열면 해야 할 버튼이 이미 골라져 있게
         ui.Refresh(this);
     }
 
@@ -310,10 +358,13 @@ public class GameManager : MonoBehaviour
     // RoundNumber 줄의 값으로 라운드를 새로 시작한다. 라운드 번호는 여기서 바꾸지 않는다.
     void StartRound()
     {
-        RoundConfig config = rounds[RoundNumber - 1];
+        RoundConfig config = CurrentConfig;   // tutorial 97: 튜토리얼이면 각본 라운드
+        deck.ForceFixedOrder = IsTutorial;
 
-        Player = new Participant("나", config.startingBalance);
-        Clown = new Participant("광대", config.startingBalance);
+        // 93: 시작 잔고를 범위에서 하나 뽑아 둘 다 같은 값으로(공정하게). Random.Range(int, int)는 끝 값을 빼므로 + 1
+        int balance = Random.Range(config.minBalance, Mathf.Max(config.minBalance, config.maxBalance) + 1);
+        Player = new Participant("나", balance);
+        Clown = new Participant("광대", balance);
         Leverage = new LeverageCounter();
         Current = Player;
         Selected = PlayerAction.Buy;
@@ -339,7 +390,8 @@ public class GameManager : MonoBehaviour
     // A/D·←/→. 공개 중, 라운드 끝, 광대 차례, 아이템 확인 중이면 무시한다.
     public void Select(PlayerAction action)
     {
-        if (IsIntro || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn || IsConfirming || IsPhoneOpen) return;
+        if (IsCutscene || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn || IsConfirming || IsPhoneOpen) return;
+        if (IsTutorial && tutorialForced.HasValue && action != tutorialForced.Value) return;   // tutorial 97: 이번 단계 행동만
         if (Selected != action) audioManager.PlayClick();   // 실제로 바뀔 때만
         Selected = action;
         ui.Refresh(this);
@@ -349,7 +401,7 @@ public class GameManager : MonoBehaviour
     // 최종 승리·패배면 무시. 광대 차례면 무시.
     public void Execute()
     {
-        if (IsIntro || IsPaused || IsRevealing) return;
+        if (IsCutscene || IsPaused || IsRevealing) return;
 
         // 연출 중 Space = 건너뛰기 (Q3)
         if (IsPresenting)
@@ -392,6 +444,7 @@ public class GameManager : MonoBehaviour
             return;
         }
         IsMonitorOpen = false;
+        if (IsTutorial && tutorialForced.HasValue) Selected = tutorialForced.Value;   // tutorial 97: 안전장치
 
         StartCoroutine(RevealRoutine(Selected));
     }
@@ -399,7 +452,8 @@ public class GameManager : MonoBehaviour
     // 1~4. 내 차례(공개 중·광대 차례·라운드 끝이 아닐 때)에 그 슬롯에 아이템이 있으면 확인을 연다.
     public void SelectItem(int slot)
     {
-        if (IsIntro || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (IsCutscene || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (IsTutorial && !tutorialAllowPhone) return;   // tutorial 97: 폰 단계에서만
         if (slot < 0 || slot >= Player.Items.Count) return;
         ConfirmingSlot = slot;
         ClownSilence();             // clown-tell 80: 1~4도 내 행동
@@ -420,7 +474,7 @@ public class GameManager : MonoBehaviour
             SelectItem(slot);
             return;
         }
-        if (IsIntro || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
+        if (IsCutscene || IsPaused || IsPresenting || IsRevealing || IsRoundOver || IsClownTurn) return;
         if (slot < 0 || slot >= Clown.Items.Count) return;
         ConfirmingSlot = slot;
         PhoneCursor = slot;
@@ -727,6 +781,18 @@ public class GameManager : MonoBehaviour
     {
         // item-phone 65: 실제로 받은 개수를 세서 "받았다" 신호(가득 차면 덜 받음)
         int mine = 0, clowns = 0;
+        // tutorial 97: 튜토리얼은 라운드 시작 때 내 아이템만 각본대로(광대는 없음), 재장전 땐 없음
+        if (IsTutorial)
+        {
+            if (!LastFillWasRoundStart) return;
+            foreach (char c in tutorialPlayerItems)
+            {
+                ItemType? t = ItemFromChar(c);
+                if (t.HasValue && Player.AddItem(t.Value)) mine++;
+            }
+            RecordGrant(Player, mine);
+            return;
+        }
         for (int i = 0; i < itemsPerGrant; i++) if (Player.AddItem(NextItem())) mine++;
         for (int i = 0; i < itemsPerGrant; i++) if (Clown.AddItem(NextItem())) clowns++;
         RecordGrant(Player, mine);
@@ -740,18 +806,28 @@ public class GameManager : MonoBehaviour
         {
             while (fixedItemIndex < fixedItems.Length)
             {
-                char c = char.ToUpper(fixedItems[fixedItemIndex]);
+                ItemType? t = ItemFromChar(fixedItems[fixedItemIndex]);
                 fixedItemIndex++;
-                if (c == 'C') return ItemType.ChartAnalysis;
-                if (c == 'J') return ItemType.Rumor;
-                if (c == 'S') return ItemType.TradingHalt;
-                if (c == 'L') return ItemType.Lottery;
-                if (c == 'D') return ItemType.Dividend;   // heal-items 89
-                if (c == 'B') return ItemType.Bailout;
+                if (t.HasValue) return t.Value;
                 // 공백 등 다른 글자는 건너뛴다.
             }
         }
         return RandomItem();
+    }
+
+    // 글자 → 아이템(C 차트 분석 / J 찌라시 / S 거래 정지 / L 복권 / D 배당금 / B 구제 금융). tutorial 97: 튜토리얼 아이템도 같이 씀
+    static ItemType? ItemFromChar(char ch)
+    {
+        switch (char.ToUpper(ch))
+        {
+            case 'C': return ItemType.ChartAnalysis;
+            case 'J': return ItemType.Rumor;
+            case 'S': return ItemType.TradingHalt;
+            case 'L': return ItemType.Lottery;
+            case 'D': return ItemType.Dividend;   // heal-items 89
+            case 'B': return ItemType.Bailout;
+            default: return null;
+        }
     }
 
     // heal-items 89: 아이템마다 나올 무게(ItemType 순서). 구제 금융(+2)은 세서 절반(Grilling Q3). 숫자만 바꾸면 조정
@@ -854,6 +930,9 @@ public class GameManager : MonoBehaviour
 
         IsRevealing = false;
         audioManager.SetRevealDuck(false);
+        RevealCount++;
+        // tutorial 97: 공개가 끝날 때마다 튜토리얼 광대가 먼저 말할 수 있게 멈춰 둠(광대 차례도 대사 뒤로). 할 말이 없으면 TutorialGuide가 바로 풀어 줌
+        if (IsTutorial) IsGuideTalking = true;
         ui.Refresh(this);
 
         // 결과 뒤에도 광대 차례면(내가 넘겼거나, 광대가 매수+상승) 광대가 행동한다.
@@ -868,7 +947,8 @@ public class GameManager : MonoBehaviour
     IEnumerator ClownTurnRoutine()
     {
         // 덱 공개 연출이 끝난 뒤에 생각을 시작한다(연출 중에 광대가 움직이지 않게)
-        while (IsPresenting) yield return null;
+        // tutorial 97: 튜토리얼 광대가 말하는 동안에도 기다림
+        while (IsPresenting || IsGuideTalking) yield return null;
 
         IsClownThinking = true;
         ui.Refresh(this);
@@ -876,6 +956,16 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(clownThinkSeconds);
 
         IsClownThinking = false;
+        // tutorial 97: 튜토리얼 각본이 남아 있으면 그 행동(아이템 없이). 다 쓰면 아래 원래 판단
+        if (IsTutorial && tutorialClown.Count > 0)
+        {
+            Selected = tutorialClown.Dequeue();
+            ClownSay(Selected == PlayerAction.Buy ? ClownLine.Buy : ClownLine.Sell);
+            ui.Refresh(this);
+            yield return new WaitForSeconds(clownDeclareSeconds);
+            StartCoroutine(RevealRoutine(Selected));
+            yield break;
+        }
         ClownMove move = ClownAI.Decide(deck.RemainingDown, deck.RemainingUp, Clown.Items,
                                         Clown.Balance, Player.IsHalted, clownKnownNext, clownLotteryThreshold,
                                         Clown.StartingBalance);   // heal-items 90

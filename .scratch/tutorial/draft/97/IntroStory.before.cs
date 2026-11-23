@@ -1,0 +1,400 @@
+using System.Collections;
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+
+// 시작 스토리 시네마틱 (intro-story 77). 타이틀 `시작`으로 왔을 때만 GameScene 처음에 한 번 보인다(다시하기 땐 없음).
+// 검은 화면 → 1초 밝아짐 → 아래 대사 상자에 광대 대사가 한 글자씩 → 끝나면 GameManager에 알려 1라운드(덱 공개 연출)부터.
+// 판정은 하지 않는다: 시네마틱 동안 GameManager가 게임 입력을 무시하게 하고(IsIntro), 끝나면 풀어 줄 뿐.
+// 게임 판정과 상관없는 연출이라 Input Actions를 거치지 않고 키보드·마우스를 직접 읽는다(TitleMenu와 같은 방식).
+public class IntroStory : MonoBehaviour
+{
+    // 타이틀의 `시작`이 켠다 → 다음에 열리는 GameScene이 시네마틱을 보이고 끈다.
+    // static = Scene이 바뀌어도 남는 값(오브젝트에 붙은 값은 Scene이 바뀌면 사라짐)
+    public static bool PlayNext;
+
+    [SerializeField] GameManager game;
+    [SerializeField] AudioManager audioManager;
+    [SerializeField] GameObject root;            // 시네마틱 전체(검정·대사 상자). 끝나면 끔
+    [SerializeField] Image black;                // 화면 전체 검정 → 밝아짐
+    [SerializeField] GameObject dialogBox;       // 대사 상자(창 그림 + 이름 + 대사 + ▼)
+    [SerializeField] TMP_Text lineText;          // 대사 한 줄
+    [SerializeField] GameObject nextMark;        // 줄이 다 나오면 오른쪽 아래 ▼
+    // 시네마틱 동안 숨길 게임 글자 UI(잔고·라운드·레버리지 등, Spec 제안 1). 탁자 위 폰·모니터는 그대로
+    [SerializeField] RectTransform[] hideDuringIntro;
+    // 82: 탁자 위 게임용 그림(내 모니터·레버리지 상자·불꽃 등, 사용자 "레버리지 화면같은 게임 UI도 제외"). 방·탁자·조명·광대는 그대로
+    [SerializeField] GameObject[] hideArtDuringIntro;
+
+    [Header("에디터에서 GameScene을 바로 Play할 때도 보기 (Spec 제안 3, 평소 끔)")]
+    [SerializeField] bool playInEditorWithoutTitle = false;
+
+    [Header("대사 (Grilling Q3)")]
+    [SerializeField, TextArea(1, 3)] string[] lines =
+    {
+        "……또 한 명 왔군.",
+        "너도 나도 더 잃을 게 없으니 여기 앉아 있는 거 아닌가?",
+        "규칙은 간단해. 다음 캔들을 들고 있을지, 나한테 넘길지.",
+        "떨어지는 칼은 잡는 게 아니야. 남한테 넘기는 거지.",
+    };
+
+    [Header("준비됐나? 예/아니오 (intro-story 78, Grilling Q3·Q8·Q9)")]
+    [SerializeField] string question = "준비됐나?";
+    [SerializeField] GameObject choicesRoot;     // 대사 상자 오른쪽 아래 `예` `아니오`
+    [SerializeField] TMP_Text[] choiceTexts;     // 0 = 예, 1 = 아니오
+    [SerializeField] string[] choiceLabels = { "예", "아니오" };
+    // 무엇을 골라도 시작한다. 고른 뒤 광대의 대답만 다르다
+    [SerializeField] string[] replies = { "좋아. 시작하자.", "...상관없다. 칼은 이미 떨어지고 있으니." };
+    [SerializeField] Color selectedColor = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2 (타이틀 메뉴와 같음)
+    [SerializeField] Color normalColor = new Color32(0xA3, 0x9A, 0x8C, 255);     // cream0
+
+    [Header("Space 길게 눌러 건너뛰기 (intro-story 86, clown-phone Grilling Q4~Q6)")]
+    [SerializeField] CanvasGroup skipHint;               // 오른쪽 아래 키캡 + "길게 눌러 건너뛰기"
+    [SerializeField] Image skipFill;                     // 키캡 위에 겹친 금색 그림(Filled, 왼→오)
+    [SerializeField] float holdSeconds = 1f;             // 이만큼 누르면 건너뛰기
+    [SerializeField] float tapSeconds = 0.25f;           // 이보다 짧게 누르고 떼면 = 다음 줄
+    [SerializeField] float drainSeconds = 0.3f;          // 차다 떼면 이 시간에 비워짐(가득 → 0 기준)
+    [SerializeField, Range(0f, 1f)] float idleAlpha = 0.4f;   // 평소 흐리게
+    [SerializeField] float flashSeconds = 0.1f;          // 다 찼을 때 번쩍인 뒤 건너뜀
+
+    [Header("시간 (Grilling Q4)")]
+    [SerializeField] float fadeInSeconds = 1f;
+    [SerializeField] float charSeconds = 0.03f;          // 한 글자 나오는 간격
+    [SerializeField] int charsPerSound = 2;              // 글자 소리: 2글자마다 한 번(Spec 제안 4)
+    [SerializeField, Range(0f, 1f)] float typeVolume = 0.3f;   // 클릭음의 30%
+
+    [Header("읽기 편하게 (intro-story 92, 대화창 사례 조사)")]
+    [SerializeField] float punctSeconds = 0.2f;          // . , ? ! 뒤 멈춤(사례: 150~300ms)
+    [SerializeField] float ellipsisSeconds = 0.4f;       // … 또는 ... 뒤 멈춤(더 길게 = 머뭇거림)
+    [SerializeField] float dotSeconds = 0.12f;           // 말줄임표 점과 점 사이
+    [SerializeField] float voicePitch = 0.75f;           // 광대 목소리 높낮이(1 = 원래 클릭음)
+    [SerializeField] float voicePitchJitter = 0.05f;     // 글자마다 ± 이만큼 무작위(기계 소리처럼 안 들리게)
+    [SerializeField] RectTransform nextMarkRect;         // ▼ 위치(까딱임)
+    [SerializeField] float bobSeconds = 0.5f;            // ▼ 한 번 내려갔다 올라오는 시간
+    [SerializeField] float openSeconds = 0.15f;          // 대화창이 세로로 펼쳐지는 시간
+
+    CanvasGroup[] hidden;          // hideDuringIntro를 투명하게 만드는 칸(실행 중에만 붙임 — Scene은 안 바뀜)
+    Renderer[] hiddenArt;          // 82: hideArtDuringIntro 안의 그림들(자식 포함)
+    bool advance;                  // 이번 프레임에 다음 줄로 넘기라는 입력이 있었나(Enter·클릭 누름, Space 짧게 뗌)
+    bool skip;                     // Esc를 눌렀나(어디서든 바로 시작)
+    // 86: Space 길게 누르기
+    bool spaceTap;                 // 이번 프레임에 Space를 짧게(tapSeconds 안) 눌렀다 뗐나 — 선택지 결정에도 씀
+    float holdTime;                // 지금 Space를 누르고 있는 시간
+    float progress;                // 키캡 채움 0~1(누르는 동안 오르고, 떼면 빠르게 내려감)
+    float flashLeft = -1f;         // 다 찬 뒤 번쩍임 남은 시간(-1 = 아님)
+    // 테스트용: 켜 두면 Space를 누르고 있는 것으로 침(Unity 창에 포커스가 없으면 MCP 키 입력이 안 들어가서). 저장되지 않음
+    [System.NonSerialized] public bool simulateHold;
+
+    public bool IsPlaying { get; private set; }
+    public bool IsChoosing { get; private set; }   // 예/아니오를 고르는 중
+    public int Choice { get; private set; }        // 지금 고른 칸(0 = 예)
+
+    Camera uiCamera;          // 마우스가 글자 위에 있는지 잴 때 쓰는 카메라(HUD는 Screen Space - Camera)
+    float arrowWidth = -1f;   // "▶ " 폭(타이틀 메뉴와 같은 방법으로 처음 한 번 잼)
+    Vector2 markBase;         // 92: ▼ 원래 자리
+    float markShownAt;        // 92: ▼가 나타난 시각(까딱임을 원래 자리부터 시작)
+
+    void Awake()
+    {
+        bool play = PlayNext;
+#if UNITY_EDITOR
+        play |= playInEditorWithoutTitle;
+#endif
+        PlayNext = false;                       // 한 번 보였으면 끔(다시하기·같은 Scene에서 다시 안 나오게)
+        if (!play)
+        {
+            root.SetActive(false);
+            return;
+        }
+        // Awake는 모든 Start보다 먼저 → GameManager.Start(1라운드 준비)가 시네마틱 중이라는 걸 알고 덱 공개 연출을 미룬다
+        IsPlaying = true;
+        game.BeginIntro();
+    }
+
+    void Start()
+    {
+        if (!IsPlaying) return;
+        // 숨길 UI에 투명도 칸을 붙여 0으로(SetActive를 쓰면 각 View가 Refresh 때 다시 켤 수 있어서 투명도로 숨김)
+        hidden = new CanvasGroup[hideDuringIntro.Length];
+        for (int i = 0; i < hideDuringIntro.Length; i++)
+        {
+            CanvasGroup g = hideDuringIntro[i].GetComponent<CanvasGroup>();
+            if (g == null) g = hideDuringIntro[i].gameObject.AddComponent<CanvasGroup>();
+            g.alpha = 0f;
+            g.blocksRaycasts = false;   // 82: 숨긴 폰·모니터 버튼이 클릭을 받지 않게
+            hidden[i] = g;
+        }
+        // 82: 탁자 위 그림은 forceRenderingOff(그리기만 끔). 켜고 끄기(SetActive)·색은 각 View가 그대로 맡는다
+        var list = new System.Collections.Generic.List<Renderer>();
+        foreach (GameObject go in hideArtDuringIntro)
+            if (go != null) list.AddRange(go.GetComponentsInChildren<Renderer>(true));
+        hiddenArt = list.ToArray();
+        foreach (Renderer r in hiddenArt) r.forceRenderingOff = true;
+        Canvas canvas = GetComponentInParent<Canvas>();
+        uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+        if (choicesRoot != null) choicesRoot.SetActive(false);
+        if (nextMarkRect != null) markBase = nextMarkRect.anchoredPosition;
+        ShowSkip();
+        root.SetActive(true);
+        StartCoroutine(Play());
+    }
+
+    // 입력은 Update에서 받아 두고, 연출(코루틴)이 그 값을 읽는다
+    // (코루틴은 Update 뒤에 이어 돌아서, 여기서 켠 spaceTap을 같은 프레임에 읽고 다음 Update에서 꺼진다)
+    void Update()
+    {
+        if (!IsPlaying) return;
+        Keyboard kb = Keyboard.current;
+        Mouse mouse = Mouse.current;
+        spaceTap = false;
+        if (kb != null && kb.escapeKey.wasPressedThisFrame) skip = true;
+        // 86: Enter·클릭은 누르는 순간 다음 줄(전과 같음). Space는 아래 UpdateHold에서 "뗄 때" 결정
+        if ((kb != null && kb.enterKey.wasPressedThisFrame) || (mouse != null && mouse.leftButton.wasPressedThisFrame))
+            advance = true;
+        UpdateHold(kb);
+        BobMark();
+        if (skip) Finish();
+    }
+
+    // 92: ▼ 까딱임. 앞 절반은 원래 자리, 뒤 절반은 1칸 아래(도트라 부드럽게 말고 1칸씩 뚝뚝)
+    void BobMark()
+    {
+        if (nextMarkRect == null || !nextMark.activeSelf) return;
+        float t = (Time.unscaledTime - markShownAt) % bobSeconds;
+        nextMarkRect.anchoredPosition = markBase + (t < bobSeconds * 0.5f ? Vector2.zero : Vector2.down);
+    }
+
+    void ShowMark(bool on)
+    {
+        nextMark.SetActive(on);
+        markShownAt = Time.unscaledTime;
+        if (nextMarkRect != null) nextMarkRect.anchoredPosition = markBase;
+    }
+
+    // 86: Space 길게 누르기. 누르는 동안 holdTime·채움이 오르고, holdSeconds에 닿으면 번쩍 → 건너뛰기.
+    // holdSeconds 전에 떼면: tapSeconds 안이면 "짧게 누름"(다음 줄·선택 결정), 아니면 채움만 drainSeconds에 걸쳐 비움.
+    void UpdateHold(Keyboard kb)
+    {
+        float dt = Time.unscaledDeltaTime;
+        if (flashLeft >= 0f)                                 // 다 찼음 → 금색이 0.05초씩 꺼졌다 켜지며 번쩍인 뒤 건너뜀
+        {
+            flashLeft -= dt;
+            if (skipFill != null) skipFill.enabled = Mathf.FloorToInt(flashLeft / 0.05f) % 2 == 0;
+            if (flashLeft < 0f) skip = true;
+            return;
+        }
+        bool held = (kb != null && kb.spaceKey.isPressed) || simulateHold;
+        if (held)
+        {
+            holdTime += dt;
+            progress = Mathf.Max(progress, holdTime / holdSeconds);   // 비워지는 중에 다시 눌러도 그 자리부터
+            if (progress >= 1f)
+            {
+                progress = 1f;
+                flashLeft = flashSeconds;
+            }
+        }
+        else
+        {
+            if (holdTime > 0f && holdTime < tapSeconds)      // 방금 짧게 눌렀다 뗌
+            {
+                spaceTap = true;
+                advance = true;
+            }
+            holdTime = 0f;
+            progress = Mathf.Max(0f, progress - dt / drainSeconds);
+        }
+        ShowSkip();
+    }
+
+    void ShowSkip()
+    {
+        if (skipHint == null) return;
+        skipHint.alpha = progress > 0f ? 1f : idleAlpha;     // 누르는 동안(또는 비워지는 동안) 밝게
+        if (skipFill != null) skipFill.fillAmount = progress;
+    }
+
+    IEnumerator Play()
+    {
+        // ① 검정 → 밝아짐. 대사 상자는 밝아진 뒤에 나온다
+        dialogBox.SetActive(false);
+        black.gameObject.SetActive(true);
+        for (float t = 0f; t < fadeInSeconds; t += Time.deltaTime)
+        {
+            black.color = new Color(0f, 0f, 0f, 1f - t / fadeInSeconds);
+            yield return null;
+        }
+        black.gameObject.SetActive(false);
+
+        // ② 대사를 한 줄씩. 92: 대화창이 먼저 세로로 펼쳐진 뒤 글자가 나온다
+        lineText.text = "";
+        nextMark.SetActive(false);
+        dialogBox.SetActive(true);
+        yield return Open();
+        foreach (string line in lines)
+            yield return Say(line);
+
+        // ③ 78: "준비됐나?" → 예/아니오 → 광대 대답 한 줄 → 시작
+        if (choicesRoot != null && choiceTexts != null && choiceTexts.Length >= 2)
+        {
+            yield return Type(question);
+            yield return Choose();
+            yield return Say(replies[Choice]);
+        }
+
+        Finish();
+    }
+
+    // 92: 대화창이 가운데에서 위아래로 펼쳐짐(세로 크기 0 → 1).
+    // 대화창 기준점이 위쪽이라, 크기를 줄인 만큼 절반을 내려 가운데에서 펼쳐지는 것처럼 보이게 한다
+    IEnumerator Open()
+    {
+        RectTransform box = (RectTransform)dialogBox.transform;
+        Vector2 basePos = box.anchoredPosition;
+        float h = box.rect.height;
+        for (float t = 0f; t < openSeconds; t += Time.deltaTime)
+        {
+            float s = t / openSeconds;
+            box.localScale = new Vector3(1f, s, 1f);
+            box.anchoredPosition = basePos + Vector2.down * Mathf.Round(h * (1f - s) * 0.5f);
+            yield return null;
+        }
+        box.localScale = Vector3.one;
+        box.anchoredPosition = basePos;
+        advance = false;   // 펼쳐지는 중의 누름은 첫 줄에 쓰지 않음
+    }
+
+    // 예/아니오 고르기. ←/→·A/D·↑/↓·W/S 이동, Space·Enter 결정, 마우스를 올리면 그 칸, 클릭하면 그 칸으로 결정.
+    // (Esc는 Update에서 언제든 Finish = "예"와 같이 바로 시작)
+    IEnumerator Choose()
+    {
+        IsChoosing = true;
+        Choice = 0;                    // 처음은 `예`(Q9)
+        nextMark.SetActive(false);     // 고르는 동안 ▼ 대신 선택지
+        choicesRoot.SetActive(true);
+        RefreshChoices();
+        yield return null;             // 질문 줄을 넘긴 누름이 바로 결정되지 않게 한 프레임 쉼
+
+        confirmed = false;
+        while (!confirmed)
+        {
+            Keyboard kb = Keyboard.current;
+            Mouse mouse = Mouse.current;
+
+            int hovered = -1;
+            if (mouse != null)
+            {
+                Vector2 pos = mouse.position.ReadValue();
+                for (int i = 0; i < choiceTexts.Length; i++)
+                    if (RectTransformUtility.RectangleContainsScreenPoint(choiceTexts[i].rectTransform, pos, uiCamera)) hovered = i;
+                // 마우스를 움직였을 때만 올린 칸을 고름(키보드로 고른 칸을 가만히 있는 마우스가 덮어쓰지 않게 — 타이틀 메뉴와 같음)
+                if (hovered >= 0 && hovered != Choice && mouse.delta.ReadValue().sqrMagnitude > 0f) Pick(hovered);
+                if (hovered >= 0 && mouse.leftButton.wasPressedThisFrame) { Pick(hovered); break; }
+            }
+            if (kb != null)
+            {
+                if (kb.leftArrowKey.wasPressedThisFrame || kb.aKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame) Pick(0);
+                else if (kb.rightArrowKey.wasPressedThisFrame || kb.dKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame) Pick(1);
+                else if (spaceTap || kb.enterKey.wasPressedThisFrame) break;   // 86: Space는 짧게 눌렀다 뗄 때 결정(길게는 건너뛰기)
+            }
+            yield return null;
+        }
+
+        IsChoosing = false;
+        choicesRoot.SetActive(false);
+        audioManager.PlayClick();
+    }
+
+    // 그 칸으로 결정(테스트·다른 코드에서 부를 수 있게 — 타이틀 메뉴의 Choose와 같은 역할)
+    bool confirmed;
+    public void Confirm(int index)
+    {
+        if (!IsChoosing) return;
+        Pick(index);
+        confirmed = true;
+    }
+
+    // 칸 고르기(테스트에서도 부름). 바뀔 때만 클릭음
+    public void Pick(int index)
+    {
+        index = Mathf.Clamp(index, 0, choiceTexts.Length - 1);
+        if (index != Choice) audioManager.PlayClick(typeVolume);
+        Choice = index;
+        RefreshChoices();
+    }
+
+    // 고른 칸 = 금색 + ▶(▶는 글자 왼쪽 바깥에 걸침 — 타이틀 메뉴 76과 같은 방법), 나머지 = 흐린 크림
+    void RefreshChoices()
+    {
+        if (arrowWidth < 0f)
+            arrowWidth = choiceTexts[0].GetPreferredValues("▶ 가").x - choiceTexts[0].GetPreferredValues("가").x;
+        for (int i = 0; i < choiceTexts.Length; i++)
+        {
+            bool on = i == Choice;
+            choiceTexts[i].text = (on ? "▶ " : "") + choiceLabels[i];
+            choiceTexts[i].margin = new Vector4(on ? -arrowWidth : 0f, 0f, 0f, 0f);
+            choiceTexts[i].color = on ? selectedColor : normalColor;
+        }
+    }
+
+    // 한 줄을 보이고 ▼ + 넘김을 기다린다
+    IEnumerator Say(string line)
+    {
+        yield return Type(line);
+        ShowMark(true);
+        while (!advance) yield return null;
+        advance = false;
+        audioManager.PlayClick();
+    }
+
+    // 한 줄을 한 글자씩 보인다. 나오는 중에 누르면 그 줄 전체를 바로 보인다(Grilling Q4).
+    IEnumerator Type(string line)
+    {
+        nextMark.SetActive(false);
+        lineText.text = line;
+        lineText.maxVisibleCharacters = 0;   // 글은 다 넣어 두고 보이는 글자 수만 늘림(줄바꿈 자리가 처음부터 정해져 흔들리지 않음)
+        advance = false;
+
+        int sounded = 0;
+        for (int shown = 1; shown <= line.Length; shown++)
+        {
+            if (advance) break;
+            lineText.maxVisibleCharacters = shown;
+            char c = line[shown - 1];
+            // 92: 글자 소리 = 광대 목소리(낮게 + 조금 무작위). 문장부호에는 소리 없음(멈춤이 대신 말함)
+            if (!char.IsWhiteSpace(c) && !IsPunct(c) && sounded++ % charsPerSound == 0)
+                audioManager.PlayVoice(typeVolume, voicePitch + Random.Range(-voicePitchJitter, voicePitchJitter));
+            // 92: WaitForSeconds 대신 직접 기다림 → 문장부호 멈춤 중에 눌러도 바로 줄 전체
+            float wait = Delay(line, shown - 1);
+            for (float t = 0f; t < wait && !advance; t += Time.deltaTime) yield return null;
+        }
+        lineText.maxVisibleCharacters = line.Length;
+        advance = false;                     // 줄 전체를 보이게 한 누름은 다음 줄로 넘기지 않음
+    }
+
+    static bool IsPunct(char c) { return ".,?!…".IndexOf(c) >= 0; }
+    static bool IsDot(char c) { return c == '.' || c == '…'; }
+
+    // 92: i번째 글자를 보인 뒤 기다릴 시간
+    float Delay(string line, int i)
+    {
+        if (i >= line.Length - 1) return charSeconds;          // 줄 끝은 ▼가 나오니 멈춤 없음
+        char c = line[i], next = line[i + 1];
+        if (IsDot(c) && IsDot(next)) return dotSeconds;         // 말줄임표 안: 점과 점 사이 머뭇거림
+        if (!IsPunct(c) || IsPunct(next)) return charSeconds;   // 보통 글자, 또는 "?!"처럼 이어지는 부호의 앞쪽
+        bool ellipsis = c == '…' || (c == '.' && i > 0 && line[i - 1] == '.');
+        return ellipsis ? ellipsisSeconds : punctSeconds;
+    }
+
+    // 끝(마지막 줄 다음이나 Esc): 숨긴 UI를 되돌리고 게임을 시작하게 한다
+    void Finish()
+    {
+        if (!IsPlaying) return;
+        IsPlaying = false;
+        StopAllCoroutines();
+        root.SetActive(false);
+        foreach (CanvasGroup g in hidden) { g.alpha = 1f; g.blocksRaycasts = true; }
+        foreach (Renderer r in hiddenArt) r.forceRenderingOff = false;   // 82
+        game.EndIntro();
+    }
+}

@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 // 결과 화면 (스케치 화면 4 파산 / 5 생존). 한 판이 끝나면 켜지고, 원인·결정타와 한 판 기록을 보여 준다.
@@ -34,16 +35,70 @@ public class ResultPanel : MonoBehaviour
     [SerializeField] Button retryButton;
     [SerializeField] Button titleButton;          // TitleScene으로 (Ticket 29)
 
+    [Header("마우스 올림 강조 (title-menu 94, 일시정지 메뉴 60과 같음)")]
+    [SerializeField] Color highlightText = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2
+    [SerializeField] Color normalText = new Color32(0xA3, 0x9A, 0x8C, 255);      // cream0
+    [SerializeField] Color dimButton = new Color(0.6f, 0.6f, 0.6f, 1f);          // 강조 안 된 버튼 그림(곱하는 색)
+
+    Camera uiCamera;
+    Button[] buttons;      // 0 = 다시하기, 1 = 타이틀
+    TMP_Text[] labels;
+    string[] labelTexts;
+    int highlighted = -1;
+    bool wasOver;          // 지난 Refresh 때 결과 화면이 켜져 있었나
+
     void Awake()
     {
         retryButton.onClick.AddListener(() => game.Restart());
         titleButton.onClick.AddListener(() => game.GoToTitle());
+        Canvas canvas = GetComponentInParent<Canvas>();
+        uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+        buttons = new[] { retryButton, titleButton };
+        labels = new TMP_Text[buttons.Length];
+        labelTexts = new string[buttons.Length];
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            labels[i] = buttons[i].GetComponentInChildren<TMP_Text>(true);
+            labelTexts[i] = labels[i] != null ? labels[i].text : "";
+        }
     }
+
+    // 94: 결과 화면이 켜져 있는 동안 마우스를 올린 버튼을 강조. 버튼 밖으로 나가면 마지막 강조를 그대로 둠(일시정지와 같음)
+    void Update()
+    {
+        if (game == null || !game.IsGameOver || game.IsTutorial || Mouse.current == null) return;
+        Vector2 pos = Mouse.current.position.ReadValue();
+        for (int i = 0; i < buttons.Length; i++)
+            if (i != highlighted && IsOver(buttons[i], pos)) SetHighlight(i);
+    }
+
+    // 고른 버튼은 금색 글 + "▶ " + 원래 밝기, 나머지는 흐린 글 + 어두운 그림
+    void SetHighlight(int index)
+    {
+        highlighted = index;
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            bool on = i == index;
+            if (labels[i] != null)
+            {
+                labels[i].text = (on ? "▶ " : "") + labelTexts[i];
+                labels[i].color = on ? highlightText : normalText;
+            }
+            if (buttons[i].targetGraphic != null) buttons[i].targetGraphic.color = on ? Color.white : dimButton;
+        }
+    }
+
+    bool IsOver(Button button, Vector2 screenPos) =>
+        button != null && button.isActiveAndEnabled &&
+        RectTransformUtility.RectangleContainsScreenPoint((RectTransform)button.transform, screenPos, uiCamera);
 
     public void Refresh(GameManager game)
     {
-        root.SetActive(game.IsGameOver);
-        if (!game.IsGameOver) return;
+        bool over = game.IsGameOver && !game.IsTutorial;   // tutorial 97: 튜토리얼 끝은 결과 화면 대신 광대 대사
+        root.SetActive(over);
+        if (over && !wasOver) SetHighlight(0);   // 94: 막 켜졌을 때는 "다시하기" 강조
+        wasOver = over;
+        if (!over) return;
 
         bool survived = game.IsFinalVictory;
 

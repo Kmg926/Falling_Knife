@@ -22,7 +22,7 @@ public class RoundTurnView : MonoBehaviour
 
     public void Refresh(GameManager game)
     {
-        roundText.text = $"ROUND {game.RoundNumber}/{game.RoundCount}";
+        roundText.text = game.IsTutorial ? "TUTORIAL" : $"ROUND {game.RoundNumber}/{game.RoundCount}";   // tutorial 97
 
         bool mine = game.Current == game.Player;
         turnText.text = mine ? "내 턴" : "광대 턴";

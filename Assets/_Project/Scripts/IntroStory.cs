@@ -376,7 +376,10 @@ public class IntroStory : MonoBehaviour
     static bool IsDot(char c) { return c == '.' || c == '…'; }
 
     // 92: i번째 글자를 보인 뒤 기다릴 시간
-    float Delay(string line, int i)
+    float Delay(string line, int i) => PauseAfter(line, i, charSeconds, punctSeconds, ellipsisSeconds, dotSeconds);
+
+    // tutorial 97: 튜토리얼 대화창도 같은 규칙을 쓰도록 값을 받아 계산하는 공용 함수로(객체 칸을 안 씀 → static)
+    public static float PauseAfter(string line, int i, float charSeconds, float punctSeconds, float ellipsisSeconds, float dotSeconds)
     {
         if (i >= line.Length - 1) return charSeconds;          // 줄 끝은 ▼가 나오니 멈춤 없음
         char c = line[i], next = line[i + 1];

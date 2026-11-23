@@ -48,9 +48,12 @@ public class CandleDeck : MonoBehaviour
     }
 
     // 라운드 시작과 재장전 때 부른다. 부를 때마다 구성을 새로 뽑는다.
+    // tutorial 97: 튜토리얼 판은 Inspector 값과 상관없이 고정 순서(각본)
+    public bool ForceFixedOrder { get; set; }
+
     public void Fill()
     {
-        if (!useFixedOrder || !TryFillFixedOrder())
+        if (!(useFixedOrder || ForceFixedOrder) || !TryFillFixedOrder())
         {
             FillRandom();
         }
