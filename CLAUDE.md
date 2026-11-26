@@ -126,7 +126,7 @@
 - **최종 빌드 전에 끄거나 정리할 임시 설정** (gdd-changes "임시" 줄과 함께 확인)
   - ~~R 재시작 키(#19)~~ Ticket 28에서 제거, CandleDeck `Use Fixed Order`·라운드 표 고정 순서, GameManager `Use Fixed Items`·`Use Fixed Lottery`(#35)
   - Run In Background(MCP 테스트용, 원래 꺼짐)
-  - 개발용 텍스트 UI F1 켜고 끄기(#41, 정식 UI 뒤 생김) → 제거
+  - ~~개발용 텍스트 UI F1 켜고 끄기(#41)~~ 2026-11-27 release-prep 103: 최종 빌드에선 빠지게 함(편집기·개발용 빌드에만)
   - 임시 효과음(후보 A) → 내가 고른 것으로 교체, `asset-rights.md` 갱신
 
 ## 7. 지금까지의 진행 상황 (강의 실습, `C:\GameEngineI`)
