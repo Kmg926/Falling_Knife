@@ -148,7 +148,7 @@ public class TutorialGuide : MonoBehaviour
         yield return null;   // GameManager.Start(튜토리얼 라운드 준비)가 먼저 돌게 한 프레임
 
         Step = 0;
-        yield return Talk("……연습이다. 오늘은 잃을 게 없어.",
+        yield return Talk("연습이다. 오늘은 잃을 게 없어.",
                           "규칙은 직접 해 보면서 배운다. 먼저 이번 덱을 보여 주지.");
         Release();                                       // → 덱 공개 연출이 시작됨
         yield return null;

@@ -4922,10 +4922,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.10291383
-    y: 0.04076433
-    width: 0.7935524
-    height: 0.91719747
+    x: 0
+    y: 0
+    width: 1
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
@@ -10590,7 +10590,7 @@ MonoBehaviour:
   - "\uC608"
   - "\uC544\uB2C8\uC624"
   replies:
-  - "\uC88B\uC544. \uC2DC\uC791\uD558\uC790."
+  - "\uC88B\uC544. \uC2DC\uC791\uD558\uC9C0."
   - "...\uC0C1\uAD00\uC5C6\uB2E4. \uCE7C\uC740 \uC774\uBBF8 \uB5A8\uC5B4\uC9C0\uACE0 \uC788\uC73C\uB2C8."
   selectedColor: {r: 0.8509804, g: 0.7058824, b: 0.3529412, a: 1}
   normalColor: {r: 0.6392157, g: 0.6039216, b: 0.54901963, a: 1}

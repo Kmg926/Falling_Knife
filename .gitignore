@@ -50,3 +50,6 @@ __pycache__/
 # 배경음악 원본은 공개 저장소에 올리지 않음(재배포 허락 없음, docs/asset-rights.md). .meta는 올려 Scene 연결 유지
 /Assets/_Project/Audio/Music/*.wav
 /Assets/_Project/Audio/Music/*.mp3
+
+# release-prep 103: 빌드 결과물
+/Builds/

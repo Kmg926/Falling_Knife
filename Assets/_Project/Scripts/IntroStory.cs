@@ -44,7 +44,7 @@ public class IntroStory : MonoBehaviour
     [SerializeField] TMP_Text[] choiceTexts;     // 0 = 예, 1 = 아니오
     [SerializeField] string[] choiceLabels = { "예", "아니오" };
     // 무엇을 골라도 시작한다. 고른 뒤 광대의 대답만 다르다
-    [SerializeField] string[] replies = { "좋아. 시작하자.", "...상관없다. 칼은 이미 떨어지고 있으니." };
+    [SerializeField] string[] replies = { "좋아. 시작하지.", "...상관없다. 칼은 이미 떨어지고 있으니." };
     [SerializeField] Color selectedColor = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2 (타이틀 메뉴와 같음)
     [SerializeField] Color normalColor = new Color32(0xA3, 0x9A, 0x8C, 255);     // cream0
 

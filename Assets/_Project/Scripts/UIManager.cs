@@ -75,13 +75,16 @@ public class UIManager : MonoBehaviour
     void ReadSettings() { screenShake = GameSettings.Shake; }
 
     // F1: 개발용 글자 켜고 끄기. 판정과 상관없는 개발 도구라 PlayerInputHandler를 거치지 않고 키보드를 직접 읽는다.
+    // release-prep 103: 편집기와 개발용 빌드(Development Build)에서만 — 최종 빌드에서는 F1이 아무 일도 안 함(#41)
     void Update()
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
         {
             showDevText = !showDevText;
             statusText.enabled = showDevText;
         }
+#endif
     }
 
     // 피해: 글자를 잠깐 빨강으로. 이미 깜빡이는 중이면 처음부터 다시.

@@ -148,7 +148,7 @@ public class TutorialGuide : MonoBehaviour
         yield return null;   // GameManager.Start(튜토리얼 라운드 준비)가 먼저 돌게 한 프레임
 
         Step = 0;
-        yield return Talk("……연습이다. 오늘은 잃을 게 없어.",
+        yield return Talk("연습이다. 오늘은 잃을 게 없어.",
                           "규칙은 직접 해 보면서 배운다. 먼저 이번 덱을 보여 주지.");
         Release();                                       // → 덱 공개 연출이 시작됨
         yield return null;
@@ -216,6 +216,7 @@ public class TutorialGuide : MonoBehaviour
         yield return Talk("아이템은 더 있다. <color=#D9B45A>찌라시</color>는 다음 캔들을 모두에게 보여 주고 버린다.",
                           "<color=#D9B45A>거래 정지</color>는 상대 차례를 한 번 건너뛰게 한다.",
                           "<color=#D9B45A>복권</color>은 운에 맡기는 보상. <color=#D9B45A>배당금</color>·<color=#D9B45A>구제 금융</color>은 잔고를 되찾는다.",
+                          "<color=#D9B45A>작전</color>은 다음 캔들을 뒤집는다. 하락은 상승으로, 상승은 하락으로.",   // flip-item 101
                           "자세한 건 폰에서 아이템을 고르면 나온다.");
 
         Step = 11;
