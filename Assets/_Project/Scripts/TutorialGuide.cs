@@ -198,6 +198,7 @@ public class TutorialGuide : MonoBehaviour
         Step = 7;
         yield return Act(Task.Trade, PlayerAction.Buy, 2);
         yield return Talk($"판이 꽤 커졌군. 지금 떨어지면 {1 + game.Leverage.Value}이다.",
+                          "레버리지는 3까지만 쌓인다.",   // rules-card 106: 규칙 창에만 있던 한도
                           "다음 캔들이 궁금하지? 네 폰을 열어 <color=#D9B45A>차트 분석</color>을 써라.");
 
         Step = 8;
@@ -213,7 +214,8 @@ public class TutorialGuide : MonoBehaviour
         yield return Talk("내 잔고가 바닥났다. 상대 잔고를 0으로 만들면 이긴다. 진짜 판은 3라운드다.");
 
         Step = 10;
-        yield return Talk("아이템은 더 있다. <color=#D9B45A>찌라시</color>는 다음 캔들을 모두에게 보여 주고 버린다.",
+        yield return Talk("아이템은 라운드 시작과 덱을 다시 채울 때 2개씩 받는다. 4개까지.",   // rules-card 106
+                          "아이템은 더 있다. <color=#D9B45A>찌라시</color>는 다음 캔들을 모두에게 보여 주고 버린다.",
                           "<color=#D9B45A>거래 정지</color>는 상대 차례를 한 번 건너뛰게 한다.",
                           "<color=#D9B45A>복권</color>은 운에 맡기는 보상. <color=#D9B45A>배당금</color>·<color=#D9B45A>구제 금융</color>은 잔고를 되찾는다.",
                           "<color=#D9B45A>작전</color>은 다음 캔들을 뒤집는다. 하락은 상승으로, 상승은 하락으로.",   // flip-item 101
