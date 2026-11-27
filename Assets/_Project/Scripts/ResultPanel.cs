@@ -35,31 +35,46 @@ public class ResultPanel : MonoBehaviour
     [SerializeField] Button retryButton;
     [SerializeField] Button titleButton;          // TitleScene으로 (Ticket 29)
 
+    [Header("gameover 120: 패배 화면(간소화) — 검은 화면 + GAME OVER + 플레이 타임 + 글자 버튼 2개. 승리는 위 화면 그대로")]
+    [SerializeField] GameObject gameOverRoot;     // 패배 때만 켬(위 root 대신)
+    [SerializeField] TMP_Text playTimeText;       // "플레이 타임 3:12"
+    [SerializeField] Button gameOverRetry;
+    [SerializeField] Button gameOverTitle;
+
     [Header("마우스 올림 강조 (title-menu 94, 일시정지 메뉴 60과 같음)")]
     [SerializeField] Color highlightText = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2
     [SerializeField] Color normalText = new Color32(0xA3, 0x9A, 0x8C, 255);      // cream0
     [SerializeField] Color dimButton = new Color(0.6f, 0.6f, 0.6f, 1f);          // 강조 안 된 버튼 그림(곱하는 색)
 
     Camera uiCamera;
-    Button[] buttons;      // 0 = 다시하기, 1 = 타이틀
+    Button[] buttons;      // 지금 화면의 버튼(0 = 다시하기, 1 = 타이틀) — 승리 화면 것 또는 패배 화면 것
     TMP_Text[] labels;
     string[] labelTexts;
     int highlighted = -1;
     bool wasOver;          // 지난 Refresh 때 결과 화면이 켜져 있었나
+    bool wasSurvived;      // 120: 켜질 때 어느 화면(버튼 묶음)이었나
 
     void Awake()
     {
         retryButton.onClick.AddListener(() => game.Restart());
         titleButton.onClick.AddListener(() => game.GoToTitle());
+        if (gameOverRetry != null) gameOverRetry.onClick.AddListener(() => game.Restart());   // 120
+        if (gameOverTitle != null) gameOverTitle.onClick.AddListener(() => game.GoToTitle());
         Canvas canvas = GetComponentInParent<Canvas>();
         uiCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
-        buttons = new[] { retryButton, titleButton };
+        UseButtons(retryButton, titleButton);
+    }
+
+    // 120: 강조할 버튼 묶음을 고름(승리 화면 / 패배 화면). 글자 원문은 처음 한 번 기억(▶를 붙였다 떼려고)
+    void UseButtons(Button retry, Button title)
+    {
+        buttons = new[] { retry, title };
         labels = new TMP_Text[buttons.Length];
         labelTexts = new string[buttons.Length];
         for (int i = 0; i < buttons.Length; i++)
         {
             labels[i] = buttons[i].GetComponentInChildren<TMP_Text>(true);
-            labelTexts[i] = labels[i] != null ? labels[i].text : "";
+            labelTexts[i] = labels[i] != null ? labels[i].text.Replace("▶ ", "") : "";
         }
     }
 
@@ -84,7 +99,8 @@ public class ResultPanel : MonoBehaviour
                 labels[i].text = (on ? "▶ " : "") + labelTexts[i];
                 labels[i].color = on ? highlightText : normalText;
             }
-            if (buttons[i].targetGraphic != null) buttons[i].targetGraphic.color = on ? Color.white : dimButton;
+            // 120: 그림 있는 버튼(승리 화면)만 밝기를 바꿈 — 패배 화면의 글자 버튼은 투명한 클릭 칸이라 색을 칠하면 흰 사각형이 됨
+            if (buttons[i].targetGraphic is Image g && g.sprite != null) g.color = on ? Color.white : dimButton;
         }
     }
 
@@ -95,12 +111,26 @@ public class ResultPanel : MonoBehaviour
     public void Refresh(GameManager game)
     {
         bool over = game.IsGameOver && !game.IsTutorial;   // tutorial 97: 튜토리얼 끝은 결과 화면 대신 광대 대사
-        root.SetActive(over);
-        if (over && !wasOver) SetHighlight(0);   // 94: 막 켜졌을 때는 "다시하기" 강조
+        bool survived = over && game.IsFinalVictory;
+        // gameover 120(사용자 "게임 오버 창… 최대한 간소화, 플레이 타임은 넣고" → 패배만): 패배는 간소화 화면, 승리는 원래 화면
+        bool simple = over && !survived && gameOverRoot != null;
+        root.SetActive(over && !simple);
+        if (gameOverRoot != null) gameOverRoot.SetActive(simple);
+        if (over && (!wasOver || survived != wasSurvived))
+        {
+            if (simple) UseButtons(gameOverRetry, gameOverTitle);
+            else UseButtons(retryButton, titleButton);
+            SetHighlight(0);   // 94: 막 켜졌을 때는 "다시하기" 강조
+        }
         wasOver = over;
+        wasSurvived = survived;
         if (!over) return;
 
-        bool survived = game.IsFinalVictory;
+        if (simple)
+        {
+            playTimeText.text = $"플레이 타임 {Clock(game.PlaySeconds)}";
+            return;
+        }
 
         background.sprite = survived ? backgroundSurvive : backgroundBankrupt;
         box.sprite = survived ? boxSurvive : boxBankrupt;
