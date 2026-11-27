@@ -18,6 +18,26 @@ public class Participant
     // 거래 정지에 걸렸는가. 다음 차례 한 번을 건너뛰면 풀린다.
     public bool IsHalted { get; private set; }
 
+    // item-limit 116(사용자 2026-11-27 "거래 정지는 한 판에 한 번씩만, 체력템도 마찬가지" → 라운드마다·사람마다·회복템은 묶어서):
+    // 이 라운드에 이미 받았나. Participant는 라운드마다 새로 만들어지므로 라운드가 바뀌면 저절로 false로 돌아간다.
+    public bool GotHalt { get; private set; }
+    public bool GotHeal { get; private set; }   // 배당금이든 구제 금융이든 하나라도
+
+    // 받을 수 있는 종류인가(이번 라운드에 이미 받은 제한 아이템이면 false)
+    public bool CanReceive(ItemType item)
+    {
+        if (item == ItemType.TradingHalt) return !GotHalt;
+        if (item == ItemType.Dividend || item == ItemType.Bailout) return !GotHeal;
+        return true;
+    }
+
+    // 실제로 받았을 때 표시(못 받으면 — 가득 차서 버려지면 — 부르지 않는다)
+    public void MarkGiven(ItemType item)
+    {
+        if (item == ItemType.TradingHalt) GotHalt = true;
+        if (item == ItemType.Dividend || item == ItemType.Bailout) GotHeal = true;
+    }
+
     public Participant(string name, int startingBalance)
     {
         Name = name;

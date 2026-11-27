@@ -401,8 +401,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 48, y: -121}
-  m_SizeDelta: {x: 13, y: 10}
+  m_AnchoredPosition: {x: 19, y: -121}
+  m_SizeDelta: {x: 16, y: 10}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &51296127
 MonoBehaviour:
@@ -458,7 +458,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 4
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -9757,6 +9757,8 @@ MonoBehaviour:
   - {fileID: 1881650336}
   deltaText: {fileID: 1687698166}
   haltText: {fileID: 51296127}
+  nameText: {fileID: 835138418}
+  haltPeriod: 1.2
   digits:
   - {fileID: 21300000, guid: d3bd97cfd89cc314496b9b177c029fdd, type: 3}
   - {fileID: 21300000, guid: b44688679a389db45b54c091bf94bb0b, type: 3}
@@ -22826,6 +22828,8 @@ MonoBehaviour:
   - {fileID: 808645445}
   deltaText: {fileID: 514848136}
   haltText: {fileID: 2114140283}
+  nameText: {fileID: 1053874897}
+  haltPeriod: 1.2
   digits:
   - {fileID: 21300000, guid: d3bd97cfd89cc314496b9b177c029fdd, type: 3}
   - {fileID: 21300000, guid: b44688679a389db45b54c091bf94bb0b, type: 3}
@@ -23244,8 +23248,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 48, y: -100}
-  m_SizeDelta: {x: 13, y: 10}
+  m_AnchoredPosition: {x: 19, y: -100}
+  m_SizeDelta: {x: 16, y: 10}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2114140283
 MonoBehaviour:
@@ -23301,7 +23305,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 4
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0

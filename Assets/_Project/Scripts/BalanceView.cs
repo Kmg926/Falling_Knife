@@ -17,7 +17,9 @@ public class BalanceView : MonoBehaviour
     [SerializeField] Image onesDigit;          // 일의 자리
     [SerializeField] Image[] cells;            // 칸 10개(왼쪽부터)
     [SerializeField] TMP_Text deltaText;       // "▼2" / "▲1"
-    [SerializeField] TMP_Text haltText;        // "정지"
+    [SerializeField] TMP_Text haltText;        // "정지" — 117: 이름 자리에서 이름과 번갈아(숫자와 겹치지 않게)
+    [SerializeField] TMP_Text nameText;        // "광대" / "나"
+    [SerializeField] float haltPeriod = 1.2f;  // 117: "정지" 0.7초 → 이름 0.5초 반복
 
     [Header("그림")]
     [SerializeField] Sprite[] digits;          // 0~9 평소 색
@@ -98,9 +100,11 @@ public class BalanceView : MonoBehaviour
                 cells[i].sprite = i < b ? cellOn : cellOff;
         }
 
-        // 작은 기계라 "▼n"과 "정지"가 한 자리를 나눠 씀 — 변화 글자가 떠 있는 동안은 그쪽이 먼저
-        bool showDelta = now < deltaUntil;
-        if (deltaText != null) deltaText.enabled = showDelta;
-        if (haltText != null) haltText.enabled = who.IsHalted && !showDelta;
+        if (deltaText != null) deltaText.enabled = now < deltaUntil;
+        // 117(사용자 "정지일 때 HP 인터페이스가 겹쳐보여"): 전엔 "정지"가 숫자 오른쪽 좁은 자리에 들어가 숫자를 덮었음 →
+        // 이름 자리에서 이름과 번갈아 보임(줄 순서 = 위 광대·아래 나라 누구 줄인지는 그대로 알 수 있음)
+        bool showHalt = who.IsHalted && (now % haltPeriod) < haltPeriod * 0.6f;
+        if (haltText != null) haltText.enabled = showHalt;
+        if (nameText != null) nameText.enabled = !showHalt;
     }
 }

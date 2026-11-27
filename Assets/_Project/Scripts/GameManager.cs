@@ -775,8 +775,8 @@ public class GameManager : MonoBehaviour
                 }
                 break;
             case LotteryPrize.Item:
-                ItemType bonus = NextItem();
-                bool got = user.AddItem(bonus);
+                ItemType bonus = NextItem(user);
+                bool got = Give(user, bonus);   // item-limit 116: 복권으로 받는 아이템도 라운드 제한을 따름
                 if (got) RecordGrant(user, 1);   // item-phone 65: 복권으로 받은 아이템도 폰이 울림
                 if (got) LastLotteryOutcome = LotteryPrize.Item;
                 result = got ? $"아이템 +1 ({ItemName(bonus)})" : "꽝 (아이템이 이미 가득)";
@@ -827,14 +827,23 @@ public class GameManager : MonoBehaviour
             RecordGrant(Player, mine);
             return;
         }
-        for (int i = 0; i < itemsPerGrant; i++) if (Player.AddItem(NextItem())) mine++;
-        for (int i = 0; i < itemsPerGrant; i++) if (Clown.AddItem(NextItem())) clowns++;
+        for (int i = 0; i < itemsPerGrant; i++) if (Give(Player, NextItem(Player))) mine++;
+        for (int i = 0; i < itemsPerGrant; i++) if (Give(Clown, NextItem(Clown))) clowns++;
         RecordGrant(Player, mine);
         RecordGrant(Clown, clowns);
     }
 
+    // item-limit 116: 슬롯에 넣고, 실제로 받았으면 "이번 라운드에 받음" 표시(거래 정지·회복템 제한용)
+    static bool Give(Participant who, ItemType item)
+    {
+        if (!who.AddItem(item)) return false;
+        who.MarkGiven(item);
+        return true;
+    }
+
     // 다음에 줄 아이템. 고정 지급이 켜져 있으면 문자열에서 순서대로, 다 쓰면 무작위.
-    ItemType NextItem()
+    // item-limit 116: 무작위는 받을 사람이 이번 라운드에 이미 받은 거래 정지·회복템을 빼고 고름(고정 지급은 시험용이라 그대로)
+    ItemType NextItem(Participant who)
     {
         if (useFixedItems)
         {
@@ -846,7 +855,7 @@ public class GameManager : MonoBehaviour
                 // 공백 등 다른 글자는 건너뛴다.
             }
         }
-        return RandomItem();
+        return RandomItem(who);
     }
 
     // 글자 → 아이템(C 차트 분석 / J 찌라시 / S 거래 정지 / L 복권 / D 배당금 / B 구제 금융). tutorial 97: 튜토리얼 아이템도 같이 씀
@@ -870,17 +879,22 @@ public class GameManager : MonoBehaviour
     static readonly float[] ItemWeights = { 1f, 1f, 1f, 1f, 1f, 0.5f, 0.5f };
 
     // 무게대로 하나 고르기: 0 ~ 무게 합 사이 숫자를 뽑고, 무게를 앞에서부터 빼 가다 0 밑으로 내려간 칸
-    static ItemType RandomItem()
+    // item-limit 116: 받을 수 없는 종류(who.CanReceive가 false)는 무게 0 — 나머지 비율은 그대로
+    static ItemType RandomItem(Participant who)
     {
+        float W(int i) => who.CanReceive((ItemType)i) ? ItemWeights[i] : 0f;
         float total = 0f;
-        foreach (float w in ItemWeights) total += w;
+        for (int i = 0; i < ItemWeights.Length; i++) total += W(i);
         float r = Random.Range(0f, total);
+        int last = 0;
         for (int i = 0; i < ItemWeights.Length; i++)
         {
-            r -= ItemWeights[i];
+            if (W(i) <= 0f) continue;
+            last = i;
+            r -= W(i);
             if (r < 0f) return (ItemType)i;
         }
-        return (ItemType)(ItemWeights.Length - 1);   // 소수점 오차 대비
+        return (ItemType)last;   // 소수점 오차 대비(받을 수 있는 마지막 종류)
     }
 
     // heal-items 89: 회복량(배당금 1·구제 금융 2, 회복 아이템이 아니면 0)
