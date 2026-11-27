@@ -75,7 +75,7 @@
     - intro-story(시작 스토리 시네마틱)·clown-tell(광대 말풍선, Grilling Q5)·clown-phone(광대 폰·건너뛰기, Grilling Q7)·heal-items·game-settings(회복 아이템·게임 중 설정, Grilling Q8)(2026-11-22~)도 같은 방식(intro-story Grilling Q7 "코드는 AI가 작성", 사용자 채택)으로 AI가 `.scratch/intro-story/draft/NN`을 만들고 Scripts에 직접 쓴다. 면담 대비: 각 draft README.
     - tutorial(튜토리얼 판·타이틀 권유, 2026-11-23~)도 같은 방식(tutorial Grilling Q12 "AI가 draft + Scripts 직접", 사용자 채택)으로 `.scratch/tutorial/draft/NN`. 면담 대비: 각 draft README.
     - round-feedback(라운드 클리어 판·복권 결과, 사용자 지시)·flip-item(작전 아이템, Grilling Q13 채택)(2026-11-23~)도 같은 방식으로 `.scratch/<기능>/draft/NN`. 면담 대비: 각 draft README.
-    - title-polish(104)·rules-card(규칙 3쪽·튜토리얼 2줄, Grilling Q8 채택)·device-art(폰·모니터 그림, 폰 목록 109)·balance-board(잔고 전광판 112, Grilling Q10)(2026-11-27)도 같은 방식으로 `.scratch/<기능>/draft/NN`. 면담 대비: 각 draft README.
+    - title-polish(104)·rules-card(규칙 3쪽·튜토리얼 2줄, Grilling Q8 채택)·device-art(폰·모니터 그림, 폰 목록 109)·balance-board(잔고 전광판 112, Grilling Q10)·room-dress(배경·테이블 113~115, Grilling Q10)(2026-11-27)도 같은 방식으로 `.scratch/<기능>/draft/NN`. 면담 대비: 각 draft README.
   - **에셋 만드는 코드(`tools/`)는 AI가 쓴다** (2026-11-15, sound-feel Grilling Q3, ADR 0003). 게임 코드(`Assets/_Project/Scripts`)가 아니라 그림·소리를 만드는 도구라서 직접 타이핑 규칙과 구분한다. 결과물은 내가 보고 듣고 고른다. 그림(스프라이트)도 AI가 만들고 고친다 — 나는 시안을 고르고 고칠 곳을 말로 지시, 직접 픽셀 보정은 안 함(2026-11-16, gdd-changes #42). 배경음악은 AI로 만들지 않는다(내가 구함). 로컬 ComfyUI는 2026-11-18 시험했지만 채택 안 함(ADR 0004, comfy-local Ticket 50·51) — 그림은 계속 코드로.
 - **파일을 바꾸기 전에 무엇을 바꿀지 먼저 말하고 허락받는다.** 바꾼 뒤에는 다시 읽어서 실제로 반영됐는지 확인하고 결과를 알려준다. (확인 없이 "완료"라고 하지 않는다.)
 - **Unity 파일 안전 규칙**

@@ -38,7 +38,7 @@ CELL = (3, 6)                       # 칸 크기
 CELL_X0, CELL_STEP, CELL_DY = 5, 4, 12   # 칸 x 시작·간격, 줄 맨 위에서 칸 위까지
 
 STYLES = {
-    "A": dict(body="gray0", light="gray1", hi="cream0", dark="bg00", lit="green2", core="green", glint="cream2", ghost="mat0",
+    "A": dict(body="gray0", light="gray1", hi="cream0", dark="bg00", lit="green2", core="green", glint="cream2", ghost="bg0",
               cell_on=("green2", "green"), cell_off=("mat0", "mat1")),
     "B": dict(body="bg0", light="gray0", hi="gray1", dark="bg00", lit="gold2", core="gold1", glint="gold3", ghost="gold0",
               cell_on=("gold2", "gold1"), cell_off=("bg00", "gold0")),
