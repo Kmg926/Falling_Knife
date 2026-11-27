@@ -13,3 +13,5 @@ Spec: `../spec.md`
 
 ## Comments
 - 2026-11-23 AI 구현: `TitleMenu.cs`(Scripts 직접), TitleScene `ItemTutorial`·메뉴 줄 간격 13(MCP). 권유 창 캡처·답 저장 확인(시험 뒤 저장값 지움 → 처음 `시작` 때 다시 물음). README: `../draft/97/README.md`.
+- 2026-11-27 사용자 "메인 메뉴 글자 전부 위로, 시작·튜토리얼 등 줄에 여백": Graph y −12→−4, Logo −44→−34, Subtitle −83→−72, Menu −99→−89, 메뉴 줄 간격 13→15(맨 아래 줄 위치는 전과 같음). TitleScene(MCP), 캡처 확인.
+- 2026-11-27 사용자 "훨씬 위로": Graph −2, Logo −18, Subtitle −55, Menu −74, 메뉴 줄 간격 15→16(맨 아래 `종료` 약 16칸 위로). 빨간 그래프 끝 화살표가 로고 윗부분(Knife의 i)에 살짝 겹침.

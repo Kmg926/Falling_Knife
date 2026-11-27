@@ -17,6 +17,12 @@ public class TitleMenu : MonoBehaviour
     [SerializeField] TMP_Text[] items;
     [SerializeField] string[] labels = { "시작", "튜토리얼", "규칙", "설정", "크레딧", "종료" };   // tutorial 98: 튜토리얼 추가
     const string TutorialAskedKey = "fk.tutorialAsked";   // tutorial 98: 처음 권유를 이미 했나(저장)
+
+    [Header("고른 줄 꾸밈 (title-polish 104, 레퍼런스 Halo 띠 · Hollow Knight 장식)")]
+    [SerializeField] RectTransform selectBar;    // 고른 줄 뒤 금색 띠(오른쪽으로 사라짐). Menu 안, 글자보다 뒤
+    [SerializeField] RectTransform knife;        // 고른 줄 왼쪽 작은 칼(끝이 아래). 연결돼 있으면 "▶ " 대신 씀
+    [SerializeField] Vector2 barOffset = new Vector2(-6f, 1f);    // 줄 왼쪽 위 기준 띠 자리
+    [SerializeField] Vector2 knifeOffset = new Vector2(-15f, 1f); // 줄 왼쪽 위 기준 칼 자리
     public int AskRow { get; private set; }               // 권유 창: 0 = 튜토리얼 먼저, 1 = 바로 시작
     [SerializeField] Color selectedColor = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2
     [SerializeField] Color normalColor = new Color32(0xA3, 0x9A, 0x8C, 255);     // cream0
@@ -418,12 +424,21 @@ public class TitleMenu : MonoBehaviour
         // 끝 빈칸은 폭을 잴 때 빠지므로 "▶ 가" − "가"로 잼(처음엔 "▶ "만 재서 고른 줄 글자가 조금 오른쪽에 남았음)
         if (arrowWidth < 0f && items.Length > 0)
             arrowWidth = items[0].GetPreferredValues("▶ 가").x - items[0].GetPreferredValues("가").x;
+        bool useKnife = knife != null;   // 104: 칼이 있으면 ▶ 글자는 안 씀(글자 시작 선은 그대로)
         for (int i = 0; i < items.Length; i++)
         {
             bool on = i == Selected;
-            items[i].text = (on ? "▶ " : "") + labels[i];
-            items[i].margin = new Vector4(on ? -arrowWidth : 0f, 0f, 0f, 0f);
+            bool arrow = on && !useKnife;
+            items[i].text = (arrow ? "▶ " : "") + labels[i];
+            items[i].margin = new Vector4(arrow ? -arrowWidth : 0f, 0f, 0f, 0f);
             items[i].color = on ? selectedColor : normalColor;
+        }
+        // 104: 띠·칼을 고른 줄 높이로 옮김(줄과 같은 부모 Menu 안이라 줄의 anchoredPosition을 그대로 씀)
+        if (Selected >= 0 && Selected < items.Length)
+        {
+            Vector2 row = items[Selected].rectTransform.anchoredPosition;
+            if (selectBar != null) selectBar.anchoredPosition = row + barOffset;
+            if (knife != null) knife.anchoredPosition = row + knifeOffset;
         }
     }
 
