@@ -357,7 +357,7 @@ def icon_flip(pal, w, h):
 def icon_riskbond(pal, w, h):
     """risk-bond 121 — 위험 채권(전 구제 금융, 50% 잔고 +2 / 50% −1) = 크림색 채권 증서 + 빨간 대각선 "위험" 띠(경고 줄무늬)
     + 오른쪽 위 작은 초록 "+"와 빨간 "−"(반반). 증서: 테두리 gray0, 안쪽 테 cream0, 글 줄(gray1) 3개, 왼쪽 아래 둥근 도장 자리.
-    파일 이름은 그대로 item-bailout(Scene·에셋 연결을 지키려고)."""
+    처음엔 item-bailout 파일을 덮어썼으나 사용자 "위험 채권은 따로 스프라이트" → item-riskbond(작은)·item-riskbond-big(큰) 새 파일, 구제 금융 그림은 되돌림."""
     cv = blank(pal, w, h)
     u, v, px = grid(w, h)
     paper = (u >= 1.2) & (u <= 15.8) & (v >= 3.0) & (v <= 14.6)
@@ -380,7 +380,7 @@ def icon_riskbond(pal, w, h):
     return cv
 
 
-RISK_ICONS = {"bailout": icon_riskbond}   # risk-bond 121: 파일 이름은 item-bailout 그대로
+RISK_ICONS = {"riskbond": icon_riskbond}   # risk-bond 121: 새 파일 item-riskbond(구제 금융 item-bailout 그림은 그대로 둠)
 
 ICONS = {"chart": icon_chart, "rumor": icon_rumor, "halt": icon_halt, "lottery": icon_lottery}
 HEAL_ICONS = {"dividend": icon_dividend, "bailout": icon_bailout}   # heal-items 89(따로 — 기존 아이콘 파일은 다시 안 그림)
@@ -561,12 +561,12 @@ if __name__ == "__main__":
         sys.exit(0 if make_game(pal) else 1)
     if cmd == "heal":   # heal-items 89: 배당금·구제 금융 아이콘(슬롯 42x32·확인 68x52) + 기존 4종과 나란히 미리보기
         sys.exit(0 if make_heal(pal) else 1)
-    if cmd == "riskbond":   # risk-bond 121: 위험 채권 아이콘(item-bailout 이름 그대로) + 7종 나란히 미리보기
+    if cmd == "riskbond":   # risk-bond 121: 위험 채권 아이콘(item-riskbond 새 파일) + 7종 나란히 미리보기
         dst = OUT / "game"
         dst.mkdir(parents=True, exist_ok=True)
         files = []
         for suf, size in (("", ICON_SMALL), ("-big", ICON_BIG)):
-            f = dst / f"item-bailout{suf}.png"
+            f = dst / f"item-riskbond{suf}.png"
             write_png(f, icon_riskbond(pal, *size).rgba())
             files.append(f)
         allicons = list(ICONS.items()) + [("dividend", icon_dividend), ("bailout", icon_riskbond), ("flip", icon_flip)]

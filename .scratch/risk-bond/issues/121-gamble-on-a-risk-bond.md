@@ -17,3 +17,4 @@ Spec: Grilling 표(`../grilling.md`)가 Spec을 겸함(작은 기능)
 ## Comments
 - 2026-11-27 Unity 편집기가 꺼져 있어 에셋·Scene·컴파일·시험은 다시 켠 뒤에.
 - 2026-11-27 Unity 다시 켠 뒤: 에셋·Scene 값·시험 완료. 처음 큰 아이콘을 HUD 폴더에 잘못 넣어(상세 화면은 Closeup 폴더 그림을 씀) 그 파일은 지우고 Closeup에 넣음. README `../draft/121/README.md`.
+- 2026-11-27 사용자 "위험 채권은 따로 스프라이트 만들어줘" → 새 파일 `Sprites/HUD/item-riskbond.png`·`Sprites/Closeup/item-riskbond-big.png`(가져오기 설정은 구제 금융 그림과 같게), `item-bailout*`는 구제 금융 원래 그림으로 되돌림(커밋 f168b44 때 파일), 참조 3곳(GameScene ItemSlotsView·ItemCloseupPanel, TitleScene TitleMenu의 [5])을 새 파일로(MCP, 다른 줄은 안 바뀜 확인). 도구 출력 이름도 item-riskbond.
