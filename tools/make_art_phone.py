@@ -220,6 +220,13 @@ TABLE_PHONES = {
 
 SCREEN_SRC = (11, 33, 24, 56)   # 바깥 화면(금색 틀 포함) 원본 칸: y0, y1, x0, x1 — 색 바꿀 때 빼는 곳
 
+# device-art 107: 바깥 화면 색을 바꿀 수 있게(다른 도구가 바꿔 씀). 기본값 = 지금 게임 그림과 같음
+LCD_FRAME = ("gold1", "goldD")    # 바깥 틀 2줄(바깥 → 안)
+LCD_BG = "bg00"                   # 화면 바탕
+LCD_TOP = "navy0"                 # 화면 맨 윗줄(안쪽 그늘)
+LCD_FG = "green2"                 # 숫자·"+N"
+LCD_NOISE = ("gray1", "green0", "gray0")   # 광대 지지직 줄 색(돌아가며)
+
 
 def clown_damage(cv):
     """clown-phone 84: 위에서 본 원본에 깨진 흔적. 원근으로 눕히기 전에 그려서 같이 기울어진다.
@@ -243,7 +250,7 @@ def clown_damage(cv):
     broken = outline_of(chip, 1) & top & ~chip
     cv.fill(broken, "bg00")
     # 화면 금(바탕 위에만)
-    scr_bg = (cv.idx == cv.c("bg00")) | (cv.idx == cv.c("navy0"))
+    scr_bg = (cv.idx == cv.c(LCD_BG)) | (cv.idx == cv.c(LCD_TOP))
     inside = (yy >= 13) & (yy < 31) & (xx >= 26) & (xx < 54)
     cracks = [((27, 14), (31, 18)), ((31, 18), (33, 17)), ((31, 18), (32, 22)), ((29, 16), (27, 19)),
               ((53, 30), (49, 26)), ((49, 26), (48, 28))]
@@ -262,21 +269,22 @@ def top_view_src(pal, digit=None, clown=False):
     cv = phone_closed(pal)
     if digit is not None:   # item-phone 66: 개수 숫자를 바깥 화면 가운데에 미리 그림 → 눕히고 돌릴 때 같이 기울어짐(칸 밖으로 못 나감)
         # 바깥 화면을 위아래로 키움(안쪽 14 → 18줄): 숫자(14줄) 위아래 2줄 여백 — 꽉 차면 금색 틀에 닿음
-        cv.fill((slice(11, 33), slice(24, 56)), "gold1")
-        cv.fill((slice(12, 32), slice(25, 55)), "goldD")
-        cv.fill((slice(13, 31), slice(26, 54)), "bg00")
-        cv.fill((slice(13, 14), slice(26, 54)), "navy0")
+        cv.fill((slice(11, 33), slice(24, 56)), LCD_FRAME[0])
+        cv.fill((slice(12, 32), slice(25, 55)), LCD_FRAME[1])
+        cv.fill((slice(13, 31), slice(26, 54)), LCD_BG)
+        cv.fill((slice(13, 14), slice(26, 54)), LCD_TOP)
         label = str(digit)
         if label.startswith("+"):          # item-phone 65: "+N" = 더하기 + 숫자(가운데 맞춤, 폭 5+1+5 칸 ×2 = 22)
-            glyph57(cv, "+", 29, 15, "green2", 2)
-            glyph57(cv, label[1:], 41, 15, "green2", 2)
+            glyph57(cv, "+", 29, 15, LCD_FG, 2)
+            glyph57(cv, label[1:], 41, 15, LCD_FG, 2)
         elif label == "noise":              # clown-phone 84: 지지직 순간 — 화면에 가로줄 노이즈(무작위 없음, 줄마다 다른 길이)
-            for r, (a, b, col) in enumerate([(26, 41, "gray1"), (33, 54, "green0"), (26, 37, "gray0"), (40, 52, "gray1"),
-                                             (29, 54, "green0"), (26, 46, "gray0"), (36, 50, "gray1"), (26, 33, "green0"), (44, 54, "gray0")]):
+            n0, n1, n2 = LCD_NOISE
+            for r, (a, b, col) in enumerate([(26, 41, n0), (33, 54, n1), (26, 37, n2), (40, 52, n0),
+                                             (29, 54, n1), (26, 46, n2), (36, 50, n0), (26, 33, n1), (44, 54, n2)]):
                 y = 14 + r * 2
                 cv.fill((slice(y, y + 1), slice(a, b)), col)
         elif label:                         # "" = 빈 화면(깜빡임 꺼진 순간)
-            glyph57(cv, label, 35, 15, "green2", 2)   # 5×7 둥근 숫자 ×2 = 10×14 — 3×5는 "2"가 "ㄹ"처럼 보임
+            glyph57(cv, label, 35, 15, LCD_FG, 2)   # 5×7 둥근 숫자 ×2 = 10×14 — 3×5는 "2"가 "ㄹ"처럼 보임
     if clown:
         clown_damage(cv)
     top, _ = closed_mask()
@@ -362,8 +370,8 @@ def phone_on_table_rot(pal, g, digit=None):
     scr = np.zeros((H, W), bool)          # clown-phone 84: 바깥 화면(틀 포함)에서 온 칸 — 빨강으로 바꿀 때 뺌
     lite = np.zeros((H, W))               # 0 = 어둠 ~ 1 = 밝음(윗면 음영용)
     ct, st = np.cos(th), np.sin(th)
-    green2_i = cv.c("green2")
-    bg00_i, navy0_i_scr = cv.c("bg00"), cv.c("navy0")
+    green2_i = cv.c(LCD_FG)                                  # device-art 107: 숫자 색·바탕 색을 바꿀 수 있게(기본 = 전과 같음)
+    bg00_i, navy0_i_scr = cv.c(LCD_BG), cv.c(LCD_TOP)
     for ty in range(Y0, Y1):
         dy = ty + 0.5 - vy
         if dy <= 1:

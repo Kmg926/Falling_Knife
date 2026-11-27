@@ -15,3 +15,4 @@ Spec: `../spec.md`
 
 ## Comments
 - 2026-11-27 AI 구현: `TitleMenu.cs`(Scripts 직접), TitleScene `RulesScreen`·아이템 줄 7개(MCP), 그림 `tools/make_rules_screen.py`. 1·2·3쪽 캡처 확인(2쪽 마지막 줄이 아래 안내와 겹쳐 줄 높이 88%로, 1쪽 아래 글 줄 간격 0). 규칙 뒤 설정 창에 그림 안 남음 확인. 컴파일 오류 0. README `../draft/105/README.md`.
+- 2026-11-27 device-art 107·108 뒤 규칙 1쪽 그림을 새 게임 화면으로 다시 캡처(`rules-screen.png`), 배지 1(모니터)을 테두리가 넓어진 만큼 왼쪽으로.
