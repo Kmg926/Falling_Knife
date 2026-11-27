@@ -13453,7 +13453,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: -319.99997, y: 116}
+  m_AnchoredPosition: {x: -319.99994, y: 116}
   m_SizeDelta: {x: 320, y: 16}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1221278563
@@ -20060,7 +20060,6 @@ GameObject:
   - component: {fileID: 1887937188}
   - component: {fileID: 1887937189}
   - component: {fileID: 1887937190}
-  - component: {fileID: 1887937191}
   m_Layer: 0
   m_Name: HUD
   m_TagString: Untagged
@@ -20343,18 +20342,6 @@ MonoBehaviour:
   unknownMark: {fileID: 796441101}
   upSprite: {fileID: 21300000, guid: 0e9062b6b5ca45448a1336e828dbb09b, type: 3}
   downSprite: {fileID: 21300000, guid: 086224a94b3d776408343819aa380c6f, type: 3}
---- !u!114 &1887937191
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1887937181}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad116eadce09bf545b2206f6a7e0f4f3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TableItemsView
 --- !u!1 &1890430286
 GameObject:
   m_ObjectHideFlags: 0

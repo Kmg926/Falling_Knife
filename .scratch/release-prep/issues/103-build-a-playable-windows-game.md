@@ -19,3 +19,4 @@
 - 빌드 중 Unity가 바꾼 설정(URP 셰이더 사전 거르기 값·Global Settings 자원 목록·Unity Connect 켜짐·Pipeline 백그라운드 덮어쓰기 표시)은 커밋하지 않음(내가 바꾼 것이 아님).
 - 경고 513개 대부분은 AI 추론 패키지(Sentis) 셰이더 경고 — 게임은 쓰지 않음. 빌드 크기를 줄이려면 패키지 정리를 따로 검토.
 - 2026-11-27 다시 빌드(사용자 "exe에는 바로 반영이 안 되는거지? 반영해줘", 커밋 `6d8ef1d`까지: 폰·모니터·잔고 전광판·배경·지급 제한 등): Run In Background를 빌드 동안만 끄고 다시 켬. 빌드가 Unity 창의 팝업(사용자가 닫음) 때문에 약 10분 멈췄다가 성공(158MB, 오류 2 = 전과 같은 Global Light 알림). 새 exe 15초 실행 → Player.log 오류·예외 없음. 팝업이 Scene을 저장하며 들어간 카메라 rect(Play 흔적)는 MCP로 (0, 0, 1, 1)로 되돌림.
+- 2026-11-27 122(콘솔 경고): HUD의 빈 스크립트 자리(TableItemsView) 지움, F1 개발용 글자 조건을 `#if DEVELOPMENT_BUILD` → `Debug.isDebugBuild`(뜻 같음). 글꼴 경고는 그대로. README `../draft/122/README.md`.

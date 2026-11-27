@@ -76,15 +76,15 @@ public class UIManager : MonoBehaviour
 
     // F1: 개발용 글자 켜고 끄기. 판정과 상관없는 개발 도구라 PlayerInputHandler를 거치지 않고 키보드를 직접 읽는다.
     // release-prep 103: 편집기와 개발용 빌드(Development Build)에서만 — 최종 빌드에서는 F1이 아무 일도 안 함(#41)
+    // 122: Unity 6.6이 DEVELOPMENT_BUILD 표시(#if)를 쓰지 말라고 경고 → 실행 중 확인(Debug.isDebugBuild)으로.
+    //      Debug.isDebugBuild = 편집기·개발용 빌드에선 true, 최종 빌드에선 false(뜻은 전과 같음)
     void Update()
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
+        if (Debug.isDebugBuild && Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
         {
             showDevText = !showDevText;
             statusText.enabled = showDevText;
         }
-#endif
     }
 
     // 피해: 글자를 잠깐 빨강으로. 이미 깜빡이는 중이면 처음부터 다시.
