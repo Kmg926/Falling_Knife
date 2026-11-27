@@ -105,8 +105,13 @@ public class PhoneView : MonoBehaviour
         bool detail = game.IsConfirming;
         listGroup.SetActive(!detail);
         titleText.text = (clown ? "광대 아이템 " : "아이템 ") + $"{shown}/{MaxItems}";
-        leftLabel = detail ? (clown ? "" : "사용") : "확인";
-        rightLabel = detail ? "뒤로" : "닫기";
+        // device-art 109(사용자 "확인, 닫기 없애고 보유 아이템 크기를 늘리자"): 목록에선 소프트키 글자를 비움
+        // — 칸을 누르면 상세, 초록·빨간 키(Space·Esc)는 그대로. 상세의 "사용·뒤로"는 남김(튜토리얼이 가리킴)
+        leftLabel = detail ? (clown ? "" : "사용") : "";
+        rightLabel = detail ? "뒤로" : "";
+        // 글자가 없으면 클릭 칸도 끔 — 커진 아래 칸 줄과 겹쳐서 칸 대신 눌리지 않게
+        if (softLeftButton != null) softLeftButton.gameObject.SetActive(leftLabel != "");
+        if (softRightButton != null) softRightButton.gameObject.SetActive(rightLabel != "");
         ShowSoftKeys();
         for (int i = 0; i < keyLit.Length; i++) keyLit[i].enabled = i < shown;
         for (int i = 0; i < keypad.Length; i++) keypad[i].interactable = !clown;
