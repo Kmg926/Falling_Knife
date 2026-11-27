@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -97,10 +98,18 @@ public class TitleMenu : MonoBehaviour
     public int CreditPages => panelBody != null ? Mathf.Max(1, panelBody.textInfo.pageCount) : 1;
     TextOverflowModes bodyOverflow;   // 크레딧만 쪽 나누기(Page) — 닫으면 원래 방식으로
 
-    // rules-card 105: 5쪽 → 3쪽(화면 · 행동 · 아이템 7종 한 쪽)
-    static readonly string[] PageTitles = { "규칙 1/3 · 화면", "규칙 2/3 · 행동", "규칙 3/3 · 아이템" };
-    const int PageCount = 3;
-    const int ItemPage = 2;   // 아이템 아이콘 줄을 보이는 쪽(7종 모두)
+    // rules-card 105: 5쪽 → 3쪽(화면 · 행동 · 아이템). rules-card 123: 아이템 설명을 줄이지 않으므로 아이템 쪽은 필요한 만큼 늘어난다
+    static readonly string[] FixedTitles = { "화면", "행동" };
+    const int ItemPage = 2;   // 첫 아이템 쪽 번호(이 뒤로 아이템 쪽이 이어짐)
+    readonly List<int> itemPageStart = new List<int>();   // 아이템 쪽마다 첫 아이템 번호(OpenRules 때 계산)
+    int PageCount => ItemPage + Mathf.Max(1, itemPageStart.Count);
+
+    [Header("규칙 아이템 쪽 나누기 (rules-card 123)")]
+    [SerializeField] float itemRowsTopFirst = -50f;   // 첫 아이템 쪽: 소개 글 아래에서 시작
+    [SerializeField] float itemRowsTopRest = -23f;    // 둘째 쪽부터: 소개 글 없이 본문 자리에서 시작
+    [SerializeField] float itemRowsBottom = -138f;    // 이 아래는 쪽 안내 글 자리
+    [SerializeField] float itemRowGap = 3f;           // 아이템 사이 빈칸
+    [SerializeField] float itemRowMinHeight = 10f;    // 한 줄짜리도 아이콘(8) 높이는 넘게
 
     [Header("규칙 3쪽 · 아이템 (줄 7개, heal-items 89 아이콘 그림)")]
     [SerializeField] Image[] itemIcons;             // 줄마다 아이콘(7개)
@@ -108,9 +117,6 @@ public class TitleMenu : MonoBehaviour
     [SerializeField, TextArea(2, 3)] string rulesItemsIntro =
         "라운드 시작·덱 재장전 때 2개씩 받는다(최대 4개).\n" +
         "내 폰을 열어 고르고 Space로 쓴다.";
-    // 한 줄에 안 들어가거나 규칙 창에서 덧붙일 말이 있는 것만(빈 칸 = ItemData 설명 그대로). ItemType 순서
-    [SerializeField] string[] itemShort =
-        { "", "", "", "잔고·레버리지·아이템 +1 또는 꽝(25%씩)", "잔고를 1 회복한다(시작 잔고까지).", "반반 도박: 잔고 +2 또는 −1.", "" };   // risk-bond 121: [5] = 위험 채권(전 구제 금융)
 
     public int Selected { get; private set; }
     public Panel Open { get; private set; } = Panel.None;
@@ -301,7 +307,38 @@ public class TitleMenu : MonoBehaviour
         Open = Panel.Rules;
         Page = 0;
         panelRoot.SetActive(true);
+        LayoutItemPages();
         ShowPage();
+    }
+
+    // rules-card 123: 아이템 한 줄(이름 금색 + 게임 안 설명 그대로)
+    string ItemLine(int i) => $"<color=#D9B45A>{itemData[i].displayName}</color>  {itemData[i].description}";
+
+    // 아이템 줄 높이 = 글이 실제로 차지하는 높이(줄바꿈 포함)
+    float ItemRowHeight(int i)
+    {
+        TMP_Text t = itemTexts[0];
+        float h = t.GetPreferredValues(ItemLine(i), t.rectTransform.rect.width, 0f).y;
+        return Mathf.Max(h, itemRowMinHeight);
+    }
+
+    // rules-card 123: 아이템을 위에서부터 쌓다가 아래 한계를 넘으면 다음 쪽으로 — 쪽마다 첫 아이템 번호를 남김
+    void LayoutItemPages()
+    {
+        itemPageStart.Clear();
+        int count = Mathf.Min(itemTexts.Length, itemData.Length);
+        float y = 0f, room = itemRowsTopFirst - itemRowsBottom;   // 첫 쪽은 소개 글 때문에 자리가 좁다
+        for (int i = 0; i < count; i++)
+        {
+            float h = ItemRowHeight(i);
+            if (itemPageStart.Count == 0 || (y > 0f && y + h > room))
+            {
+                if (itemPageStart.Count > 0) room = itemRowsTopRest - itemRowsBottom;
+                itemPageStart.Add(i);
+                y = 0f;
+            }
+            y += h + itemRowGap;
+        }
     }
 
     // ---------- 설정 창 (title-menu 54 → game-settings 91: 내용은 공통 SettingsPanel이 맡음) ----------
@@ -392,25 +429,37 @@ public class TitleMenu : MonoBehaviour
 
     void ShowPage()
     {
-        panelTitle.text = PageTitles[Page];
-        // rules-card 105: 1쪽 = 그림 묶음(본문 글은 비움), 3쪽 = 아이템 7줄
+        string section = Page < ItemPage ? FixedTitles[Page] : "아이템";
+        panelTitle.text = $"규칙 {Page + 1}/{PageCount} · {section}";
+        // rules-card 105: 1쪽 = 그림 묶음(본문 글은 비움), 3쪽부터 = 아이템 줄
         if (rulesScreen != null) rulesScreen.SetActive(Page == 0);
         if (Page == 0)
         {
             if (rulesScreenLegend != null) rulesScreenLegend.text = rulesScreenLegendText;
             if (rulesScreenNotes != null) rulesScreenNotes.text = rulesScreenNotesText;
         }
-        itemRows.SetActive(Page == ItemPage);
-        if (Page == ItemPage) ShowItemRows(0, itemTexts.Length);
-        string[] pages = { "", rulesActions, rulesItemsIntro };
-        panelBody.text = pages[Page];
+        bool itemPage = Page >= ItemPage;
+        itemRows.SetActive(itemPage);
+        if (itemPage)
+        {
+            // rules-card 123: 이 쪽에 들어갈 아이템만. 첫 아이템 쪽만 소개 글이 있고 줄은 그 아래에서 시작
+            int k = Page - ItemPage;
+            int first = k < itemPageStart.Count ? itemPageStart[k] : 0;
+            int next = k + 1 < itemPageStart.Count ? itemPageStart[k + 1] : itemData.Length;
+            var box = (RectTransform)itemRows.transform;
+            box.anchoredPosition = new Vector2(box.anchoredPosition.x, k == 0 ? itemRowsTopFirst : itemRowsTopRest);
+            ShowItemRows(first, next - first);
+        }
+        panelBody.text = Page == 1 ? rulesActions : Page == ItemPage ? rulesItemsIntro : "";
         string tail = Page == 1 ? rulesActionsFooter + "\n" : "";
         panelFooter.text = tail + (Page < PageCount - 1 ? "←/→ 쪽 넘기기   Esc 닫기" : "← 앞 쪽   Esc 닫기");
     }
 
-    // heal-items 89: 아이템 줄에 first번째부터 count개(ItemType 순서) — 남는 줄은 숨김. rules-card 105: 줄 7개에 7종 모두
+    // heal-items 89: 아이템 줄에 first번째부터 count개(ItemType 순서) — 남는 줄은 숨김.
+    // rules-card 123: 줄 높이가 설명 길이마다 다르므로 위에서부터 차례로 쌓는다(글·아이콘 위치를 코드로 정함)
     void ShowItemRows(int first, int count)
     {
+        float y = 0f;
         for (int row = 0; row < itemTexts.Length; row++)
         {
             int i = first + row;
@@ -418,10 +467,18 @@ public class TitleMenu : MonoBehaviour
             itemTexts[row].gameObject.SetActive(show);
             if (itemIcons != null && row < itemIcons.Length) itemIcons[row].gameObject.SetActive(show);
             if (!show) continue;
-            string line = itemShort != null && i < itemShort.Length && !string.IsNullOrEmpty(itemShort[i]) ? itemShort[i] : itemData[i].description;
-            itemTexts[row].text = $"<color=#D9B45A>{itemData[i].displayName}</color>  {line}";   // 이름은 금색
-            if (itemIcons != null && row < itemIcons.Length && itemIconSprites != null && i < itemIconSprites.Length)
-                itemIcons[row].sprite = itemIconSprites[i];
+            float h = ItemRowHeight(i);
+            RectTransform t = itemTexts[row].rectTransform;
+            itemTexts[row].text = ItemLine(i);   // 이름은 금색, 설명은 게임 안 그대로
+            t.anchoredPosition = new Vector2(t.anchoredPosition.x, -y);
+            t.sizeDelta = new Vector2(t.sizeDelta.x, h);
+            if (itemIcons != null && row < itemIcons.Length)
+            {
+                RectTransform r = itemIcons[row].rectTransform;
+                r.anchoredPosition = new Vector2(r.anchoredPosition.x, -y - 1f);   // 아이콘은 첫 줄 높이에 맞춤
+                if (itemIconSprites != null && i < itemIconSprites.Length) itemIcons[row].sprite = itemIconSprites[i];
+            }
+            y += h + itemRowGap;
         }
     }
 
