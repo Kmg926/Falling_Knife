@@ -19,3 +19,10 @@
 | Menu/Knife | (−15, 1) 6×13 |
 | LogoGlow | (8, −13) 210×45, 로고 바로 뒤 |
 | FooterHint / Version | 오른쪽 아래 (196, −168) 120×10 / 왼쪽 아래 (4, −168), 크기 8, gray1 |
+
+## 고침 (2026-11-27, 사용자 "칼은 없애자")
+| 줄 | 바뀐 것 | 왜 |
+|---|---|---|
+| `knife`·`knifeOffset` 칸 | 삭제 | 칼 오브젝트(`Menu/Knife`)와 그림을 없앴으므로 연결할 곳이 없음 |
+| `bool useBar = selectBar != null;` | 전에는 `useKnife` | ▶를 안 쓰는 이유가 이제 띠. 띠가 연결 안 됐으면 예전처럼 ▶를 다시 붙임 |
+| `if (useBar && ...) selectBar.anchoredPosition = 줄 + barOffset;` | 칼 줄 삭제, 한 줄로 | 띠만 고른 줄 높이로 옮김 |

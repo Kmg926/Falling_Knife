@@ -14,8 +14,10 @@
 - [x] 띠·칼이 고른 줄로 따라감(시작 → 튜토리얼 캡처)
 - [x] 아래 안내·버전, 로고 빛 캡처
 - [x] 컴파일 오류 0
-- [ ] (사용자) 실제로 보고 띠 진하기·칼 크기 판단
+- [x] 칼 없앰(사용자 2026-11-27)
+- [ ] (사용자) 실제로 보고 띠 진하기 판단
 
 ## Comments
 - 2026-11-27 AI: 그림 `tools/make_title_ui.py`(3장, 32색 팔레트, 반투명 대신 바둑판 점), `TitleMenu.cs`(Scripts 직접, 띠·칼 자리 옮김, 칼이 있으면 ▶ 안 씀), TitleScene(MCP) `Menu/SelectBar`·`Menu/Knife`·`LogoGlow`·`FooterHint`·`Version`. 시안 고침: 칼이 띠 왼쪽 기둥에 겹쳐 4칸 왼쪽으로(−11 → −15). 줄별 설명 `../draft/104/README.md`.
 - 같은 날 앞서: 타이틀 글자 위로·메뉴 간격 16(Ticket 98 댓글).
+- 2026-11-27 사용자 "칼은 없애자": TitleScene `Menu/Knife` 삭제(MCP), `title-knife.png` 삭제, `TitleMenu.cs` 칼 칸·자리 값 삭제(▶를 안 쓰는 조건을 "칼이 있으면" → "띠가 있으면"으로). 띠만 남은 캡처 확인, 컴파일 오류 0. README 끝에 바뀐 줄.
