@@ -213,7 +213,8 @@ public class TutorialGuide : MonoBehaviour
         yield return Act(Task.Trade, PlayerAction.Buy, 1);
         yield return Talk("떨어졌군. 들고 있던 네가 맞았다. 커진 판만큼 아프지.");
         yield return Look(myBalanceArea, $"내 잔고 {before} → {game.Player.Balance}");
-        yield return Talk("맞으면 레버리지는 0으로 돌아가고, 차례는 나한테 넘어온다. 구경해.");
+        // tutorial 118(사용자 "'맞으면'이라는 단어가 안 어울려"): 맞으면 → 잃으면(규칙 창 "다음 피해만큼 잃음"과 같은 말)
+        yield return Talk("잃으면 레버리지는 0으로 돌아가고, 차례는 나한테 넘어온다. 구경해.");
 
         Step = 4;
         yield return Watch();                            // 광대: 매도 → 상승
