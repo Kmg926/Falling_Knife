@@ -194,7 +194,7 @@ public class TutorialGuide : MonoBehaviour
         Step = 1;
         // 사용자 정정(2026-11-23): 모니터는 남은 개수를 보여 주지 않는다 — 개수는 덱을 채울 때 공개 연출로만
         yield return Talk($"방금 본 게 이번 덱이다. {game.Deck.Remaining}장, 하락 {game.Deck.RemainingDown}장·상승 {game.Deck.RemainingUp}장.",
-                          "개수는 덱을 채울 때 한 번만 보여 준다. 순서는 아무도 모르지. 몇 장 남았는지는 직접 세어 둬.");
+                          "개수는 덱을 채울 때 한 번만 보여 준다. 순서는 아무도 몰라. 몇 장 남았는지는 직접 세어 둬.");
         yield return Look(monitorButton, "모니터: 공개된 캔들이 여기 그려진다");
         yield return Talk("매수·매도도 이 모니터를 열어서 고른다.");
 
@@ -205,16 +205,16 @@ public class TutorialGuide : MonoBehaviour
         yield return Talk("올랐군.");
         yield return Look(leverageArea, $"레버리지 {game.Leverage.Value} · 다음 피해 {1 + game.Leverage.Value}");
         // 사용자: 피해를 수식(1 + 레버리지)으로 말하지 않기 → 레버리지 상자의 "다음 피해"를 가리키고 "판이 커진다"로
-        yield return Talk("오를 때마다 레버리지가 쌓인다. 저 <color=#D9B45A>다음 피해</color>가 떨어졌을 때 맞는 양이다.",
+        yield return Talk("오를 때마다 레버리지가 쌓인다. 저 <color=#D9B45A>다음 피해</color>가 하락일 때 입는 손해다.",
                           "아직 네 차례다. 한 번 더 <color=#D9B45A>매수</color>해 봐.");
 
         Step = 3;
         int before = game.Player.Balance;
         yield return Act(Task.Trade, PlayerAction.Buy, 1);
-        yield return Talk("떨어졌군. 들고 있던 네가 맞았다. 커진 판만큼 아프지.");
+        yield return Talk("떨어졌군. 들고 있던 네가 손해를 봤다. 커진 판만큼 아프지.");
         yield return Look(myBalanceArea, $"내 잔고 {before} → {game.Player.Balance}");
         // tutorial 118(사용자 "'맞으면'이라는 단어가 안 어울려"): 맞으면 → 잃으면(규칙 창 "다음 피해만큼 잃음"과 같은 말)
-        yield return Talk("잃으면 레버리지는 0으로 돌아가고, 차례는 나한테 넘어온다. 구경해.");
+        yield return Talk("잃으면 레버리지는 0으로 돌아가고, 차례는 나한테 넘어온다.");
 
         Step = 4;
         yield return Watch();                            // 광대: 매도 → 상승
@@ -224,7 +224,7 @@ public class TutorialGuide : MonoBehaviour
         Step = 5;
         int clownBefore = game.Clown.Balance;
         yield return Act(Task.Trade, PlayerAction.Sell, 1);
-        yield return Talk("……넘긴 캔들이 떨어지면 받은 쪽이 맞는다.");
+        yield return Talk("넘긴 캔들이 떨어지면 받은 쪽이 맞는다.");
         yield return Look(clownBalanceArea, $"광대 잔고 {clownBefore} → {game.Clown.Balance}");
         yield return Talk("매도는 결과와 상관없이 차례를 넘긴다. 다시 내 차례.");
 
@@ -236,7 +236,7 @@ public class TutorialGuide : MonoBehaviour
         Step = 7;
         yield return Act(Task.Trade, PlayerAction.Buy, 2);
         yield return Talk($"판이 꽤 커졌군. 지금 떨어지면 {1 + game.Leverage.Value}이다.",
-                          "레버리지는 3까지만 쌓인다.",   // rules-card 106: 규칙 창에만 있던 한도
+                          "레버리지는 최대 3까지만 쌓인다.",   // rules-card 106: 규칙 창에만 있던 한도
                           "다음 캔들이 궁금하지? 네 폰을 열어 <color=#D9B45A>차트 분석</color>을 써라.");
 
         Step = 8;
@@ -247,7 +247,7 @@ public class TutorialGuide : MonoBehaviour
         Step = 9;
         clownBefore = game.Clown.Balance;
         yield return Act(Task.Trade, PlayerAction.Sell, 1);
-        yield return Talk("……키운 판을 그대로 받았군.");
+        yield return Talk("키운 판을 그대로 받았군.");
         yield return Look(clownBalanceArea, $"광대 잔고 {clownBefore} → {game.Clown.Balance}");
         yield return Talk("내 잔고가 바닥났다. 상대 잔고를 0으로 만들면 이긴다. 진짜 판은 3라운드다.");
 
