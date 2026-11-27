@@ -34,9 +34,19 @@ public class TutorialGuide : MonoBehaviour
     [SerializeField] TMP_Text taskText;
     [SerializeField] RectTransform highlight;     // 금색 테두리 틀(시작할 때 선 4개를 코드로 붙임)
     [SerializeField] float highlightPadding = 3f;
-    [SerializeField] float highlightThickness = 1f;   // 선 굵기(HUD 1칸 = 화면 4px)
     [SerializeField] Color highlightColor = new Color32(0xD9, 0xB4, 0x5A, 255);   // gold2
-    Image[] edges;                                // 위·아래·왼쪽·오른쪽 선
+    // tutorial 111(사용자 "튜토리얼에서 표시해주는 테두리를 더 세밀하게"): 굵은 선 4개 깜빡임 →
+    // 얇은 선 + 바깥 그늘 선 + 모서리 꺾쇠 8조각, 깜빡임 대신 꺾쇠가 부드럽게 벌어졌다 돌아옴. 새 이름이라 Scene 값과 안 겹침
+    [Header("tutorial 111: 세밀한 강조 틀")]
+    [SerializeField] float frameLine = 0.5f;          // 얇은 테두리 선(HUD 0.5칸 = 1280×720에서 2px)
+    [SerializeField] float cornerLine = 1f;           // 모서리 꺾쇠 굵기
+    [SerializeField] float cornerLength = 6f;         // 꺾쇠 한 변 길이
+    [SerializeField] float breathe = 1.5f;            // 꺾쇠가 바깥으로 벌어지는 최대 거리
+    [SerializeField] float breatheSeconds = 1f;       // 한 번 벌어졌다 돌아오는 시간
+    [SerializeField] Color shadowColor = new Color32(0x07, 0x08, 0x0B, 200);   // bg00, 배경과 선을 떼어 놓는 그늘
+    Image[] frame;                                // 얇은 선 4개(위·아래·왼쪽·오른쪽)
+    Image[] corners;                              // 꺾쇠 8조각(모서리마다 가로·세로)
+    Vector2[] cornerDir;                          // 조각마다 바깥 방향(벌어질 때 움직일 쪽)
     [SerializeField] RectTransform monitorButton;
     [SerializeField] RectTransform buyButton;
     [SerializeField] RectTransform sellButton;
@@ -118,28 +128,55 @@ public class TutorialGuide : MonoBehaviour
     {
         Image own = highlight.GetComponent<Image>();
         if (own != null) own.enabled = false;
-        // (anchorMin, anchorMax, pivot) — 위·아래는 가로로 꽉, 왼쪽·오른쪽은 세로로 꽉
+        // (anchorMin, anchorMax, pivot, 바깥 방향) — 위·아래는 가로로 꽉, 왼쪽·오른쪽은 세로로 꽉
         Vector2[,] a =
         {
-            { new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1) },
-            { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0.5f, 0) },
-            { new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f) },
-            { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 0.5f) },
+            { new Vector2(0, 1), new Vector2(1, 1), new Vector2(0.5f, 1), Vector2.up },
+            { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0.5f, 0), Vector2.down },
+            { new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0.5f), Vector2.left },
+            { new Vector2(1, 0), new Vector2(1, 1), new Vector2(1, 0.5f), Vector2.right },
         };
-        edges = new Image[4];
+        // 그늘 선(바깥으로 frameLine만큼 밀어 틀 바로 바깥) → 얇은 금색 선(틀 안쪽 가장자리). 먼저 만든 것이 뒤에 그려짐
+        frame = new Image[4];
         for (int i = 0; i < 4; i++)
         {
-            var go = new GameObject("Edge" + i, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            go.layer = highlight.gameObject.layer;
-            var r = (RectTransform)go.transform;
-            r.SetParent(highlight, false);
-            r.anchorMin = a[i, 0]; r.anchorMax = a[i, 1]; r.pivot = a[i, 2];
-            r.anchoredPosition = Vector2.zero;
-            r.sizeDelta = i < 2 ? new Vector2(0f, highlightThickness) : new Vector2(highlightThickness, 0f);
-            edges[i] = go.GetComponent<Image>();
-            edges[i].color = highlightColor;
-            edges[i].raycastTarget = false;
+            Vector2 size = i < 2 ? new Vector2(0f, frameLine) : new Vector2(frameLine, 0f);
+            MakePiece("Shadow" + i, a[i, 0], a[i, 1], a[i, 2], size, a[i, 3] * frameLine, shadowColor);
         }
+        for (int i = 0; i < 4; i++)
+        {
+            Vector2 size = i < 2 ? new Vector2(0f, frameLine) : new Vector2(frameLine, 0f);
+            frame[i] = MakePiece("Line" + i, a[i, 0], a[i, 1], a[i, 2], size, Vector2.zero, highlightColor);
+        }
+        // 모서리 꺾쇠: 모서리마다 가로 조각 + 세로 조각, 기준점 = 그 모서리(틀 안쪽으로 뻗음)
+        Vector2[] cornerAt = { new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, 0), new Vector2(1, 0) };
+        corners = new Image[8];
+        cornerDir = new Vector2[8];
+        for (int c = 0; c < 4; c++)
+        {
+            Vector2 at = cornerAt[c];
+            Vector2 dir = new Vector2(at.x == 0 ? -1f : 1f, at.y == 0 ? -1f : 1f);
+            corners[c * 2] = MakePiece("CornerH" + c, at, at, at, new Vector2(cornerLength, cornerLine), Vector2.zero, highlightColor);
+            corners[c * 2 + 1] = MakePiece("CornerV" + c, at, at, at, new Vector2(cornerLine, cornerLength), Vector2.zero, highlightColor);
+            cornerDir[c * 2] = dir;
+            cornerDir[c * 2 + 1] = dir;
+        }
+    }
+
+    // 강조 틀 조각 하나(그림 없는 단색 Image = 단색 사각형)
+    Image MakePiece(string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 size, Vector2 offset, Color color)
+    {
+        var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        go.layer = highlight.gameObject.layer;
+        var r = (RectTransform)go.transform;
+        r.SetParent(highlight, false);
+        r.anchorMin = anchorMin; r.anchorMax = anchorMax; r.pivot = pivot;
+        r.anchoredPosition = offset;
+        r.sizeDelta = size;
+        var img = go.GetComponent<Image>();
+        img.color = color;
+        img.raycastTarget = false;
+        return img;
     }
 
     // ───────────── 단계 (Spec 2) ─────────────
@@ -416,10 +453,18 @@ public class TutorialGuide : MonoBehaviour
         // 대상과 같은 자리·크기(+여백). 두 칸 모두 같은 Canvas라 월드 좌표로 맞춤
         highlight.position = target.TransformPoint(target.rect.center);
         Vector2 size = target.rect.size * (target.lossyScale.x / highlight.lossyScale.x);
-        highlight.sizeDelta = size + Vector2.one * highlightPadding * 2f;
-        // 0.5초 주기 깜빡임(켜짐 0.35 · 꺼짐 0.15)
-        bool on = (Time.unscaledTime % 0.5f) < 0.35f;
-        foreach (Image e in edges) e.enabled = on;
+        size += Vector2.one * highlightPadding * 2f;
+        // tutorial 111: 자리는 0.5칸, 크기는 1칸 단위로 맞춤 → 선이 화면 픽셀 사이에 걸려 흐려지지 않게
+        highlight.sizeDelta = new Vector2(Mathf.Round(size.x), Mathf.Round(size.y));
+        Vector2 ap = highlight.anchoredPosition;
+        highlight.anchoredPosition = new Vector2(Mathf.Round(ap.x * 2f) / 2f, Mathf.Round(ap.y * 2f) / 2f);
+        // 깜빡임 대신 숨쉬기: 0 → 1 → 0(breatheSeconds 주기). 꺾쇠는 바깥으로 0~breathe칸(0.5칸씩) 벌어지고, 얇은 선은 옅었다 짙어짐
+        float phase = (Mathf.Sin(Time.unscaledTime * Mathf.PI * 2f / Mathf.Max(0.1f, breatheSeconds)) + 1f) * 0.5f;
+        float spread = Mathf.Round(phase * breathe * 2f) / 2f;
+        for (int k = 0; k < corners.Length; k++) corners[k].rectTransform.anchoredPosition = cornerDir[k] * spread;
+        Color line = highlightColor;
+        line.a = Mathf.Lerp(0.45f, 0.9f, phase);
+        foreach (Image e in frame) e.color = line;
     }
 
     // ───────────── 입력 (대사 중에만) ─────────────
