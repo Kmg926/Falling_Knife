@@ -110,7 +110,7 @@ public class TitleMenu : MonoBehaviour
         "내 폰을 열어 고르고 Space로 쓴다.";
     // 한 줄에 안 들어가거나 규칙 창에서 덧붙일 말이 있는 것만(빈 칸 = ItemData 설명 그대로). ItemType 순서
     [SerializeField] string[] itemShort =
-        { "", "", "", "잔고·레버리지·아이템 +1 또는 꽝(25%씩)", "잔고를 1 회복한다(시작 잔고까지).", "잔고를 2 회복한다(시작 잔고까지).", "" };
+        { "", "", "", "잔고·레버리지·아이템 +1 또는 꽝(25%씩)", "잔고를 1 회복한다(시작 잔고까지).", "반반 도박: 잔고 +2 또는 −1.", "" };   // risk-bond 121: [5] = 위험 채권(전 구제 금융)
 
     public int Selected { get; private set; }
     public Panel Open { get; private set; } = Panel.None;

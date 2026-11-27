@@ -2876,7 +2876,7 @@ MonoBehaviour:
   - line: 20
     text: "<color=#D9B45A>\uBC30\uB2F9\uAE08</color>\uC744 \uC4F0\uACA0\uB2E4."
   - line: 21
-    text: "<color=#D9B45A>\uAD6C\uC81C \uAE08\uC735</color>\uC744 \uC4F0\uACA0\uB2E4."
+    text: "<color=#D9B45A>\uC704\uD5D8 \uCC44\uAD8C</color>\uC5D0 \uAC78\uACA0\uB2E4."
   - line: 22
     text: "\uC228 \uC880 \uB3CC\uB9AC\uC9C0."
   - line: 23
@@ -13453,7 +13453,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: -320, y: 116}
+  m_AnchoredPosition: {x: -319.99997, y: 116}
   m_SizeDelta: {x: 320, y: 16}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1221278563
@@ -23193,6 +23193,9 @@ MonoBehaviour:
   tutorialPlayerItems: C
   tutorialClownMoves: SB
   clownLaterSeconds: 1.2
+  bondWinChance: 0.5
+  bondWin: 2
+  bondLose: 1
 --- !u!4 &2083682520
 Transform:
   m_ObjectHideFlags: 0

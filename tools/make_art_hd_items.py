@@ -354,6 +354,34 @@ def icon_flip(pal, w, h):
     return cv
 
 
+def icon_riskbond(pal, w, h):
+    """risk-bond 121 — 위험 채권(전 구제 금융, 50% 잔고 +2 / 50% −1) = 크림색 채권 증서 + 빨간 대각선 "위험" 띠(경고 줄무늬)
+    + 오른쪽 위 작은 초록 "+"와 빨간 "−"(반반). 증서: 테두리 gray0, 안쪽 테 cream0, 글 줄(gray1) 3개, 왼쪽 아래 둥근 도장 자리.
+    파일 이름은 그대로 item-bailout(Scene·에셋 연결을 지키려고)."""
+    cv = blank(pal, w, h)
+    u, v, px = grid(w, h)
+    paper = (u >= 1.2) & (u <= 15.8) & (v >= 3.0) & (v <= 14.6)
+    cv.fill(paper, "cream")
+    cv.fill(paper & (u < 3.0), "cream2")                                  # 왼쪽 빛
+    cv.fill(paper & ((u > 14.4) | (v > 13.4)), "cream0")                  # 오른쪽 아래 그늘
+    inner = (u >= 2.4) & (u <= 14.6) & (v >= 4.2) & (v <= 13.4)
+    cv.fill(paper & ~inner & (u > 1.8) & (u < 15.2) & (v > 3.6) & (v < 14.0), "cream0")   # 안쪽 테
+    for ly in (6.0, 7.8, 9.6):                                            # 글 줄
+        cv.fill((np.abs(v - ly) <= 0.35) & (u >= 4.0) & (u <= 12.6), "gray1")
+    cv.fill(np.hypot(u - 5.0, v - 11.8) <= 1.3, "red1")                   # 도장 자리
+    stripe = paper & (np.abs((u - 8.5) + (v - 8.8) * 0.9) <= 1.5)          # 대각선 위험 띠
+    cv.fill(stripe, "red3")
+    cv.fill(stripe & ((np.floor((u - v) / 1.2) % 2) == 0), "bg00")       # 경고 줄무늬(빨강·검정)
+    cv.fill(outline(paper), "gray0")
+    plus_sign(cv, u, v, px, 18.6, 4.2, arm=1.8, half=0.7)                 # + (이기면)
+    minus = (np.abs(u - 18.6) <= 1.8) & (np.abs(v - 9.0) <= 0.7)          # − (지면)
+    cv.fill(outline(minus), "red0")
+    cv.fill(minus, "red3")
+    return cv
+
+
+RISK_ICONS = {"bailout": icon_riskbond}   # risk-bond 121: 파일 이름은 item-bailout 그대로
+
 ICONS = {"chart": icon_chart, "rumor": icon_rumor, "halt": icon_halt, "lottery": icon_lottery}
 HEAL_ICONS = {"dividend": icon_dividend, "bailout": icon_bailout}   # heal-items 89(따로 — 기존 아이콘 파일은 다시 안 그림)
 FLIP_ICONS = {"flip": icon_flip}   # flip-item 102(따로 — 기존 아이콘 파일은 다시 안 그림)
@@ -533,4 +561,20 @@ if __name__ == "__main__":
         sys.exit(0 if make_game(pal) else 1)
     if cmd == "heal":   # heal-items 89: 배당금·구제 금융 아이콘(슬롯 42x32·확인 68x52) + 기존 4종과 나란히 미리보기
         sys.exit(0 if make_heal(pal) else 1)
+    if cmd == "riskbond":   # risk-bond 121: 위험 채권 아이콘(item-bailout 이름 그대로) + 7종 나란히 미리보기
+        dst = OUT / "game"
+        dst.mkdir(parents=True, exist_ok=True)
+        files = []
+        for suf, size in (("", ICON_SMALL), ("-big", ICON_BIG)):
+            f = dst / f"item-bailout{suf}.png"
+            write_png(f, icon_riskbond(pal, *size).rgba())
+            files.append(f)
+        allicons = list(ICONS.items()) + [("dividend", icon_dividend), ("bailout", icon_riskbond), ("flip", icon_flip)]
+        sheet = np.tile(pal["bg0"], (32 + 52 + 12, len(allicons) * 72 + 8, 1)).astype(np.uint8)
+        for i, (name, fn) in enumerate(allicons):
+            paste(sheet, fn(pal, *ICON_SMALL), 4 + 72 * i + 13, 2, pal)
+            paste(sheet, fn(pal, *ICON_BIG), 4 + 72 * i, 40, pal)
+        write_png(OUT / "riskbond-preview-x3.png", sheet.repeat(3, 0).repeat(3, 1))
+        print("팔레트 검사 (32색):")
+        sys.exit(0 if check32(files, pal) else 1)
     print(__doc__)

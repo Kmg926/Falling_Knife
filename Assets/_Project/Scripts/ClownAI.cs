@@ -39,16 +39,11 @@ public static class ClownAI
         // ② 거래 정지가 있고 플레이어가 정지 상태가 아니면 사용
         if (Has(items, ItemType.TradingHalt) && !opponentHalted) return ClownMove.UseItem(ItemType.TradingHalt);
 
-        // ③-1 heal-items 90: 잔고가 기준값 이하이고 회복 아이템이 있으면 사용(복권보다 먼저 — 확실한 회복이 운보다 앞).
-        //      2 이상 비었으면 구제 금융(+2)을 먼저, 1만 비었으면 배당금(+1)을 먼저(구제 금융을 아낌). 가득이면 쓰지 않음.
-        if (balance <= lotteryThreshold && balance < maxBalance)
-        {
-            bool bigFirst = maxBalance - balance >= 2;
-            ItemType first = bigFirst ? ItemType.Bailout : ItemType.Dividend;
-            ItemType second = bigFirst ? ItemType.Dividend : ItemType.Bailout;
-            if (Has(items, first)) return ClownMove.UseItem(first);
-            if (Has(items, second)) return ClownMove.UseItem(second);
-        }
+        // ③-1 heal-items 90: 잔고가 기준값 이하이고 회복 아이템(배당금)이 있으면 사용(복권보다 먼저 — 확실한 회복이 운보다 앞). 가득이면 쓰지 않음.
+        if (balance <= lotteryThreshold && balance < maxBalance && Has(items, ItemType.Dividend)) return ClownMove.UseItem(ItemType.Dividend);
+        // ③-2 risk-bond 121: 위험 채권(전 구제 금융, 50% +2 / 50% −1)은 잔고가 기준값 이하일 때 "마지막 희망"으로(Grilling Q7).
+        //      단 잔고 1이면 지면 바로 파산이라 쓰지 않음(2 이상일 때만)
+        if (balance <= lotteryThreshold && balance >= 2 && Has(items, ItemType.Bailout)) return ClownMove.UseItem(ItemType.Bailout);
         // ③ 잔고가 기준값 이하이고 복권이 있으면 사용 (GDD는 잔고 1, gdd-changes #32)
         if (balance <= lotteryThreshold && Has(items, ItemType.Lottery)) return ClownMove.UseItem(ItemType.Lottery);
 

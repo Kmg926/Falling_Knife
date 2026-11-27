@@ -269,8 +269,8 @@ public class GameManager : MonoBehaviour
             case ItemType.ChartAnalysis: return ClownLine.ChartDone;
             case ItemType.Rumor: return ClownLine.RumorDone;
             case ItemType.TradingHalt: return ClownLine.HaltDone;
-            case ItemType.Dividend:
-            case ItemType.Bailout: return ClownLine.Healed;   // heal-items 90: "숨 좀 돌리지."
+            case ItemType.Dividend: return ClownLine.Healed;   // heal-items 90: "숨 좀 돌리지."
+            case ItemType.Bailout: return LastBondWon ? ClownLine.LotteryHeal : ClownLine.LotteryNothing;   // risk-bond 121: 도박이라 복권 대사를 씀 — 이기면 "운이 좋군.", 지면 "…꽝이군."
             case ItemType.Flip: return ClownLine.FlipDone;    // flip-item 101: "흐름을 바꿨다."
         }
         switch (LastLotteryOutcome)
@@ -669,8 +669,11 @@ public class GameManager : MonoBehaviour
                 RemovePlayerItemAt(ConfirmingSlot);
                 UseFlip(Player);
                 break;
+            case ItemType.Bailout:   // risk-bond 121: 위험 채권(전 구제 금융) = 도박, 잔고가 가득이어도 쓸 수 있음(Grilling Q3)
+                RemovePlayerItemAt(ConfirmingSlot);
+                UseRiskBond(Player);
+                break;
             case ItemType.Dividend:
-            case ItemType.Bailout:
                 // heal-items 89: 잔고가 가득이면 못 씀(아이템은 남음) — 거래 정지와 같은 방식
                 if (CannotHeal(Player, item))
                 {
@@ -897,9 +900,40 @@ public class GameManager : MonoBehaviour
         return (ItemType)last;   // 소수점 오차 대비(받을 수 있는 마지막 종류)
     }
 
-    // heal-items 89: 회복량(배당금 1·구제 금융 2, 회복 아이템이 아니면 0)
+    // heal-items 89: 회복량(배당금 1, 회복 아이템이 아니면 0). risk-bond 121: 위험 채권(Bailout)은 이제 회복템이 아니라 도박 → 0
     public static int HealAmount(ItemType item) =>
-        item == ItemType.Dividend ? 1 : item == ItemType.Bailout ? 2 : 0;
+        item == ItemType.Dividend ? 1 : 0;
+
+    // ── risk-bond 121(사용자 "구제 금융을 도박으로… 50% 확률로 2 얻고, 반대면 1 잃는다", 이름 "위험 채권") ──
+    [Header("risk-bond 121: 위험 채권")]
+    [SerializeField, Range(0f, 1f)] float bondWinChance = 0.5f;
+    [SerializeField] int bondWin = 2;    // 이기면 잔고 +2(시작 잔고까지)
+    [SerializeField] int bondLose = 1;   // 지면 잔고 −1(0이 되면 파산 — Grilling Q4)
+    public bool LastBondWon { get; private set; }       // 마지막 위험 채권이 이겼나(광대 결과 대사·결과 창)
+    public string LastBondText { get; private set; } = "";   // 결과 창 한 줄: "잔고 +2" / "잔고 −1"
+    public int PlayerBondCount { get; private set; }    // 내가 쓸 때마다 +1(결과 창 신호, 판정엔 안 씀)
+
+    void UseRiskBond(Participant user)
+    {
+        int before = user.Balance;
+        LastBondWon = Random.value < bondWinChance;
+        if (LastBondWon)
+        {
+            user.Heal(bondWin);   // 시작 잔고를 넘지 않음(가득이면 0 — 그래도 쓸 수 있음, Q3)
+            int got = user.Balance - before;
+            LastBondText = got > 0 ? $"잔고 +{got}" : "잔고 +0 (가득)";
+        }
+        else
+        {
+            user.TakeDamage(bondLose);
+            LastBondText = $"잔고 −{before - user.Balance}";
+            LastDamage = $"R{RoundNumber}, {user.Name} 위험 채권, 피해 {bondLose}";   // 결과 화면 결정타·원인
+            audioManager.PlayImpact();
+            ui.FlashDamage(user == Player);
+        }
+        LastResult = $"{user.Name}: {ItemName(ItemType.Bailout)} → {(LastBondWon ? "성공" : "실패")} {LastBondText}";
+        if (user == Player) PlayerBondCount++;
+    }
 
     // 잔고가 가득이면 회복 아이템을 쓸 수 없다(Grilling Q2) — 확인 화면 안내에도 씀
     public static bool CannotHeal(Participant p, ItemType item) =>
@@ -1061,8 +1095,8 @@ public class GameManager : MonoBehaviour
             case ItemType.Rumor: UseRumor(Clown); break;
             case ItemType.TradingHalt: UseTradingHalt(Clown); break;
             case ItemType.Lottery: UseLottery(Clown); break;
-            case ItemType.Dividend:
-            case ItemType.Bailout: UseHeal(Clown, item); break;   // heal-items 90
+            case ItemType.Dividend: UseHeal(Clown, item); break;   // heal-items 90
+            case ItemType.Bailout: UseRiskBond(Clown); break;       // risk-bond 121
             case ItemType.Flip: UseFlip(Clown); break;           // flip-item 101
         }
     }

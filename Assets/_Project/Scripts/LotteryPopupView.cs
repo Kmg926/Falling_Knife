@@ -33,6 +33,7 @@ public class LotteryPopupView : MonoBehaviour
 
     int lastCount;
     int lastFlipCount;   // flip-item 101
+    int lastBondCount;   // risk-bond 121
     Image[] edges;
 
     void Awake()
@@ -42,10 +43,17 @@ public class LotteryPopupView : MonoBehaviour
         frame.gameObject.SetActive(false);
     }
 
-    void Start() { lastCount = game.PlayerLotteryCount; lastFlipCount = game.PlayerFlipCount; }
+    void Start() { lastCount = game.PlayerLotteryCount; lastFlipCount = game.PlayerFlipCount; lastBondCount = game.PlayerBondCount; }
 
     void Update()
     {
+        if (game.PlayerBondCount != lastBondCount)   // risk-bond 121: 위험 채권 결과도 같은 판으로
+        {
+            lastBondCount = game.PlayerBondCount;
+            StopAllCoroutines();
+            StartCoroutine(ShowBond());
+            return;
+        }
         if (game.PlayerFlipCount != lastFlipCount)   // flip-item 101: 작전도 같은 판으로
         {
             lastFlipCount = game.PlayerFlipCount;
@@ -69,6 +77,20 @@ public class LotteryPopupView : MonoBehaviour
         root.SetActive(true);
         yield return Pop();
         yield return new WaitForSeconds(showSeconds - popSeconds);
+        root.SetActive(false);
+    }
+
+    // risk-bond 121: "위험 채권 / 잔고 +2"(성공 = 금색·높은 소리) 또는 "잔고 −1"(실패 = 회색·낮은 소리), 내 잔고 줄을 금색 틀로 반짝임
+    IEnumerator ShowBond()
+    {
+        bool won = game.LastBondWon;
+        if (titleText != null) titleText.text = "위험 채권";
+        resultText.text = game.LastBondText;
+        resultText.color = won ? winColor : loseColor;
+        audioManager.PlayVoice(soundVolume, won ? winPitch : losePitch);
+        root.SetActive(true);
+        yield return Pop();
+        yield return Blink(myBalanceArea, showSeconds - popSeconds);
         root.SetActive(false);
     }
 

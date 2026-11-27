@@ -47,7 +47,7 @@ public class ClownSpeechView : MonoBehaviour
         new Entry { line = ClownLine.LotteryNothing,  text = "…꽝이군." },
         // heal-items 90
         new Entry { line = ClownLine.UseDividend,     text = "<color=#D9B45A>배당금</color>을 쓰겠다." },
-        new Entry { line = ClownLine.UseBailout,      text = "<color=#D9B45A>구제 금융</color>을 쓰겠다." },
+        new Entry { line = ClownLine.UseBailout,      text = "<color=#D9B45A>위험 채권</color>에 걸겠다." },   // risk-bond 121(전 구제 금융)
         new Entry { line = ClownLine.Healed,          text = "숨 좀 돌리지." },
         // flip-item 101
         new Entry { line = ClownLine.UseFlip,         text = "<color=#D9B45A>작전</color>을 쓰겠다." },

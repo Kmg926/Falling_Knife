@@ -27,7 +27,7 @@ public enum ClownLine
 
     // ── heal-items 90: 회복 아이템 (뒤에 추가 — 앞 번호 그대로) ──
     UseDividend,   // "배당금을 받지."
-    UseBailout,    // "구제 금융을 쓰지."
+    UseBailout,    // "위험 채권에 걸겠다." (risk-bond 121: 전 구제 금융, 이름만 바뀜 — enum 값은 그대로)
     Healed,        // 회복 뒤 "숨 좀 돌리지."
 
     // ── flip-item 101: 작전 (뒤에 추가 — 앞 번호 그대로) ──
